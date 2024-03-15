@@ -4,20 +4,12 @@
 #include "BLEnemiesWidget.h"
 #include "Components/TileView.h"
 #include "Entries/BLEnemyEntryData.h"
+#include "Entries/BLEnemyEntryWidget.h"
 
 void UBLEnemiesWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-}
-
-void UBLEnemiesWidget::EnemyDied(int32 Index)
-{
-	UBLEnemyEntryData* Enemy= Cast<UBLEnemyEntryData>(EnemiesTileView->GetItemAt(Index));
-	if (Enemy)
-	{
-		Enemy->EnemyDied();
-	}
 }
 
 void UBLEnemiesWidget::AddEnemy(int32 Index, const FString& EnemyName)
@@ -29,5 +21,16 @@ void UBLEnemiesWidget::AddEnemy(int32 Index, const FString& EnemyName)
 		EnemiesTileView->AddItem(Enemy);
 	}
 }
+
+void UBLEnemiesWidget::EnemyDied(int32 Index)
+{
+	UBLEnemyEntryWidget* EnemyWidget = Cast<UBLEnemyEntryWidget>(EnemiesTileView->GetEntryWidgetFromItem(EnemiesTileView->GetItemAt(Index)));
+	if (EnemyWidget)
+	{
+		EnemyWidget->GreyOutEnemy();
+	}
+}
+
+
 
 

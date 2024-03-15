@@ -6,8 +6,6 @@
 #include "UObject/NoExportTypes.h"
 #include "BLHeroEntryData.generated.h"
 
-DECLARE_DELEGATE(FOnHeroDied);
-
 /**
  * 
  */
@@ -17,13 +15,10 @@ class BLADEOFLEGEND_API UBLHeroEntryData : public UObject
 	GENERATED_BODY()
 
 public:
+	/** Sets the data needed for UI */
 	void Init(int32 InIndex, const FText& InName, float InHP, float InME);
 
-	void HeroDied();
-
 public:
-	FOnHeroDied OnHeroDied;
-
 	UPROPERTY()
 	int32 Index;
 	UPROPERTY()

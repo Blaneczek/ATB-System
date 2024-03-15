@@ -20,11 +20,27 @@ protected:
 	virtual void NativeConstruct() override;
 
 public:
-	void HeroDied(int32 Index);
-
+	/** Adds item to TileView */
 	void AddHero(int32 Index, const FString& HeroName, float HP, float ME);
 
+	/** Will call when one of the heroes has died which will gray out the corresponding item in TileView */
+	void HeroDied(int32 Index);
+
+	/** Functions for items in TileView */
+	void UpdateHeroHP(int32 Index, float MaxHP, float CurrentHP);
+	void UpdateHeroME(int32 Index, float MaxME, float CurrentME);
+	void StartHeroCooldownBar(int32 Index, float Cooldown);
+	void ResetHeroCooldownBar(int32 Index);
+	/**
+	* Pause/unpause all cooldown bars 
+	* 
+	* @param bNewPause true - pause, false - unpause
+	*/
+	void PauseAllCooldownBars(bool bNewPause);
+	
+
 protected:
+	/** TileView with the heroes who will take part in the Combat */
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
 	TObjectPtr<UTileView> HeroesTileView;
 };

@@ -19,11 +19,13 @@ class BLADEOFLEGEND_API UBLEnemyEntryWidget : public UUserWidget, public IUserOb
 	GENERATED_BODY()
 	
 protected:
-	// IUserObjectListEntry interface
+	/** IUserObjectListEntry interface implementation */
 	virtual void NativeOnListItemObjectSet(UObject* ListItemObject) override;
 	
 public:
-	void EnemyDied();
+
+	/** Greys the border when enemy died */
+	void GreyOutEnemy();
 
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))

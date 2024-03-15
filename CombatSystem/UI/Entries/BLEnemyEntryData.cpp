@@ -8,8 +8,3 @@ void UBLEnemyEntryData::Init(int32 InIndex, const FText& InName)
 	Index = InIndex;
 	Name = InName;
 }
-
-void UBLEnemyEntryData::EnemyDied()
-{
-	OnEnemyDied.ExecuteIfBound();
-}

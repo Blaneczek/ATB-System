@@ -10,8 +10,3 @@ void UBLHeroEntryData::Init(int32 InIndex, const FText& InName, float InHP, floa
 	HP = InHP;
 	ME = InME;
 }
-
-void UBLHeroEntryData::HeroDied()
-{
-	OnHeroDied.ExecuteIfBound();
-}

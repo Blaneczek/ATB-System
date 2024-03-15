@@ -20,12 +20,24 @@ class BLADEOFLEGEND_API UBLHeroEntryWidget : public UUserWidget, public IUserObj
 	GENERATED_BODY()
 	
 protected:
-	// IUserObjectListEntry interface
+	/** IUserObjectListEntry interface implementation */ 
 	virtual void NativeOnListItemObjectSet(UObject* ListItemObject) override;
 
-public:
-	// todo: funcions
+public:	
 	void SetData(int32 InIndex, const FText& InName, float InHP, float InME);
+
+	/** Greys the border and resets cooldown bar when hero died */
+	void GreyOutHero();
+
+	/** Updates text widgets */
+	void UpdateHP(float MaxHP, float CurrentHP);
+	void UpdateME(float MaxME, float CurrentME);
+
+	/** Handle cooldown bar functions */
+	void StartCooldownBar(float Cooldown);
+	void PauseCooldownBar();
+	void UnPauseCooldownBar();
+	void ResetCooldownBar();
 
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))

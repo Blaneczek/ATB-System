@@ -12,11 +12,10 @@ void UBLEnemyEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 	if (Item)
 	{
 		Name->SetText(Item->Name);
-		Item->OnEnemyDied.BindUObject(this, &UBLEnemyEntryWidget::EnemyDied);
 	}
 }
 
-void UBLEnemyEntryWidget::EnemyDied()
+void UBLEnemyEntryWidget::GreyOutEnemy()
 {
 	Border->SetBrushColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.f));
 }
