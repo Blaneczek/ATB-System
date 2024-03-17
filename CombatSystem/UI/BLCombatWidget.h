@@ -9,9 +9,11 @@
 
 class UBLEnemiesWidget;
 class UBLHeroesWidget;
+class UBLActionsWidget;
+class UWidgetSwitcher;
+class UBorder;
 
-
-DECLARE_DELEGATE_TwoParams(FOnChosenAction, ECombatActionType /*ActionType*/, int32 /*ActionIndex*/);
+DECLARE_DELEGATE_TwoParams(FOnActionTypeChosen, ECombatActionType /*ActionType*/, int32 /*ActionIndex*/);
 
 /**
  * 
@@ -24,31 +26,45 @@ class BLADEOFLEGEND_API UBLCombatWidget : public UUserWidget
 protected:
 	virtual void NativeConstruct() override;
 
+	virtual void NativeOnInitialized() override;
+
 public:
+	/** Adds row with hero to widget */
 	void AddHero(int32 SlotIndex, const FCombatCharData& BaseData);
+	/** Adds cell with enemy to widget */
 	void AddEnemy(int32 SlotIndex, const FString& EnemyName);
+	/** Populate actions */
+	void AddHeroActions(int32 SlotIndex, const FAttackActionData& AttackData, const FDefendActionData& DefendData);
 
+	/** Highlights chosen hero and shows his actions */
 	void SetCurrentHero(int32 SlotIndex);
+	/** Unhighlights highlighted hero and hides his actions */
+	void ResetCurrentHero(int32 SlotIndex);
 
-	void ShowActions(int32 SlotIndex);
-	void ResetActions(int32 SlotIndex);
-
-	void HighlightHero(int32 SlotIndex);
-	void UnlightHero(int32 SlotInde);
+	/** Called when one of the heroes died and greys him out */
 	void HeroDied(int32 SlotIndex);
+	/** Called when one of the enemies died and greys him out */
 	void EnemyDied(int32 SlotIndex);
 
-	void PauseCooldownBars();
-	void UnPauseCooldownBars();
+	/** Stops filling heroes' cooldown bars */
+	void PauseCooldownBars(bool bNewPause);
+	/** Starts filling from zero hero's cooldown bar */
 	void StartHeroCooldownBar(int32 SlotIndex, float Cooldown);
+	/** Resets hero's cooldown bar to zero */
 	void ResetHeroCooldownBar(int32 SlotIndex);
-	
+
 	void SetIsActionVisibility(ESlateVisibility InVisibility);
 
-	void UpdateHeroHealth(int32 SlotIndex, float CurrentHP, float MaxHP);
+	void UpdateHeroHealth(int32 SlotIndex, float MaxHP, float CurrentHP);
+	void UpdateHeroMagicEnergy(int32 SlotIndex, float MaxME, float CurrentME);
+
+	void HideActions();
+
+private:
+	void ChosenAction(ECombatActionType Action, int32 ActionIndex);
 
 public:
-	FOnChosenAction OnChosenAction;
+	FOnActionTypeChosen OnActionChosen;
 
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
@@ -56,4 +72,24 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
 	TObjectPtr<UBLHeroesWidget> Heroes;
+
+	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
+	TObjectPtr<UWidgetSwitcher> ActionsSwitcher;
+
+	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
+	TObjectPtr<UBorder> NoneActions;
+	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
+	TObjectPtr<UBLActionsWidget> Actions_0;
+	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
+	TObjectPtr<UBLActionsWidget> Actions_1;
+	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
+	TObjectPtr<UBLActionsWidget> Actions_2;
+	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
+	TObjectPtr<UBLActionsWidget> Actions_3;
+	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
+	TObjectPtr<UBLActionsWidget> Actions_4;
+
+private:
+	UPROPERTY()
+	TArray<TObjectPtr<UBLActionsWidget>> Actions;
 };

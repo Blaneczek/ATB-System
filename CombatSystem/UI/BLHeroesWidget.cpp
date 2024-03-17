@@ -30,6 +30,15 @@ void UBLHeroesWidget::HeroDied(int32 Index)
 	}
 }
 
+void UBLHeroesWidget::HighlightHero(int32 Index, bool bNewColor)
+{
+	UBLHeroEntryWidget* HeroWidget = Cast<UBLHeroEntryWidget>(HeroesTileView->GetEntryWidgetFromItem(HeroesTileView->GetItemAt(Index)));
+	if (HeroWidget)
+	{
+		bNewColor ? HeroWidget->HighlightHero() : HeroWidget->UnlightHero();
+	}
+}
+
 void UBLHeroesWidget::UpdateHeroHP(int32 Index, float MaxHP, float CurrentHP)
 {
 	UBLHeroEntryWidget* HeroWidget = Cast<UBLHeroEntryWidget>(HeroesTileView->GetEntryWidgetFromItem(HeroesTileView->GetItemAt(Index)));

@@ -13,7 +13,6 @@ class UPaperZDAnimInstance;
 class UPaperFlipbook;
 class ABLRangeProjectile;
 
-DECLARE_DELEGATE(FOnStartCooldown);
 DECLARE_DELEGATE(FOnEndCooldown);
 DECLARE_DELEGATE(FOnActionEnded);
 DECLARE_DELEGATE(FOnHealthUpdate);
@@ -69,7 +68,6 @@ private:
 	void ReachedSlotLocation(FAIRequestID RequestID, const FPathFollowingResult& Result);
 
 public:
-	FOnStartCooldown OnStartCooldown;
 	FOnEndCooldown OnEndCooldown;
 	FOnActionEnded OnActionEnded;
 	FOnHealthUpdate OnHealthUpdate;
@@ -109,6 +107,7 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<ABLCombatCharacter> TargetCharacter;
+
 	UPROPERTY()
 	FVector SlotLocation;
 };

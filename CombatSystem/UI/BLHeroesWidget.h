@@ -26,11 +26,17 @@ public:
 	/** Will call when one of the heroes has died which will gray out the corresponding item in TileView */
 	void HeroDied(int32 Index);
 
-	/** Functions for items in TileView */
+	/**  
+	* Will call when one of the heroes has been selected or deselected which will change color of the corresponding item in TileView 
+	* @param bNewColor true - highlight color, false - default color
+	*/
+	void HighlightHero(int32 Index, bool bNewColor);
+	
 	void UpdateHeroHP(int32 Index, float MaxHP, float CurrentHP);
 	void UpdateHeroME(int32 Index, float MaxME, float CurrentME);
 	void StartHeroCooldownBar(int32 Index, float Cooldown);
 	void ResetHeroCooldownBar(int32 Index);
+
 	/**
 	* Pause/unpause all cooldown bars 
 	* 
@@ -38,7 +44,6 @@ public:
 	*/
 	void PauseAllCooldownBars(bool bNewPause);
 	
-
 protected:
 	/** TileView with the heroes who will take part in the Combat */
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))

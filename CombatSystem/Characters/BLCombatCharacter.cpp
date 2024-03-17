@@ -23,18 +23,11 @@ void ABLCombatCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	AIC = Cast<AAIController>(GetController());
-
-	OnStartCooldown.BindUObject(this, &ABLCombatCharacter::StartCooldown);
-	
-	AttackAction(FVector(0, 0, 0), nullptr);
 }
 
 void ABLCombatCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	//UE_LOG(LogTemp, Warning, TEXT("%f|%f|%f"), GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z);
-	//UE_LOG(LogTemp, Warning, TEXT("%f"), GetVelocity().Length());
 }
 
 void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData, const FAttackActionData& InAttackData, const FDefendActionData& InDefendData)
@@ -186,7 +179,7 @@ void ABLCombatCharacter::AttackAction(const FVector& OwnerSlotLocation, ABLComba
 		ABLRangeProjectile* Projectile = GetWorld()->SpawnActor<ABLRangeProjectile>(ProjectileClass, GetActorTransform(), SpawnInfo);
 		if (Projectile)
 		{
-			Projectile->SetData(AttackActionData.RangeProjectileSprite, AttackActionData.DMG, AttackActionData.Element);
+			Projectile->SetData(AttackActionData.RangeProjectileSprite, AttackActionData.BaseDMG, AttackActionData.Element);
 			Projectile->FlyToTarget(Target);
 			Projectile->OnEndProjectile.BindUObject(this, &ABLCombatCharacter::EndAction);
 		}

@@ -33,6 +33,16 @@ void UBLHeroEntryWidget::GreyOutHero()
 	ResetCooldownBar();
 }
 
+void UBLHeroEntryWidget::HighlightHero()
+{
+	Border->SetBrushColor(FLinearColor(0.f, 0.35f, 0.5f, 1.f));
+}
+
+void UBLHeroEntryWidget::UnlightHero()
+{
+	Border->SetBrushColor(FLinearColor(1.f, 1.f, 1.f, 0.f));
+}
+
 void UBLHeroEntryWidget::UpdateHP(float MaxHP, float CurrentHP)
 {
 	FFormatNamedArguments Args;

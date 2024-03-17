@@ -4,6 +4,7 @@
 #include "BLCombatSlot.h"
 #include "Characters/BLCombatCharacter.h"
 #include "Components/BoxComponent.h"
+#include "Components/StaticMeshComponent.h"
 
 // Sets default values
 ABLCombatSlot::ABLCombatSlot()
@@ -15,6 +16,9 @@ ABLCombatSlot::ABLCombatSlot()
 	Box->SetupAttachment(RootComponent);
 	Box->SetBoxExtent(FVector(80.f, 80.f, 32.f));
 	Box->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
+
+	Platform = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Platform"));
+	Platform->SetupAttachment(Box);
 
 	Index = 0;
 	bIsEnemy = false;
@@ -55,9 +59,11 @@ void ABLCombatSlot::SpawnCharacter(const FCombatCharData& BaseData, const FAttac
 			Character->OnEndCooldown.BindUObject(this, &ABLCombatSlot::EndCharCooldown);
 			Character->OnActionEnded.BindUObject(this, &ABLCombatSlot::ActionEnded);
 			Character->OnDeath.BindUObject(this, &ABLCombatSlot::HandleCharDeath);
-			Character->OnHealthUpdate.BindUObject(this, &ABLCombatSlot::UpdateCharHealth);
-			Character->StartCooldown();
+			Character->OnHealthUpdate.BindUObject(this, &ABLCombatSlot::UpdateCharHealth);	
 			bIsActive = true;
+			// Cooldown will start after 1 sek
+			FTimerHandle CooldownTimer;
+			GetWorld()->GetTimerManager().SetTimer(CooldownTimer, this, &ABLCombatSlot::StartCharCooldown, 1.f, false);
 		}
 	}
 }

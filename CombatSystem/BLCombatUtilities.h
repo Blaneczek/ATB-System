@@ -151,7 +151,9 @@ struct FAttackActionData
 	UPROPERTY(EditAnywhere)
 	FText Name;
 	UPROPERTY(EditAnywhere)
-	float DMG;
+	FText Description;
+	UPROPERTY(EditAnywhere)
+	float BaseDMG;
 	UPROPERTY(EditAnywhere)
 	ECombatElementType Element;
 	UPROPERTY(EditAnywhere)
@@ -164,15 +166,16 @@ struct FAttackActionData
 	FAttackActionData()
 	{
 		Name = FText::FromString("");
-		DMG = 0;
+		Description = FText::FromString("");
+		BaseDMG = 0;
 		Element = ECombatElementType::NONE;
 		bIsRange = false;
 		ActionAnim = nullptr;
 		RangeProjectileSprite = nullptr;
 	}
 
-	FAttackActionData(const FText& InName, float InDMG, ECombatElementType InElement, bool IsRange, UPaperZDAnimSequence* InActionAnim, UPaperFlipbook* InProjectileSprite)
-		:Name(InName), DMG(InDMG), Element(InElement), bIsRange(bIsRange), ActionAnim(InActionAnim), RangeProjectileSprite(InProjectileSprite)
+	FAttackActionData(const FText& InName, const FText& InDesc, float InDMG, ECombatElementType InElement, bool IsRange, UPaperZDAnimSequence* InActionAnim, UPaperFlipbook* InProjectileSprite)
+		:Name(InName), Description(InDesc), BaseDMG(InDMG), Element(InElement), bIsRange(bIsRange), ActionAnim(InActionAnim), RangeProjectileSprite(InProjectileSprite)
 	{}
 };
 
@@ -184,15 +187,18 @@ struct FDefendActionData
 	UPROPERTY(EditAnywhere)
 	FText Name;
 	UPROPERTY(EditAnywhere)
+	FText Description;
+	UPROPERTY(EditAnywhere)
 	TObjectPtr<UPaperZDAnimSequence> ActionAnim;
 
 	FDefendActionData()
 	{
 		Name = FText::FromString("");
+		Description = FText::FromString("");
 		ActionAnim = nullptr;
 	}
 
-	FDefendActionData(const FText& InName, UPaperZDAnimSequence* InActionAnim)
-		:Name(InName), ActionAnim(InActionAnim)
+	FDefendActionData(const FText& InName, const FText& InDesc, UPaperZDAnimSequence* InActionAnim)
+		:Name(InName), Description(InDesc), ActionAnim(InActionAnim)
 	{}
 };

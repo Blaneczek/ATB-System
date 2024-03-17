@@ -9,6 +9,7 @@
 
 class ABLCombatCharacter;
 class UBoxComponent;
+class UStaticMeshComponent;
 
 DECLARE_DELEGATE_OneParam(FOnSelectedSlot, ABLCombatSlot* /*Slot*/);
 DECLARE_DELEGATE_TwoParams(FOnCharActionEnded, ABLCombatSlot* /*Slot*/, bool /*bIsEnemy*/);
@@ -71,7 +72,13 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
 	TObjectPtr<UBoxComponent> Box;
 
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BL|Combat")
+	TObjectPtr<UStaticMeshComponent> Platform;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "BL|Combat")
+	TObjectPtr<UMaterialInstance> DefaultMaterial;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "BL|Combat")
+	TObjectPtr<UMaterialInstance> ClickedMaterial;
+
 	UPROPERTY()
 	bool bIsActive;
 	UPROPERTY()
@@ -90,4 +97,6 @@ private:
 	uint32 Index;
 	UPROPERTY(EditInstanceOnly, Category = "BL|Combat")
 	bool bIsEnemy;
+
+	
 }; 

@@ -11,6 +11,7 @@
 #include "Data/BLEnemyDataAsset.h"
 #include "UObject/SoftObjectPtr.h"
 #include "UI/BLCombatWidget.h"
+#include "UI/BLActionsWidget.h"
 
 // Sets default values
 ABLCombatManager::ABLCombatManager()
@@ -47,15 +48,15 @@ void ABLCombatManager::BeginPlay()
 	InitializeWidget();
 	SetPlayerTeam();
 	SetEnemyTeam();
+	BindPlayerDelegetes();
+	BindEnemyDelegetes();
 	if (Widget)
 	{
 		Widget->AddToViewport();
 	}
-	
-	BindPlayerDelegetes();
-	BindEnemyDelegetes();
 
 	GetWorld()->GetTimerManager().SetTimer(ActionQueueTimer, this, &ABLCombatManager::HandleActionsQueue, 0.5f, true);
+
 }
 
 // Called every frame
@@ -80,6 +81,7 @@ void ABLCombatManager::SetPlayerTeam()
 				if (Widget)
 				{
 					Widget->AddHero(PlayerTeam[Index]->GetIndex(), BaseData);
+					Widget->AddHeroActions(PlayerTeam[Index]->GetIndex(), Data->Heroes[Index].AttackAction, Data->Heroes[Index].DefendAction);
 				}
 			}					
 		};
@@ -115,62 +117,92 @@ void ABLCombatManager::InitializeWidget()
 	if (WidgetClass)
 	{
 		Widget = CreateWidget<UBLCombatWidget>(GetWorld(), WidgetClass);
-		Widget->OnChosenAction.BindUObject(this, &ABLCombatManager::ChooseAction);
+		Widget->OnActionChosen.BindUObject(this, &ABLCombatManager::ChooseAction);
 	}
 }
 
 void ABLCombatManager::HandleSlotClicked(AActor* Slot)
 {
 	ABLCombatSlot* CurrentSlot = Cast<ABLCombatSlot>(Slot);
-	if (CurrentSlot && CurrentSlot->bIsActive)
+	if (!CurrentSlot || !CurrentSlot->bIsActive)
 	{
-		if (CurrentSlot->IsEnemy() && (ActionType == ECombatActionType::NONE || ActionType == ECombatActionType::DEFEND))
+		return;
+	}
+
+	switch (ActionType)
+	{
+		case ECombatActionType::NONE:
 		{
-			ClearEnemySlot();
-			ChooseEnemySlot(CurrentSlot);
-			AddActionToQueue(CurrentPlayerSlot, CurrentEnemySlot, ActionType, false);
-			if (CurrentPlayerSlot)
+			// If clicked on the hero
+			if (!CurrentSlot->IsEnemy() && CurrentSlot->bCanDoAction)
 			{
-				CurrentPlayerSlot->bCanDoAction = false;
-			}		
-			ClearPlayerSlot();
-			ChooseRandomPlayerSlot();
+				ClearPlayerSlot();
+				ChoosePlayerSlot(CurrentSlot);
+			}
 			return;
 		}
-		
-		if (ActionType == ECombatActionType::DEFEND && CurrentSlot == CurrentPlayerSlot)
+		case ECombatActionType::ATTACK:
 		{
-			AddActionToQueue(CurrentPlayerSlot, CurrentPlayerSlot, ActionType, false);
-			CurrentPlayerSlot->bCanDoAction = false;
-			ClearPlayerSlot();
-			ChooseRandomPlayerSlot();
+			// If clicked on the enemy
+			if (CurrentSlot->IsEnemy())
+			{
+				PlayerAttackAction(CurrentSlot);
+			}
+			// If clicked on the hero
+			else if (CurrentSlot->bCanDoAction)
+			{
+				ResetAction(CurrentSlot);
+			}
+			return;
 		}
-		else
+		case ECombatActionType::DEFEND:
 		{
-			ClearPlayerSlot();
-			ChoosePlayerSlot(CurrentSlot);
-		}		
-	}
+			// If clicked on the same hero
+			if (CurrentSlot == CurrentPlayerSlot && CurrentSlot->bCanDoAction)
+			{
+				PlayerDefendAction();
+			}
+			// If clicked on a different hero
+			else if (!CurrentSlot->IsEnemy() && CurrentSlot->bCanDoAction)
+			{
+				ResetAction(CurrentSlot);
+			}
+			return;
+		}
+		default: return;
+	}	
 }
 
 void ABLCombatManager::ChooseEnemySlot(ABLCombatSlot* Slot)
 {
 	CurrentEnemySlot = Slot;
-	//TOOD: add clicked enemy slot effect
+	//TODO: change clicked effect
+	if (CurrentPlayerSlot->ClickedMaterial)
+	{
+		CurrentPlayerSlot->Platform->SetMaterial(0, CurrentPlayerSlot->ClickedMaterial);
+	}
 }
 
 void ABLCombatManager::ChoosePlayerSlot(ABLCombatSlot* Slot)
 {
 	CurrentPlayerSlot = Slot;
 	ShowHeroActions(CurrentPlayerSlot);
-	//TOOD: add clicked player slot effect
+	//TODO: change clicked effect
+	if (CurrentPlayerSlot->ClickedMaterial)
+	{
+		CurrentPlayerSlot->Platform->SetMaterial(0, CurrentPlayerSlot->ClickedMaterial);
+	}	
 }
 
 void ABLCombatManager::ClearEnemySlot()
 {
 	if (CurrentEnemySlot)
 	{
-		//TODO: remove clicked enemy slot effect
+		//TODO: change clicked effect
+		if (CurrentPlayerSlot->DefaultMaterial)
+		{
+			CurrentPlayerSlot->Platform->SetMaterial(0, CurrentPlayerSlot->DefaultMaterial);
+		}
 		CurrentEnemySlot = nullptr;
 	}
 }
@@ -178,8 +210,13 @@ void ABLCombatManager::ClearEnemySlot()
 void ABLCombatManager::ClearPlayerSlot()
 {
 	if (CurrentPlayerSlot)
-	{
-		//TODO: remove clicked enemy slot effect
+	{	
+		HideHeroActions(CurrentPlayerSlot);
+		//TODO: change clicked effect
+		if (CurrentPlayerSlot->DefaultMaterial)
+		{
+			CurrentPlayerSlot->Platform->SetMaterial(0, CurrentPlayerSlot->DefaultMaterial);
+		}
 		HideHeroActions(CurrentPlayerSlot);
 		CurrentPlayerSlot = nullptr;
 	}
@@ -195,6 +232,11 @@ void ABLCombatManager::ChooseRandomPlayerSlot()
 			return;
 		}
 	}
+
+	//if (Widget)
+	//{
+		//Widget->HideActions();
+	//}
 }
 
 void ABLCombatManager::AddActionToQueue(ABLCombatSlot* OwnerSlot, ABLCombatSlot* TargetSlot, ECombatActionType Action, bool bEnemyAction)
@@ -253,7 +295,7 @@ void ABLCombatManager::DoAction(ABLCombatSlot* OwnerSlot, ABLCombatSlot* TargetS
 	if (Widget)
 	{
 		Widget->SetIsActionVisibility(ESlateVisibility::Visible);
-		Widget->PauseCooldownBars();
+		Widget->PauseCooldownBars(true);
 		if (!bEnemyAction)
 		{
 			Widget->ResetHeroCooldownBar(OwnerSlot->GetIndex());
@@ -319,7 +361,7 @@ void ABLCombatManager::ActionEnded(ABLCombatSlot* OwnerSlot, bool bWasEnemy)
 {
 	if (Widget)
 	{
-		Widget->UnPauseCooldownBars();
+		Widget->PauseCooldownBars(false);
 		Widget->SetIsActionVisibility(ESlateVisibility::Hidden);
 		if (!bWasEnemy)
 		{
@@ -328,13 +370,49 @@ void ABLCombatManager::ActionEnded(ABLCombatSlot* OwnerSlot, bool bWasEnemy)
 	}
 
 	UnPauseCooldowns();
-	ActionType = ECombatActionType::NONE;
 	bAction = false;
 }
 
 void ABLCombatManager::ChooseAction(ECombatActionType InActionType, int32 ActionIndex)
 {
+	UE_LOG(LogTemp, Warning, TEXT("choosen action"));
 	ActionType = InActionType;
+	//index
+}
+
+void ABLCombatManager::ResetAction(ABLCombatSlot* NewPlayerSlot)
+{
+	ActionType = ECombatActionType::NONE;
+	ClearPlayerSlot();
+	ChoosePlayerSlot(NewPlayerSlot);
+}
+
+void ABLCombatManager::PlayerAttackAction(ABLCombatSlot* EnemySlot)
+{
+	ClearEnemySlot();
+	ChooseEnemySlot(EnemySlot);
+	AddActionToQueue(CurrentPlayerSlot, CurrentEnemySlot, ActionType, false);
+	CurrentPlayerSlot->bCanDoAction = false;
+	ActionType = ECombatActionType::NONE;
+	if (Widget)
+	{
+		Widget->ResetHeroCooldownBar(CurrentPlayerSlot->GetIndex());
+	}
+	ClearPlayerSlot();
+	ChooseRandomPlayerSlot();
+}
+
+void ABLCombatManager::PlayerDefendAction()
+{
+	AddActionToQueue(CurrentPlayerSlot, CurrentPlayerSlot, ActionType, false);
+	CurrentPlayerSlot->bCanDoAction = false;
+	ActionType = ECombatActionType::NONE;
+	if (Widget)
+	{
+		Widget->ResetHeroCooldownBar(CurrentPlayerSlot->GetIndex());
+	}
+	ClearPlayerSlot();
+	ChooseRandomPlayerSlot();
 }
 
 void ABLCombatManager::PauseCooldowns()
@@ -378,7 +456,6 @@ void ABLCombatManager::ShowHeroActions(ABLCombatSlot* PlayerSlot)
 	if (Widget)
 	{
 		Widget->SetCurrentHero(PlayerSlot->GetIndex());
-		Widget->ShowActions(PlayerSlot->GetIndex());
 	}
 }
 
@@ -386,8 +463,7 @@ void ABLCombatManager::HideHeroActions(ABLCombatSlot* PlayerSlot)
 {
 	if (Widget)
 	{
-		Widget->ResetActions(PlayerSlot->GetIndex());
-		Widget->UnlightHero(PlayerSlot->GetIndex());
+		Widget->ResetCurrentHero(PlayerSlot->GetIndex());
 	}
 }
 
@@ -395,7 +471,15 @@ void ABLCombatManager::UpdateHeroHealth(ABLCombatSlot* PlayerSlot)
 {
 	if (Widget)
 	{
-		Widget->UpdateHeroHealth(PlayerSlot->GetIndex(), PlayerSlot->GetCharacter()->GetCurrentHP(), PlayerSlot->GetCharacter()->GetMaxHP());
+		Widget->UpdateHeroHealth(PlayerSlot->GetIndex(), PlayerSlot->GetCharacter()->GetMaxHP(), PlayerSlot->GetCharacter()->GetCurrentHP());
+	}
+}
+
+void ABLCombatManager::UpdateHeroMagicEnergy(ABLCombatSlot* PlayerSlot)
+{
+	if (Widget)
+	{
+		Widget->UpdateHeroMagicEnergy(PlayerSlot->GetIndex(), PlayerSlot->GetCharacter()->GetMaxME(), PlayerSlot->GetCharacter()->GetCurrentME());
 	}
 }
 
@@ -496,4 +580,5 @@ void ABLCombatManager::BindEnemyDelegetes()
 		}
 	}
 }
+
 

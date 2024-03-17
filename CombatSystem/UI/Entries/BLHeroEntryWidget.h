@@ -29,11 +29,15 @@ public:
 	/** Greys the border and resets cooldown bar when hero died */
 	void GreyOutHero();
 
+	/** Changes border color when Hero is selected */
+	void HighlightHero();
+	/** Changes border to default when Hero is deselected */
+	void UnlightHero();
+
 	/** Updates text widgets */
 	void UpdateHP(float MaxHP, float CurrentHP);
 	void UpdateME(float MaxME, float CurrentME);
 
-	/** Handle cooldown bar functions */
 	void StartCooldownBar(float Cooldown);
 	void PauseCooldownBar();
 	void UnPauseCooldownBar();
