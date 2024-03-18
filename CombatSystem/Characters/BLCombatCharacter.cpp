@@ -16,6 +16,8 @@
 ABLCombatCharacter::ABLCombatCharacter()
 {
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
+	Movement->MaxWalkSpeed = 600.f;
 }
 
 void ABLCombatCharacter::BeginPlay()

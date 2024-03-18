@@ -24,6 +24,7 @@ ABLCombatSlot::ABLCombatSlot()
 	bIsEnemy = false;
 	bIsActive = false;
 	bCanDoAction = false;
+	bClicked = false;
 	Character = nullptr;
 }
 
@@ -32,6 +33,8 @@ void ABLCombatSlot::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	Box->OnBeginCursorOver.AddDynamic(this, &ABLCombatSlot::OnBeginMouseOver);
+	Box->OnEndCursorOver.AddDynamic(this, &ABLCombatSlot::OnEndMouseOver);
 }
 
 // Called every frame
@@ -164,5 +167,21 @@ void ABLCombatSlot::HandleCharDeath()
 void ABLCombatSlot::UpdateCharHealth()
 {
 	OnCharHealthUpdate.ExecuteIfBound(this);
+}
+
+void ABLCombatSlot::OnBeginMouseOver(UPrimitiveComponent* TouchedComponent)
+{
+	if (bIsActive && !bClicked && HoveredMaterial)
+	{
+		Platform->SetMaterial(0, HoveredMaterial);
+	}
+}
+
+void ABLCombatSlot::OnEndMouseOver(UPrimitiveComponent* TouchedComponent)
+{
+	if (bIsActive && !bClicked && DefaultMaterial)
+	{
+		Platform->SetMaterial(0, DefaultMaterial);
+	}
 }
 

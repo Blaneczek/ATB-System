@@ -23,6 +23,7 @@ void ABLCombatPlayerController::BeginPlay()
 
 	SetShowMouseCursor(true);
 	bEnableClickEvents = true;
+	bEnableMouseOverEvents = true;
 
 	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
 	{

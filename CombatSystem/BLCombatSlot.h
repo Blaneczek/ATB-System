@@ -68,21 +68,32 @@ private:
 	UFUNCTION()
 	void UpdateCharHealth();
 
+	/** Hovered slot effect */
+	UFUNCTION()
+	void OnBeginMouseOver(UPrimitiveComponent* TouchedComponent);
+	UFUNCTION()
+	void OnEndMouseOver(UPrimitiveComponent* TouchedComponent);
+
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
 	TObjectPtr<UBoxComponent> Box;
 
+	/** Temporary solution for clicked and hovered effect */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BL|Combat")
 	TObjectPtr<UStaticMeshComponent> Platform;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "BL|Combat")
 	TObjectPtr<UMaterialInstance> DefaultMaterial;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "BL|Combat")
 	TObjectPtr<UMaterialInstance> ClickedMaterial;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "BL|Combat")
+	TObjectPtr<UMaterialInstance> HoveredMaterial;
 
 	UPROPERTY()
 	bool bIsActive;
 	UPROPERTY()
 	bool bCanDoAction;
+	UPROPERTY()
+	bool bClicked;
 
 	FOnSelectedSlot OnSelectedSlot;
 	FOnCharActionEnded OnCharActionEnded;

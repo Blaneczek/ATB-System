@@ -77,6 +77,8 @@ private:
 
 	/** Unhighlights and nulls current enemy slot */
 	void ClearEnemySlot();
+	/** Unhighlights given enemy slot */
+	void ClearEnemySlot(ABLCombatSlot* EnemySlot);
 
 	/** Unhighlights and nulls current player slot */
 	void ClearPlayerSlot();

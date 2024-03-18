@@ -177,10 +177,11 @@ void ABLCombatManager::ChooseEnemySlot(ABLCombatSlot* Slot)
 {
 	CurrentEnemySlot = Slot;
 	//TODO: change clicked effect
-	if (CurrentPlayerSlot->ClickedMaterial)
+	if (CurrentEnemySlot->ClickedMaterial)
 	{
-		CurrentPlayerSlot->Platform->SetMaterial(0, CurrentPlayerSlot->ClickedMaterial);
+		CurrentEnemySlot->Platform->SetMaterial(0, CurrentEnemySlot->ClickedMaterial);
 	}
+	CurrentEnemySlot->bClicked = true;
 }
 
 void ABLCombatManager::ChoosePlayerSlot(ABLCombatSlot* Slot)
@@ -191,7 +192,8 @@ void ABLCombatManager::ChoosePlayerSlot(ABLCombatSlot* Slot)
 	if (CurrentPlayerSlot->ClickedMaterial)
 	{
 		CurrentPlayerSlot->Platform->SetMaterial(0, CurrentPlayerSlot->ClickedMaterial);
-	}	
+	}
+	CurrentPlayerSlot->bClicked = true;
 }
 
 void ABLCombatManager::ClearEnemySlot()
@@ -199,11 +201,24 @@ void ABLCombatManager::ClearEnemySlot()
 	if (CurrentEnemySlot)
 	{
 		//TODO: change clicked effect
-		if (CurrentPlayerSlot->DefaultMaterial)
+		if (CurrentEnemySlot->DefaultMaterial)
 		{
-			CurrentPlayerSlot->Platform->SetMaterial(0, CurrentPlayerSlot->DefaultMaterial);
+			CurrentEnemySlot->Platform->SetMaterial(0, CurrentEnemySlot->DefaultMaterial);
 		}
+		CurrentEnemySlot->bClicked = false;
 		CurrentEnemySlot = nullptr;
+	}
+}
+
+void ABLCombatManager::ClearEnemySlot(ABLCombatSlot* EnemySlot)
+{
+	if (EnemySlot)
+	{
+		if (EnemySlot->DefaultMaterial)
+		{
+			EnemySlot->Platform->SetMaterial(0, EnemySlot->DefaultMaterial);
+		}
+		EnemySlot->bClicked = false;
 	}
 }
 
@@ -217,6 +232,7 @@ void ABLCombatManager::ClearPlayerSlot()
 		{
 			CurrentPlayerSlot->Platform->SetMaterial(0, CurrentPlayerSlot->DefaultMaterial);
 		}
+		CurrentPlayerSlot->bClicked = false;
 		HideHeroActions(CurrentPlayerSlot);
 		CurrentPlayerSlot = nullptr;
 	}
@@ -384,6 +400,7 @@ void ABLCombatManager::ResetAction(ABLCombatSlot* NewPlayerSlot)
 {
 	ActionType = ECombatActionType::NONE;
 	ClearPlayerSlot();
+	ClearEnemySlot();
 	ChoosePlayerSlot(NewPlayerSlot);
 }
 
@@ -400,6 +417,10 @@ void ABLCombatManager::PlayerAttackAction(ABLCombatSlot* EnemySlot)
 	}
 	ClearPlayerSlot();
 	ChooseRandomPlayerSlot();
+	FTimerHandle ClearEnemyDelay;
+	FTimerDelegate ClearEnemyDel;
+	ClearEnemyDel.BindUObject(this, &ABLCombatManager::ClearEnemySlot, EnemySlot);
+	GetWorld()->GetTimerManager().SetTimer(ClearEnemyDelay, ClearEnemyDel, 1.f, false);
 }
 
 void ABLCombatManager::PlayerDefendAction()
