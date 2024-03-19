@@ -3,9 +3,3 @@
 
 #include "BLCombatHero.h"
 
-void ABLCombatHero::DefendAction()
-{
-	Super::DefendAction();
-
-	OnHealthUpdate.ExecuteIfBound();
-}

@@ -15,7 +15,7 @@ class BLADEOFLEGEND_API UBLDefendActionWidget : public UBLActionWidget
 	GENERATED_BODY()
 
 public:
-	virtual void SetActionData(const FDefendActionData& DefendData) override;
+	virtual void SetActionData(const TArray<TSoftClassPtr<UBLAction>>& InDefendActions) override;
 
 protected:
 	virtual void OnBTActionClicked() override;

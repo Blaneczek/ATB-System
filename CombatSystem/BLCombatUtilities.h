@@ -153,8 +153,6 @@ struct FAttackActionData
 	UPROPERTY(EditAnywhere)
 	FText Description;
 	UPROPERTY(EditAnywhere)
-	float BaseDMG;
-	UPROPERTY(EditAnywhere)
 	ECombatElementType Element;
 	UPROPERTY(EditAnywhere)
 	bool bIsRange;
@@ -167,15 +165,14 @@ struct FAttackActionData
 	{
 		Name = FText::FromString("");
 		Description = FText::FromString("");
-		BaseDMG = 0;
 		Element = ECombatElementType::NONE;
 		bIsRange = false;
 		ActionAnim = nullptr;
 		RangeProjectileSprite = nullptr;
 	}
 
-	FAttackActionData(const FText& InName, const FText& InDesc, float InDMG, ECombatElementType InElement, bool IsRange, UPaperZDAnimSequence* InActionAnim, UPaperFlipbook* InProjectileSprite)
-		:Name(InName), Description(InDesc), BaseDMG(InDMG), Element(InElement), bIsRange(bIsRange), ActionAnim(InActionAnim), RangeProjectileSprite(InProjectileSprite)
+	FAttackActionData(const FText& InName, const FText& InDesc, ECombatElementType InElement, bool IsRange, UPaperZDAnimSequence* InActionAnim, UPaperFlipbook* InProjectileSprite)
+		:Name(InName), Description(InDesc), Element(InElement), bIsRange(bIsRange), ActionAnim(InActionAnim), RangeProjectileSprite(InProjectileSprite)
 	{}
 };
 

@@ -13,6 +13,7 @@ class UWidgetSwitcher;
 class UBLActionWidget;
 class UBLAttackActionWidget;
 class UBLDefendActionWidget;
+class UBLAction;
 
 DECLARE_DELEGATE_TwoParams(FOnChosenAction, ECombatActionType /*ActionType*/, int32 /*ActionIndex*/);
 
@@ -28,7 +29,7 @@ protected:
 	virtual void NativeConstruct() override;
 
 public:
-	void SetActionsData(const FAttackActionData& AttackData, const FDefendActionData& DefendData);
+	void SetActionsData(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions);
 
 	/** Returns widget to default state */
 	void ResetWidget();

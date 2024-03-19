@@ -49,7 +49,7 @@ float ABLCombatSlot::GetCooldown() const
 	return Character->GetCooldown();
 }
 
-void ABLCombatSlot::SpawnCharacter(const FCombatCharData& BaseData, const FAttackActionData& AttackData, const FDefendActionData& DefendData)
+void ABLCombatSlot::SpawnCharacter(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& AttackActions, const TArray<TSoftClassPtr<UBLAction>>& DefendActions)
 {
 	if (BaseData.Class)
 	{
@@ -58,7 +58,7 @@ void ABLCombatSlot::SpawnCharacter(const FCombatCharData& BaseData, const FAttac
 		Character = GetWorld()->SpawnActor<ABLCombatCharacter>(BaseData.Class, GetActorTransform(), SpawnInfo);
 		if (Character)
 		{
-			Character->SetData(BaseData, AttackData, DefendData);
+			Character->SetData(BaseData, AttackActions, DefendActions);
 			Character->OnEndCooldown.BindUObject(this, &ABLCombatSlot::EndCharCooldown);
 			Character->OnActionEnded.BindUObject(this, &ABLCombatSlot::ActionEnded);
 			Character->OnDeath.BindUObject(this, &ABLCombatSlot::HandleCharDeath);
@@ -87,41 +87,9 @@ void ABLCombatSlot::UnPauseCharCooldown()
 	}
 }
 
-void ABLCombatSlot::DoAction(ECombatActionType ActionType, ABLCombatSlot* TargetSlot)
+void ABLCombatSlot::DoAction(ECombatActionType ActionType, int32 ActionIndex, ABLCombatSlot* TargetSlot)
 {
-	switch (ActionType)
-	{
-		case ECombatActionType::ATTACK:
-		{
-			Character->AttackAction(GetActorLocation(), TargetSlot->GetCharacter());
-			return;
-		}
-		case ECombatActionType::DEFEND:
-		{
-			Character->DefendAction();
-			return;
-		}
-		case ECombatActionType::CRYSTAL_SKILL:
-		{
-			//TODO
-			return;
-		}
-		case ECombatActionType::SPECIAL_SKILL:
-		{
-			//TODO
-			return;
-		}
-		case ECombatActionType::ITEM:
-		{
-			//TODO
-			return;
-		}
-		case ECombatActionType::RUN_AWAY:
-		{
-			//TODO
-			return;
-		}
-	}
+	Character->CreateAction(GetActorLocation(), ActionType, ActionIndex, TargetSlot->GetCharacter());	
 }
 
 void ABLCombatSlot::EndCharCooldown()
@@ -130,7 +98,7 @@ void ABLCombatSlot::EndCharCooldown()
 	if (bIsEnemy)
 	{
 		// TODO: something more advanced
-		OnEnemyAction.ExecuteIfBound(this, ECombatActionType::ATTACK);
+		OnEnemyAction.ExecuteIfBound(this, ECombatActionType::ATTACK, 0);
 	}
 	else
 	{

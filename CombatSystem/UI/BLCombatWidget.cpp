@@ -7,6 +7,7 @@
 #include "BLActionsWidget.h"
 #include "Components/WidgetSwitcher.h"
 #include "Components/Border.h"
+#include "Actions/BLAction.h"
 
 void UBLCombatWidget::NativeConstruct()
 {
@@ -41,11 +42,11 @@ void UBLCombatWidget::AddEnemy(int32 SlotIndex, const FString& EnemyName)
 	Enemies->AddEnemy(SlotIndex, EnemyName);
 }
 
-void UBLCombatWidget::AddHeroActions(int32 SlotIndex, const FAttackActionData& AttackData, const FDefendActionData& DefendData)
+void UBLCombatWidget::AddHeroActions(int32 SlotIndex, const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions)
 {
 	if (Actions.IsValidIndex(SlotIndex) && Actions[SlotIndex])
 	{
-		Actions[SlotIndex]->SetActionsData(AttackData, DefendData);
+		Actions[SlotIndex]->SetActionsData(BaseData, InAttackActions, InDefendActions);
 		Actions[SlotIndex]->OnChosenAction.BindUObject(this, &UBLCombatWidget::ChosenAction);
 	}
 }

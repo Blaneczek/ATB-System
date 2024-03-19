@@ -5,8 +5,9 @@
 #include "Components/Border.h"
 #include "Components/Button.h"
 #include "Components/WidgetSwitcher.h"
-#include "Actions/BLAttackActionWidget.h"
-#include "Actions/BLDefendActionWidget.h"
+#include "UI/Actions/BLAttackActionWidget.h"
+#include "UI/Actions/BLDefendActionWidget.h"
+#include "Actions/BLAction.h"
 
 void UBLActionsWidget::NativeConstruct()
 {
@@ -19,10 +20,10 @@ void UBLActionsWidget::NativeConstruct()
 	BindActions();
 }
 
-void UBLActionsWidget::SetActionsData(const FAttackActionData& AttackData, const FDefendActionData& DefendData)
+void UBLActionsWidget::SetActionsData(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions)
 {	
-	AttackAction->SetActionData(AttackData);
-	DefendAction->SetActionData(DefendData);
+	AttackAction->SetActionData(InAttackActions, BaseData.AttackDMG);
+	DefendAction->SetActionData(InDefendActions);
 }
 
 void UBLActionsWidget::BindButtons()

@@ -24,6 +24,8 @@ struct FActionQueue
 	UPROPERTY()
 	ECombatActionType ActionType;
 	UPROPERTY()
+	int32 ActionIndex;
+	UPROPERTY()
 	bool bEnemyAction;
 
 	FActionQueue()
@@ -31,11 +33,12 @@ struct FActionQueue
 		OwnerSlot = nullptr;
 		TargetSlot = nullptr;
 		ActionType = ECombatActionType::NONE;
+		ActionIndex = 0;
 		bEnemyAction = false;
 	}
 
-	FActionQueue(ABLCombatSlot* InOwnerSlot, ABLCombatSlot* InTargetSlot, ECombatActionType InActionType, bool InEnemyAction)
-		:OwnerSlot(InOwnerSlot), TargetSlot(InTargetSlot), ActionType(InActionType), bEnemyAction(InEnemyAction)
+	FActionQueue(ABLCombatSlot* InOwnerSlot, ABLCombatSlot* InTargetSlot, ECombatActionType InActionType, int32 InIndex, bool InEnemyAction)
+		:OwnerSlot(InOwnerSlot), TargetSlot(InTargetSlot), ActionType(InActionType), ActionIndex(InIndex), bEnemyAction(InEnemyAction)
 	{}
 };
 
@@ -86,25 +89,25 @@ private:
 	/** Highlights and sets as current random available player slot */
 	void ChooseRandomPlayerSlot();
 
-	void AddActionToQueue(ABLCombatSlot* OwnerSlot, ABLCombatSlot* TargetSlot, ECombatActionType Action, bool bEnemyAction);
+	void AddActionToQueue(ABLCombatSlot* OwnerSlot, ABLCombatSlot* TargetSlot, ECombatActionType Action, int32 InActionIndex, bool bEnemyAction);
 
 	/** Executes if it can the first action from the queue, checks the ability at constant intervals */
 	void HandleActionsQueue();
 
 	/** Pauses all cooldowns and calls the appropriate OwnerSlot function */
-	void DoAction(ABLCombatSlot* OwnerSlot, ABLCombatSlot* TargetSlot, ECombatActionType Action, bool bEnemyAction);
+	void DoAction(ABLCombatSlot* OwnerSlot, ABLCombatSlot* TargetSlot, ECombatActionType Action, int32 InActionIndex, bool bEnemyAction);
 
 	/** Finds new active target slot */
 	ABLCombatSlot* FindNewTargetSlot(bool bEnemyAction);
 
 	/** Chooses target for enemy action */
-	void HandleEnemyAction(ABLCombatSlot* EnemySlot, ECombatActionType Action);
+	void HandleEnemyAction(ABLCombatSlot* EnemySlot, ECombatActionType Action, int32 InActionIndex);
 
 	/** Called after the completion of the currently executed action */
 	void ActionEnded(ABLCombatSlot* OwnerSlot, bool bWasEnemy);
 
 	/** Sets current ActionType and chosen action */
-	void ChooseAction(ECombatActionType InActionType, int32 ActionIndex);
+	void ChooseAction(ECombatActionType InActionType, int32 InActionIndex);
 
 	/** Resets action and sets new CurrentPlayerSlot */
 	void ResetAction(ABLCombatSlot* NewPlayerSlot);
@@ -175,6 +178,10 @@ private:
 	/** Current selected action type */
 	UPROPERTY()
 	ECombatActionType ActionType;
+
+	/** Current selected action index */
+	UPROPERTY()
+	int32 ActionIndex;
 
 	/** If an action is currently being executed */
 	UPROPERTY()

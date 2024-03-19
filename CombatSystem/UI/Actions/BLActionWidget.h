@@ -9,6 +9,7 @@
 
 class UTextBlock;
 class UButton;
+class UBLAction;
 
 DECLARE_DELEGATE_TwoParams(FOnAction, ECombatActionType /*ActionType*/, int32 /*ActionIndex*/);
 
@@ -27,8 +28,8 @@ protected:
 	virtual void OnBTActionClicked();
 
 public:
-	virtual void SetActionData(const FAttackActionData& AttackData) {};
-	virtual void SetActionData(const FDefendActionData& DefendData) {};
+	virtual void SetActionData(const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, float AttackDMG) {};
+	virtual void SetActionData(const TArray<TSoftClassPtr<UBLAction>>& InDefendActions) {};
 
 	/** Resets action to default state (no description and normal button) */
 	void ResetAction();

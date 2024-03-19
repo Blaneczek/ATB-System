@@ -3,11 +3,21 @@
 
 #include "BLDefendActionWidget.h"
 #include "Components/TextBlock.h"
+#include "Actions/BLAction.h"
 
-void UBLDefendActionWidget::SetActionData(const FDefendActionData& DefendData)
+void UBLDefendActionWidget::SetActionData(const TArray<TSoftClassPtr<UBLAction>>& InDefendActions)
 {
-	ActionName->SetText(DefendData.Name);
-	Description = DefendData.Description;
+	if (!InDefendActions.IsValidIndex(0))
+	{
+		return;
+	}
+
+	UBLAction* Action = Cast<UBLAction>(InDefendActions[0].LoadSynchronous()->GetDefaultObject());
+	if (Action)
+	{
+		ActionName->SetText(Action->Name);
+		Description = Action->Description;
+	}
 }
 
 void UBLDefendActionWidget::OnBTActionClicked()

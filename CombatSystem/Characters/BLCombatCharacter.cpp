@@ -12,11 +12,15 @@
 #include "Kismet/GameplayStatics.h"
 #include "BLRangeProjectile.h"
 #include "Navigation/PathFollowingComponent.h"
+#include "Actions/BLAction.h"
 
 ABLCombatCharacter::ABLCombatCharacter()
 {
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
+	AIC = nullptr;
+	TargetCharacter = nullptr;
+	CurrentAction = nullptr;
 	Movement->MaxWalkSpeed = 600.f;
 }
 
@@ -32,7 +36,7 @@ void ABLCombatCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData, const FAttackActionData& InAttackData, const FDefendActionData& InDefendData)
+void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions)
 {
 	bDefendIdle = false;
 	BaseData = InBaseData;
@@ -40,13 +44,97 @@ void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData, const FAttac
 	CurrentME = BaseData.MaxME;
 	CurrentDefense = BaseData.BaseDefense;
 
-	AttackActionData = InAttackData;
-	DefendActionData = InDefendData;
+	AttackActions = InAttackActions;
+	DefendActions = InDefendActions;
 
 	PaperFlipbook->SetFlipbook(BaseData.Sprite);
 	GetAnimationComponent()->SetAnimInstanceClass(BaseData.AnimInstanceClass);
 }
 
+
+void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, ECombatActionType ActionType, int32 ActionIndex, ABLCombatCharacter* Target)
+{
+	switch (ActionType)
+	{
+		case ECombatActionType::ATTACK:
+		{
+			if (!AttackActions.IsValidIndex(ActionIndex))
+			{							
+				EndAction(true);
+				return;
+			}
+
+			SlotLocation = OwnerSlotLocation;
+			TargetCharacter = Target;
+
+			CurrentAction = NewObject<UBLAction>(this, AttackActions[ActionIndex].LoadSynchronous());
+			if (CurrentAction)
+			{
+				CurrentAction->OnCreateAction(this);
+			}
+			return;
+		}
+		case ECombatActionType::DEFEND:
+		{
+			if (!DefendActions.IsValidIndex(ActionIndex))
+			{
+				EndAction(true);
+				return;
+			}
+
+			CurrentAction = NewObject<UBLAction>(this, DefendActions[ActionIndex].LoadSynchronous());
+			if (CurrentAction)
+			{
+				CurrentAction->OnCreateAction(this);
+			}
+			return;
+		}
+		case ECombatActionType::CRYSTAL_SKILL:
+		{
+			//TODO
+			return;
+		}
+		case ECombatActionType::SPECIAL_SKILL:
+		{
+			//TODO
+			return;
+		}
+		case ECombatActionType::ITEM:
+		{
+			//TODO
+			return;
+		}
+		case ECombatActionType::RUN_AWAY:
+		{
+			//TODO
+			return;
+		}
+	}
+}
+
+void ABLCombatCharacter::DefaultAction()
+{
+	if (CurrentAction)
+	{
+		CurrentAction->ExecuteAction(this, nullptr);
+		CurrentAction->OnEndExecution.BindLambda([this](){ EndAction(true); });
+	}
+}
+
+void ABLCombatCharacter::DefaultMeleeAction()
+{
+	if (AIC)
+	{
+		AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLCombatCharacter::ReachedActionDestination);
+		UE_LOG(LogTemp, Warning, TEXT("STARTED"));
+		AIC->MoveToActor(TargetCharacter, 70.f);
+	}
+}
+
+void ABLCombatCharacter::DefaultRangeAction()
+{
+
+}
 
 float ABLCombatCharacter::CalculateElementsMultipliers(ECombatElementType DamageElementType, ECombatElementType CharacterElementType, bool& OutIsHeal)
 { 
@@ -98,11 +186,13 @@ void ABLCombatCharacter::EndCooldown()
 
 void ABLCombatCharacter::EndAction(bool bResult)
 {
+	CurrentAction->ConditionalBeginDestroy();
+	CurrentAction = nullptr;
 	OnActionEnded.ExecuteIfBound();
 	StartCooldown();
 }
 
-void ABLCombatCharacter::ReachedAttackDestination(FAIRequestID RequestID, const FPathFollowingResult& Result)
+void ABLCombatCharacter::ReachedActionDestination(FAIRequestID RequestID, const FPathFollowingResult& Result)
 {	
 	UE_LOG(LogTemp, Warning, TEXT("REACHED, %s"));
 	
@@ -110,23 +200,23 @@ void ABLCombatCharacter::ReachedAttackDestination(FAIRequestID RequestID, const 
 	{
 		AIC->GetPathFollowingComponent()->OnRequestFinished.RemoveAll(this);
 		AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLCombatCharacter::ReachedSlotLocation);
-		if (AttackActionData.ActionAnim && TargetCharacter)
+
+		if (CurrentAction)
 		{
-			FZDOnAnimationOverrideEndSignature EndAnimDel;
-			EndAnimDel.BindLambda([this](bool bResult)
-			{
-				TargetCharacter->HandleHitByAction(BaseData.AttackDMG, AttackActionData.Element);
-				AIC->MoveToLocation(SlotLocation, 3.f);
-			});
-			GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(AttackActionData.ActionAnim, "DefaultSlot", 1.f, 0.0f, EndAnimDel);
-		}		
+			CurrentAction->ExecuteAction(this, TargetCharacter);
+			CurrentAction->OnEndExecution.BindLambda([this](){ AIC->MoveToLocation(SlotLocation, 10.f); });
+		}
+		else
+		{
+			AIC->MoveToLocation(SlotLocation, 10.f);
+		}	
 	}
 }
 
 void ABLCombatCharacter::ReachedSlotLocation(FAIRequestID RequestID, const FPathFollowingResult& Result)
 {
 	if (AIC)
-	{
+	{		
 		AIC->GetPathFollowingComponent()->OnRequestFinished.RemoveAll(this);
 		EndAction(true);
 	}
@@ -136,7 +226,6 @@ void ABLCombatCharacter::ReachedSlotLocation(FAIRequestID RequestID, const FPath
 void ABLCombatCharacter::HandleHitByAction(float Damage, ECombatElementType DamageElementType)
 {
 	bool bIsHeal = false;
-
 	const float DMGMultiplier = CalculateElementsMultipliers(DamageElementType, BaseData.Element, bIsHeal);
 
 	if (bIsHeal)
@@ -161,6 +250,8 @@ void ABLCombatCharacter::HandleHitByAction(float Damage, ECombatElementType Dama
 		}
 	}
 
+	OnHealthUpdate.ExecuteIfBound();
+
 	if (CurrentHP <= 0.f)
 	{
 		//TODO: add death animation
@@ -169,57 +260,5 @@ void ABLCombatCharacter::HandleHitByAction(float Damage, ECombatElementType Dama
 	}
 }
 
-void ABLCombatCharacter::AttackAction(const FVector& OwnerSlotLocation, ABLCombatCharacter* Target)
-{
-	TargetCharacter = Target;
-	SlotLocation = OwnerSlotLocation;
-
-	if (AttackActionData.bIsRange && ProjectileClass)
-	{
-		FActorSpawnParameters SpawnInfo;
-		SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		ABLRangeProjectile* Projectile = GetWorld()->SpawnActor<ABLRangeProjectile>(ProjectileClass, GetActorTransform(), SpawnInfo);
-		if (Projectile)
-		{
-			Projectile->SetData(AttackActionData.RangeProjectileSprite, AttackActionData.BaseDMG, AttackActionData.Element);
-			Projectile->FlyToTarget(Target);
-			Projectile->OnEndProjectile.BindUObject(this, &ABLCombatCharacter::EndAction);
-		}
-		if (AttackActionData.ActionAnim)
-		{
-			GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(AttackActionData.ActionAnim);
-		}	
-	}
-	else
-	{
-		if (AIC)
-		{	
-			AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLCombatCharacter::ReachedAttackDestination);
-			UE_LOG(LogTemp, Warning, TEXT("STARTED"));
-			AIC->MoveToActor(Target, 70.f);
-		}
-	}
-}
-
-void ABLCombatCharacter::DefendAction()
-{
-	CurrentDefense = BaseData.BaseDefense * 1.5f;
-	bDefendIdle = true;
-	FZDOnAnimationOverrideEndSignature EndAnimDel;
-	EndAnimDel.BindUObject(this, &ABLCombatCharacter::EndAction);
-	if (DefendActionData.ActionAnim)
-	{
-		GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(DefendActionData.ActionAnim, "DefaultSlot", 1.f, 0.0f, EndAnimDel);	
-	}
-	else
-	{
-		EndAction(true);
-	}
-}
-
-void ABLCombatCharacter::SpecialSkillAction()
-{
-	//TODO
-}
 
 

@@ -7,6 +7,7 @@
 #include "BLCombatUtilities.h"
 #include "BLHeroDataAsset.generated.h"
 
+class UBLAction;
 
 USTRUCT()
 struct FHeroAssetInfo 
@@ -16,12 +17,6 @@ struct FHeroAssetInfo
 	UPROPERTY(EditAnywhere)
 	FHeroAttributes HeroAttributes;
 
-	UPROPERTY(EditAnywhere)
-	FAttackActionData AttackAction;
-
-	UPROPERTY(EditAnywhere)
-	FDefendActionData DefendAction;
-	
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<ABLCombatCharacter> Class;
 
@@ -42,6 +37,12 @@ struct FHeroAssetInfo
 
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UPaperZDAnimSequence> HealAnim;
+
+	UPROPERTY(EditAnywhere)
+	TArray<TSoftClassPtr<UBLAction>> AttackActions;
+
+	UPROPERTY(EditAnywhere)
+	TArray<TSoftClassPtr<UBLAction>> DefendActions;
 
 	// special skills info
 

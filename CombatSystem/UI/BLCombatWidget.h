@@ -12,6 +12,7 @@ class UBLHeroesWidget;
 class UBLActionsWidget;
 class UWidgetSwitcher;
 class UBorder;
+class UBLAction;
 
 DECLARE_DELEGATE_TwoParams(FOnActionTypeChosen, ECombatActionType /*ActionType*/, int32 /*ActionIndex*/);
 
@@ -34,7 +35,7 @@ public:
 	/** Adds cell with enemy to widget */
 	void AddEnemy(int32 SlotIndex, const FString& EnemyName);
 	/** Populate actions */
-	void AddHeroActions(int32 SlotIndex, const FAttackActionData& AttackData, const FDefendActionData& DefendData);
+	void AddHeroActions(int32 SlotIndex, const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions);
 
 	/** Highlights chosen hero and shows his actions */
 	void SetCurrentHero(int32 SlotIndex);

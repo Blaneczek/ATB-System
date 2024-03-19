@@ -10,12 +10,13 @@
 class ABLCombatCharacter;
 class UBoxComponent;
 class UStaticMeshComponent;
+class UBLAction;
 
 DECLARE_DELEGATE_OneParam(FOnSelectedSlot, ABLCombatSlot* /*Slot*/);
 DECLARE_DELEGATE_TwoParams(FOnCharActionEnded, ABLCombatSlot* /*Slot*/, bool /*bIsEnemy*/);
 DECLARE_DELEGATE_OneParam(FOnCharHealthUpdate, ABLCombatSlot* /*Slot*/);
 DECLARE_DELEGATE_TwoParams(FOnCharDeath, ABLCombatSlot* /*Slot*/, bool /*bIsEnemy*/);
-DECLARE_DELEGATE_TwoParams(FOnEnemyAction, ABLCombatSlot* /*Slot*/, ECombatActionType /*ActionType*/);
+DECLARE_DELEGATE_ThreeParams(FOnEnemyAction, ABLCombatSlot* /*Slot*/, ECombatActionType /*ActionType*/, int32 /*ActionIndex*/);
 
 UCLASS()
 class BLADEOFLEGEND_API ABLCombatSlot : public AActor
@@ -49,11 +50,11 @@ public:
 
 	float GetCooldown() const;
 
-	void SpawnCharacter(const FCombatCharData& BaseData, const FAttackActionData& AttackData, const FDefendActionData& DefendData);
+	void SpawnCharacter(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions);
 	void PauseCharCooldown();
 	void UnPauseCharCooldown();
 
-	void DoAction(ECombatActionType ActionType, ABLCombatSlot* TargetSlot);
+	void DoAction(ECombatActionType ActionType, int32 ActionIndex, ABLCombatSlot* TargetSlot);
 
 private:
 	UFUNCTION()

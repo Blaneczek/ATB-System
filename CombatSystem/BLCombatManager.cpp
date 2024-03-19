@@ -74,14 +74,14 @@ void ABLCombatManager::SetPlayerTeam()
 	{
 		for (int32 Index = 0; Index < Data->Heroes.Num(); ++Index)
 		{
-			const FCombatCharData BaseData = Data->CalculateBaseCombatData(Index);
+			const FCombatCharData CharBaseData = Data->CalculateBaseCombatData(Index);
 			if (PlayerTeam[Index])
 			{
-				PlayerTeam[Index]->SpawnCharacter(BaseData, Data->Heroes[Index].AttackAction, Data->Heroes[Index].DefendAction);
+				PlayerTeam[Index]->SpawnCharacter(CharBaseData, Data->Heroes[Index].AttackActions, Data->Heroes[Index].DefendActions);
 				if (Widget)
 				{
-					Widget->AddHero(PlayerTeam[Index]->GetIndex(), BaseData);
-					Widget->AddHeroActions(PlayerTeam[Index]->GetIndex(), Data->Heroes[Index].AttackAction, Data->Heroes[Index].DefendAction);
+					Widget->AddHero(PlayerTeam[Index]->GetIndex(), CharBaseData);
+					Widget->AddHeroActions(PlayerTeam[Index]->GetIndex(), CharBaseData, Data->Heroes[Index].AttackActions, Data->Heroes[Index].DefendActions);
 				}
 			}					
 		};
@@ -100,7 +100,7 @@ void ABLCombatManager::SetEnemyTeam()
 		{
 			if (EnemyTeam[Index])
 			{
-				EnemyTeam[Index]->SpawnCharacter(Data->Enemies[Index].BaseData, Data->Enemies[Index].AttackAction, Data->Enemies[Index].DefendAction);
+				EnemyTeam[Index]->SpawnCharacter(Data->Enemies[Index].BaseData, Data->Enemies[Index].AttackActions, Data->Enemies[Index].DefendActions);
 				if (Widget)
 				{
 					Widget->AddEnemy(EnemyTeam[Index]->GetIndex(), Data->Enemies[Index].BaseData.Name);
@@ -248,16 +248,11 @@ void ABLCombatManager::ChooseRandomPlayerSlot()
 			return;
 		}
 	}
-
-	//if (Widget)
-	//{
-		//Widget->HideActions();
-	//}
 }
 
-void ABLCombatManager::AddActionToQueue(ABLCombatSlot* OwnerSlot, ABLCombatSlot* TargetSlot, ECombatActionType Action, bool bEnemyAction)
+void ABLCombatManager::AddActionToQueue(ABLCombatSlot* OwnerSlot, ABLCombatSlot* TargetSlot, ECombatActionType Action, int32 InActionIndex, bool bEnemyAction)
 {
-	ActionQueue.Add(FActionQueue(OwnerSlot, TargetSlot, Action, bEnemyAction));
+	ActionQueue.Add(FActionQueue(OwnerSlot, TargetSlot, Action, InActionIndex, bEnemyAction));
 }
 
 void ABLCombatManager::HandleActionsQueue()
@@ -274,7 +269,7 @@ void ABLCombatManager::HandleActionsQueue()
 
 		if (ActionQueue[0].TargetSlot->bIsActive)
 		{
-			DoAction(ActionQueue[0].OwnerSlot, ActionQueue[0].TargetSlot, ActionQueue[0].ActionType, ActionQueue[0].bEnemyAction);
+			DoAction(ActionQueue[0].OwnerSlot, ActionQueue[0].TargetSlot, ActionQueue[0].ActionType, ActionQueue[0].ActionIndex, ActionQueue[0].bEnemyAction);
 			ActionQueue.RemoveAt(0);
 			return;
 		}
@@ -283,7 +278,7 @@ void ABLCombatManager::HandleActionsQueue()
 			ABLCombatSlot* NewTargetSlot = FindNewTargetSlot(ActionQueue[0].bEnemyAction);
 			if (NewTargetSlot)
 			{
-				DoAction(ActionQueue[0].OwnerSlot, NewTargetSlot, ActionQueue[0].ActionType, ActionQueue[0].bEnemyAction);
+				DoAction(ActionQueue[0].OwnerSlot, NewTargetSlot, ActionQueue[0].ActionType, ActionQueue[0].ActionIndex, ActionQueue[0].bEnemyAction);
 				ActionQueue.RemoveAt(0);
 				return;
 			}
@@ -301,7 +296,7 @@ void ABLCombatManager::HandleActionsQueue()
 	}
 }
 
-void ABLCombatManager::DoAction(ABLCombatSlot* OwnerSlot, ABLCombatSlot* TargetSlot, ECombatActionType Action, bool bEnemyAction)
+void ABLCombatManager::DoAction(ABLCombatSlot* OwnerSlot, ABLCombatSlot* TargetSlot, ECombatActionType Action, int32 InActionIndex, bool bEnemyAction)
 {	
 	if (!OwnerSlot) return;
 
@@ -318,7 +313,7 @@ void ABLCombatManager::DoAction(ABLCombatSlot* OwnerSlot, ABLCombatSlot* TargetS
 		}
 	}
 
-	OwnerSlot->DoAction(Action, TargetSlot);
+	OwnerSlot->DoAction(Action, InActionIndex, TargetSlot);
 }
 
 ABLCombatSlot* ABLCombatManager::FindNewTargetSlot(bool bEnemyAction)
@@ -347,7 +342,7 @@ ABLCombatSlot* ABLCombatManager::FindNewTargetSlot(bool bEnemyAction)
 	}
 }
 
-void ABLCombatManager::HandleEnemyAction(ABLCombatSlot* EnemySlot, ECombatActionType Action)
+void ABLCombatManager::HandleEnemyAction(ABLCombatSlot* EnemySlot, ECombatActionType Action, int32 InActionIndex)
 {
 	// now it gets random target. In the future maybe create more advanced way of choosing targets
 
@@ -368,7 +363,7 @@ void ABLCombatManager::HandleEnemyAction(ABLCombatSlot* EnemySlot, ECombatAction
 		ABLCombatSlot* TargetSlot = PlayerTeam[ActiveSlots[RandomIndex]];
 		if (TargetSlot)
 		{
-			AddActionToQueue(EnemySlot, TargetSlot, Action, true);
+			AddActionToQueue(EnemySlot, TargetSlot, Action, InActionIndex, true);
 		}
 	}
 }
@@ -389,11 +384,11 @@ void ABLCombatManager::ActionEnded(ABLCombatSlot* OwnerSlot, bool bWasEnemy)
 	bAction = false;
 }
 
-void ABLCombatManager::ChooseAction(ECombatActionType InActionType, int32 ActionIndex)
+void ABLCombatManager::ChooseAction(ECombatActionType InActionType, int32 InActionIndex)
 {
 	UE_LOG(LogTemp, Warning, TEXT("choosen action"));
 	ActionType = InActionType;
-	//index
+	ActionIndex = InActionIndex;
 }
 
 void ABLCombatManager::ResetAction(ABLCombatSlot* NewPlayerSlot)
@@ -408,7 +403,7 @@ void ABLCombatManager::PlayerAttackAction(ABLCombatSlot* EnemySlot)
 {
 	ClearEnemySlot();
 	ChooseEnemySlot(EnemySlot);
-	AddActionToQueue(CurrentPlayerSlot, CurrentEnemySlot, ActionType, false);
+	AddActionToQueue(CurrentPlayerSlot, CurrentEnemySlot, ActionType, ActionIndex, false);
 	CurrentPlayerSlot->bCanDoAction = false;
 	ActionType = ECombatActionType::NONE;
 	if (Widget)
@@ -425,7 +420,7 @@ void ABLCombatManager::PlayerAttackAction(ABLCombatSlot* EnemySlot)
 
 void ABLCombatManager::PlayerDefendAction()
 {
-	AddActionToQueue(CurrentPlayerSlot, CurrentPlayerSlot, ActionType, false);
+	AddActionToQueue(CurrentPlayerSlot, CurrentPlayerSlot, ActionType, ActionIndex, false);
 	CurrentPlayerSlot->bCanDoAction = false;
 	ActionType = ECombatActionType::NONE;
 	if (Widget)

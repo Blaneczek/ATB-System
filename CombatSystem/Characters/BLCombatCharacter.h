@@ -6,12 +6,14 @@
 #include "BladeOfLegend/AREK/Character/BLBaseChar.h"
 #include "BLCombatUtilities.h"
 #include "AIController.h"
+#include "Actions/BLActionsInterface.h"
 #include "BLCombatCharacter.generated.h"
 
 class USphereComponent;
 class UPaperZDAnimInstance;
 class UPaperFlipbook;
 class ABLRangeProjectile;
+class UBLAction;
 
 DECLARE_DELEGATE(FOnEndCooldown);
 DECLARE_DELEGATE(FOnActionEnded);
@@ -22,7 +24,7 @@ DECLARE_DELEGATE(FOnDeath);
  * 
  */
 UCLASS()
-class BLADEOFLEGEND_API ABLCombatCharacter : public ABLBaseChar
+class BLADEOFLEGEND_API ABLCombatCharacter : public ABLBaseChar, public IBLActionsInterface
 {
 	GENERATED_BODY()
 
@@ -34,15 +36,9 @@ public:
 public:
 	virtual void Tick(float DeltaTime);
 
-	void SetData(const FCombatCharData& InBaseData, const FAttackActionData& InAttackData, const FDefendActionData& InDefendData);
+	void SetData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions);
 
 	virtual void HandleHitByAction(float Damage, ECombatElementType DamageElementType);
-
-	virtual void AttackAction(const FVector& OwnerSlotLocation, ABLCombatCharacter* Target);
-	virtual void DefendAction();
-	virtual void CrystalSkillAction() {};
-	virtual void SpecialSkillAction();
-	virtual void ItemAction() {};
 
 	UFUNCTION()
 	void StartCooldown();
@@ -55,6 +51,13 @@ public:
 	float GetCurrentME() const { return CurrentME; };
 	float GetMaxME() const { return BaseData.MaxME; };
 
+	void CreateAction(const FVector& OwnerSlotLocation, ECombatActionType ActionType, int32 ActionIndex, ABLCombatCharacter* Target);
+
+	/** IBLActionsInterface implementation */
+	void DefaultAction() override;
+	void DefaultMeleeAction() override;
+	void DefaultRangeAction() override;
+
 private:
 	float CalculateElementsMultipliers(ECombatElementType DamageElementType, ECombatElementType CharacterElementType, bool& OutIsHeal);
 
@@ -64,7 +67,7 @@ private:
 	UFUNCTION()
 	void EndAction(bool bResult);
 
-	void ReachedAttackDestination(FAIRequestID RequestID, const FPathFollowingResult& Result);
+	void ReachedActionDestination(FAIRequestID RequestID, const FPathFollowingResult& Result);
 	void ReachedSlotLocation(FAIRequestID RequestID, const FPathFollowingResult& Result);
 
 public:
@@ -80,7 +83,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FString GetName() const { return BaseData.Name; };
 
-protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
 	FCombatCharData BaseData;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
@@ -90,11 +92,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
 	float CurrentDefense;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
-	FAttackActionData AttackActionData;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
-	FDefendActionData DefendActionData;
 
+protected:
 	UPROPERTY()
 	FTimerHandle CooldownTimer;
 
@@ -108,6 +107,15 @@ private:
 	UPROPERTY()
 	TObjectPtr<ABLCombatCharacter> TargetCharacter;
 
+	/** Pointer to created Action to prevent GC while it is still running. Nulled after end of action */
+	UPROPERTY()
+	TObjectPtr<UBLAction> CurrentAction;
+
 	UPROPERTY()
 	FVector SlotLocation;
+
+	UPROPERTY()
+	TArray<TSoftClassPtr<UBLAction>> AttackActions;
+	UPROPERTY()
+	TArray<TSoftClassPtr<UBLAction>> DefendActions;
 };

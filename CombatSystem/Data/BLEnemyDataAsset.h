@@ -7,6 +7,8 @@
 #include "BLCombatUtilities.h"
 #include "BLEnemyDataAsset.generated.h"
 
+class UBLAction;
+
 USTRUCT()
 struct FEnemyAssetInfo
 {
@@ -16,13 +18,12 @@ struct FEnemyAssetInfo
 	FCombatCharData BaseData;
 
 	UPROPERTY(EditAnywhere)
-	FAttackActionData AttackAction;
+	TArray<TSoftClassPtr<UBLAction>> AttackActions;
 
 	UPROPERTY(EditAnywhere)
-	FDefendActionData DefendAction;
-	
-	// special skills info
+	TArray<TSoftClassPtr<UBLAction>> DefendActions;
 
+	// special skills info
 };
 
 /**
