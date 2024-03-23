@@ -8,8 +8,9 @@
 #include "BLActionWidget.generated.h"
 
 class UTextBlock;
-class UButton;
 class UBLAction;
+class UListView;
+class UBLButtonEntryWidget;
 
 DECLARE_DELEGATE_TwoParams(FOnAction, ECombatActionType /*ActionType*/, int32 /*ActionIndex*/);
 
@@ -25,11 +26,14 @@ protected:
 	virtual void NativeConstruct() override;
 
 	UFUNCTION()
-	virtual void OnBTActionClicked();
+	virtual void OnActionClicked(UObject* Item) {};
 
 public:
-	virtual void SetActionData(const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, float AttackDMG) {};
-	virtual void SetActionData(const TArray<TSoftClassPtr<UBLAction>>& InDefendActions) {};
+	/** Adds Attack actions to Widget */
+	virtual void AddActions(const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, float AttackDMG){};
+
+	/** Adds Defend actions to Widget */
+	virtual void AddActions(const TArray<TSoftClassPtr<UBLAction>>& InDefendActions) {};
 
 	/** Resets action to default state (no description and normal button) */
 	void ResetAction();
@@ -38,16 +42,20 @@ public:
 	FOnAction OnAction;
 
 protected:
+	/** ListView with every hero's actions in a particular Action type */
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
-	TObjectPtr<UButton> BTAction;
+	TObjectPtr<UListView> ActionsList;
 
-	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
-	TObjectPtr<UTextBlock> ActionName;
-
+	/** Place to display action description */
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
 	TObjectPtr<UTextBlock> DescDisplay;
 
+	/** Stores descriptions for all actions in a particular Action type */
 	UPROPERTY()
-	FText Description;
+	TArray<FText> Descriptions;
+
+	/** Clicked item in ListView */
+	UPROPERTY()
+	TObjectPtr<UBLButtonEntryWidget> ClickedButton;
 
 };

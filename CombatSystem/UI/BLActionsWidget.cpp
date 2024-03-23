@@ -22,8 +22,8 @@ void UBLActionsWidget::NativeConstruct()
 
 void UBLActionsWidget::SetActionsData(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions)
 {	
-	AttackAction->SetActionData(InAttackActions, BaseData.AttackDMG);
-	DefendAction->SetActionData(InDefendActions);
+	AttackAction->AddActions(InAttackActions, BaseData.AttackDMG);
+	DefendAction->AddActions(InDefendActions);
 }
 
 void UBLActionsWidget::BindButtons()

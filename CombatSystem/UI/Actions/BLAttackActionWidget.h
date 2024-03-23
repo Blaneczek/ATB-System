@@ -6,6 +6,7 @@
 #include "BLActionWidget.h"
 #include "BLAttackActionWidget.generated.h"
 
+class UListView;
 
 /**
  * 
@@ -16,8 +17,10 @@ class BLADEOFLEGEND_API UBLAttackActionWidget : public UBLActionWidget
 	GENERATED_BODY()
 
 public:
-	virtual void SetActionData(const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, float AttackDMG) override;
+
+	virtual void AddActions(const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, float AttackDMG) override;
 
 protected:
-	virtual void OnBTActionClicked() override;
+	virtual void OnActionClicked(UObject* Item) override;
+
 };

@@ -24,7 +24,7 @@ DECLARE_DELEGATE(FOnDeath);
  * 
  */
 UCLASS()
-class BLADEOFLEGEND_API ABLCombatCharacter : public ABLBaseChar, public IBLActionsInterface
+class BLADEOFLEGEND_API ABLCombatCharacter : public ABLBaseChar
 {
 	GENERATED_BODY()
 
@@ -53,10 +53,12 @@ public:
 
 	void CreateAction(const FVector& OwnerSlotLocation, ECombatActionType ActionType, int32 ActionIndex, ABLCombatCharacter* Target);
 
-	/** IBLActionsInterface implementation */
-	void DefaultAction() override;
-	void DefaultMeleeAction() override;
-	void DefaultRangeAction() override;
+	/** Action is executing in place, no targets */
+	void DefaultAction();
+	/** Character runs up to the target and executes action */
+	void DefaultMeleeAction();
+	/** Character creates a projectile that flies to the target and executes action */
+	void DefaultRangeAction();
 
 private:
 	float CalculateElementsMultipliers(ECombatElementType DamageElementType, ECombatElementType CharacterElementType, bool& OutIsHeal);

@@ -10,12 +10,9 @@ void UBLDefaultAction::ActivateAction(ABLCombatCharacter* Owner)
 {
 	if (Owner)
 	{
-		IBLActionsInterface* ActionsInterface = Cast<IBLActionsInterface>(Owner);
-		if (ActionsInterface)
-		{
-			Owner->DefaultAction();
-		}	
-	}	
+		Owner->DefaultAction();
+	}
+		
 }
 
 void UBLDefaultAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharacter* Target)

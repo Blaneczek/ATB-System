@@ -39,7 +39,6 @@ public:
 
 	/**
 	* Pause/unpause all cooldown bars 
-	* 
 	* @param bNewPause true - pause, false - unpause
 	*/
 	void PauseAllCooldownBars(bool bNewPause);

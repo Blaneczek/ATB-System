@@ -47,6 +47,18 @@ struct FHeroAssetInfo
 	// special skills info
 
 	// crystal skills info
+
+	FHeroAssetInfo()
+	{
+		HeroAttributes = FHeroAttributes();
+		Class = nullptr;
+		Cooldown = 0.f;
+		Element = ECombatElementType::NONE;
+		Sprite = nullptr;
+		AnimInstanceClass = nullptr;
+		TakeDMGAnim = nullptr;
+		HealAnim = nullptr;
+	}
 };
 
 /**

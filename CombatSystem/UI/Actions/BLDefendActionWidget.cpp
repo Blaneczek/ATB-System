@@ -4,25 +4,40 @@
 #include "BLDefendActionWidget.h"
 #include "Components/TextBlock.h"
 #include "Actions/BLAction.h"
+#include "UI/Entries/BLButtonEntryData.h"
+#include "Components/ListView.h"
+#include "Components/Border.h"
+#include "UI/Entries/BLButtonEntryWidget.h"
 
-void UBLDefendActionWidget::SetActionData(const TArray<TSoftClassPtr<UBLAction>>& InDefendActions)
+void UBLDefendActionWidget::AddActions(const TArray<TSoftClassPtr<UBLAction>>& InDefendActions)
 {
-	if (!InDefendActions.IsValidIndex(0))
+	for (int32 Index = 0; Index < InDefendActions.Num(); ++Index)
 	{
-		return;
-	}
-
-	UBLAction* Action = Cast<UBLAction>(InDefendActions[0].LoadSynchronous()->GetDefaultObject());
-	if (Action)
-	{
-		ActionName->SetText(Action->Name);
-		Description = Action->Description;
+		UBLAction* Action = Cast<UBLAction>(InDefendActions[Index].LoadSynchronous()->GetDefaultObject());
+		UBLButtonEntryData* EntryItem = NewObject<UBLButtonEntryData>();
+		if (Action && EntryItem)
+		{
+			EntryItem->Init(Index, Action->Name);
+			ActionsList->AddItem(EntryItem);
+			Descriptions.Add(Action->Description);
+		}
 	}
 }
 
-void UBLDefendActionWidget::OnBTActionClicked()
+void UBLDefendActionWidget::OnActionClicked(UObject* Item)
 {
-	Super::OnBTActionClicked();
+	ResetAction();
 
-	OnAction.ExecuteIfBound(ECombatActionType::DEFEND, 0);
+	UBLButtonEntryWidget* Button = Cast<UBLButtonEntryWidget>(ActionsList->GetEntryWidgetFromItem(Item));
+	if (Button)
+	{
+		ClickedButton = Button;
+		Button->Border->SetBrushColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.f));
+		if (Descriptions.IsValidIndex(Button->Index))
+		{
+			DescDisplay->SetText(Descriptions[Button->Index]);
+		}
+		OnAction.ExecuteIfBound(ECombatActionType::DEFEND, Button->Index);
+	}
 }
+

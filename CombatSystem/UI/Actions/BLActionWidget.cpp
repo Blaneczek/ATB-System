@@ -4,24 +4,31 @@
 #include "BLActionWidget.h"
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
+#include "Components/Border.h"
+#include "Components/ListView.h"
+#include "UI/Entries/BLButtonEntryWidget.h"
 
 void UBLActionWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
+	ClickedButton = nullptr;
+
 	DescDisplay->SetText(FText::FromString(""));
 
-	BTAction->OnClicked.AddDynamic(this, &UBLActionWidget::OnBTActionClicked);
+	ActionsList->OnItemClicked().AddUObject(this, &UBLActionWidget::OnActionClicked);
 }
+
 
 void UBLActionWidget::ResetAction()
 {
-	BTAction->SetBackgroundColor(FLinearColor(1.f, 1.f, 1.f, 1.f));
+	if (ClickedButton)
+	{
+		ClickedButton->Border->SetBrushColor(FLinearColor(0.5f, 0.5f, 0.5f, 1.f));
+		ClickedButton = nullptr;
+	}
+
 	DescDisplay->SetText(FText::FromString(""));
 }
 
-void UBLActionWidget::OnBTActionClicked()
-{
-	BTAction->SetBackgroundColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.f));
-	DescDisplay->SetText(Description);
-}
+

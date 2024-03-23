@@ -4,30 +4,45 @@
 #include "BLAttackActionWidget.h"
 #include "Components/TextBlock.h"
 #include "Actions/BLAction.h"
+#include "UI/Entries/BLButtonEntryWidget.h"
+#include "UI/Entries/BLButtonEntryData.h"
+#include "Components/ListView.h"
+#include "Components/Border.h"
 
-void UBLAttackActionWidget::SetActionData(const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, float AttackDMG)
+void UBLAttackActionWidget::AddActions(const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, float AttackDMG)
 {
-	if (!InAttackActions.IsValidIndex(0))
+	for (int32 Index = 0; Index < InAttackActions.Num(); ++Index)
 	{
-		return;
-	}
-
-	UBLAction* Action = Cast<UBLAction>(InAttackActions[0].LoadSynchronous()->GetDefaultObject());
-	if (Action)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("data set"));
-		ActionName->SetText(Action->Name);
-		FFormatNamedArguments Args;
-		Args.Add(TEXT("Desc"), Action->Description);
-		Args.Add(TEXT("Elem"), UEnum::GetDisplayValueAsText(Action->Element));
-		Args.Add(TEXT("DMG"), AttackDMG);
-		Description = FText::Format(FText::FromString("{Desc}\rElement: {Elem}\rDMG: {DMG}"), Args);
+		UBLAction* Action = Cast<UBLAction>(InAttackActions[Index].LoadSynchronous()->GetDefaultObject());
+		UBLButtonEntryData* EntryItem = NewObject<UBLButtonEntryData>();
+		if (Action && EntryItem)
+		{
+			EntryItem->Init(Index, Action->Name);
+			ActionsList->AddItem(EntryItem);
+			FFormatNamedArguments Args;
+			Args.Add(TEXT("Desc"), Action->Description);
+			Args.Add(TEXT("Elem"), UEnum::GetDisplayValueAsText(Action->Element));
+			Args.Add(TEXT("DMG"), AttackDMG);
+			const FText Desc = FText::Format(FText::FromString("{Desc}\rElement: {Elem}\rDMG: {DMG}"), Args);
+ 			Descriptions.Add(Desc);
+		}
 	}
 }
 
-void UBLAttackActionWidget::OnBTActionClicked()
+void UBLAttackActionWidget::OnActionClicked(UObject* Item)
 {
-	Super::OnBTActionClicked();
+	ResetAction();
 
-	OnAction.ExecuteIfBound(ECombatActionType::ATTACK, 0);
+	UBLButtonEntryWidget* Button = Cast<UBLButtonEntryWidget>(ActionsList->GetEntryWidgetFromItem(Item));
+	if (Button)
+	{
+		ClickedButton = Button;
+		Button->Border->SetBrushColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.f));
+		if (Descriptions.IsValidIndex(Button->Index))
+		{
+			DescDisplay->SetText(Descriptions[Button->Index]);
+		}
+		OnAction.ExecuteIfBound(ECombatActionType::ATTACK, Button->Index);
+	}
 }
+

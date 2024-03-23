@@ -72,7 +72,7 @@ void UBLHeroesWidget::PauseAllCooldownBars(bool bNewPause)
 	for (auto* Hero : Heroes)
 	{
 		UBLHeroEntryWidget* HeroWidget = Cast<UBLHeroEntryWidget>(Hero);
-		if (HeroWidget)
+		if (HeroWidget && !HeroWidget->IsDead())
 		{
 			bNewPause ? HeroWidget->PauseCooldownBar() : HeroWidget->UnPauseCooldownBar();
 		}

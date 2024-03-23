@@ -23,7 +23,8 @@ protected:
 	/** IUserObjectListEntry interface implementation */ 
 	virtual void NativeOnListItemObjectSet(UObject* ListItemObject) override;
 
-public:	
+public:
+	/** Sets Hero data for widget */
 	void SetData(int32 InIndex, const FText& InName, float InHP, float InME);
 
 	/** Greys the border and resets cooldown bar when hero died */
@@ -31,6 +32,7 @@ public:
 
 	/** Changes border color when Hero is selected */
 	void HighlightHero();
+
 	/** Changes border to default when Hero is deselected */
 	void UnlightHero();
 
@@ -38,10 +40,13 @@ public:
 	void UpdateHP(float MaxHP, float CurrentHP);
 	void UpdateME(float MaxME, float CurrentME);
 
+	/** Controls CooldownBarWidget */
 	void StartCooldownBar(float Cooldown);
 	void PauseCooldownBar();
 	void UnPauseCooldownBar();
 	void ResetCooldownBar();
+
+	bool IsDead() const { return bDied; };
 
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
@@ -61,4 +66,6 @@ protected:
 
 	UPROPERTY()
 	int32 Index;
+
+	bool bDied = false;
 };

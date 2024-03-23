@@ -10,11 +10,7 @@ void UBLDefaultMeleeAction::ActivateAction(ABLCombatCharacter* Owner)
 {
 	if (Owner)
 	{
-		IBLActionsInterface* ActionsInterface = Cast<IBLActionsInterface>(Owner);
-		if (ActionsInterface)
-		{
-			Owner->DefaultMeleeAction();
-		}
+		Owner->DefaultMeleeAction();
 	}
 }
 

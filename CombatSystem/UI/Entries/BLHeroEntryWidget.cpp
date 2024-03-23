@@ -29,6 +29,7 @@ void UBLHeroEntryWidget::SetData(int32 InIndex, const FText& InName, float InHP,
 
 void UBLHeroEntryWidget::GreyOutHero()
 {
+	bDied = true;
 	Border->SetBrushColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.f));
 	ResetCooldownBar();
 }
