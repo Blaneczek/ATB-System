@@ -58,7 +58,7 @@ public:
 	/** Character runs up to the target and executes action */
 	void DefaultMeleeAction();
 	/** Character creates a projectile that flies to the target and executes action */
-	void DefaultRangeAction();
+	void DefaultRangeAction(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite);
 
 private:
 	float CalculateElementsMultipliers(ECombatElementType DamageElementType, ECombatElementType CharacterElementType, bool& OutIsHeal);
@@ -70,6 +70,7 @@ private:
 	void EndAction(bool bResult);
 
 	void ReachedActionDestination(FAIRequestID RequestID, const FPathFollowingResult& Result);
+	void ReachedActionDestination();
 	void ReachedSlotLocation(FAIRequestID RequestID, const FPathFollowingResult& Result);
 
 public:
@@ -98,9 +99,6 @@ public:
 protected:
 	UPROPERTY()
 	FTimerHandle CooldownTimer;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "BL|Combat")
-	TSubclassOf<ABLRangeProjectile> ProjectileClass;
 
 private:
 	UPROPERTY()

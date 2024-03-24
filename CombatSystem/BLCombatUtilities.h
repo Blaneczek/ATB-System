@@ -8,7 +8,6 @@
 class UPaperZDAnimInstance;
 class UPaperZDAnimSequence;
 class UPaperFlipbook;
-class ABLRangeProjectile;
 class ABLCombatCharacter;
 
 UENUM(BlueprintType)
@@ -52,13 +51,9 @@ struct FHeroAttributes
 	UPROPERTY(EditAnywhere)
 	uint32 ExperienceNextLevel;
 	UPROPERTY(EditAnywhere)
-	int32 MaxHealth;
+	int32 BaseHealth;	
 	UPROPERTY(EditAnywhere)
-	int32 CurrentHealth;
-	UPROPERTY(EditAnywhere)
-	int32 MaxMagicEnergy;
-	UPROPERTY(EditAnywhere)
-	int32 CurrentMagicEnergy;
+	int32 BaseMagicEnergy;
 	UPROPERTY(EditAnywhere)
 	int32 Strength;
 	UPROPERTY(EditAnywhere)
@@ -74,14 +69,13 @@ struct FHeroAttributes
 		Level = 1;
 		Experience = 0;
 		ExperienceNextLevel = 100;
-		MaxHealth = 100;
-		CurrentHealth = MaxHealth;
-		MaxMagicEnergy = 100;
-		CurrentMagicEnergy = MaxMagicEnergy;
+		BaseHealth = 100;	
+		BaseMagicEnergy = 100;	
 		Strength = 5;
 		Agility = 5;
 		Wisdom = 5;
 		Endurance = 5;
+
 	}
 };
 
@@ -103,7 +97,17 @@ struct FCombatCharData
 	UPROPERTY(EditAnywhere)
 	float BaseDefense;
 	UPROPERTY(EditAnywhere)
+	float BaseDodge;
+	UPROPERTY(EditAnywhere)
 	float Cooldown;
+	UPROPERTY(EditAnywhere)
+	int32 Strength;
+	UPROPERTY(EditAnywhere)
+	int32 Agility;
+	UPROPERTY(EditAnywhere)
+	int32 Wisdom;
+	UPROPERTY(EditAnywhere)
+	int32 Endurance;
 	UPROPERTY(EditAnywhere)
 	ECombatElementType Element;
 	UPROPERTY(EditAnywhere)
@@ -119,11 +123,16 @@ struct FCombatCharData
 	{
 		Name = "";
 		Class = nullptr;
-		MaxHP = 0;
-		MaxME = 0;
-		AttackDMG = 0;
-		BaseDefense = 0;
-		Cooldown = 0;
+		MaxHP = 0.f;
+		MaxME = 0.f;
+		AttackDMG = 0.f;
+		BaseDefense = 0.f;
+		BaseDodge = 0.f;
+		Cooldown = 0.f;
+		Strength = 0;
+		Agility = 0;
+		Wisdom = 0;
+		Endurance = 0;
 		Element = ECombatElementType::NONE;
 		Sprite = nullptr;
 		AnimInstanceClass = nullptr;
@@ -131,71 +140,16 @@ struct FCombatCharData
 		HealAnim = nullptr;
 	}
 
-	FCombatCharData(const FString& InName, TSubclassOf<ABLCombatCharacter> InClass, float InMaxHP,
-		float InMaxME, float InAttackDMG, float InBaseDefense,
-		float InCooldown, ECombatElementType InElement,
-		UPaperFlipbook* InSprite,
-		TSubclassOf<UPaperZDAnimInstance> InAnimClass,
-		UPaperZDAnimSequence* InTakeDMGAnim, UPaperZDAnimSequence* InHealAnim)
-		:Name(InName), Class(InClass), MaxHP(InMaxHP), MaxME(InMaxME), AttackDMG(InAttackDMG),
-		BaseDefense(InBaseDefense), Cooldown(InCooldown), Element(InElement),
-		Sprite(InSprite), AnimInstanceClass(InAnimClass), TakeDMGAnim(InTakeDMGAnim), HealAnim(InHealAnim)
-	{}
-};
+	FCombatCharData(const FString& InName, TSubclassOf<ABLCombatCharacter> InClass, float InMaxHP
+		, float InMaxME, float InAttackDMG, float InBaseDefense, float InBaseDodge
+		, float InCooldown, int32 InStrength, int32 InAgility, int32 InWisdom, int32 InEndurance
+		, ECombatElementType InElement, UPaperFlipbook* InSprite
+		, TSubclassOf<UPaperZDAnimInstance> InAnimClass
+		, UPaperZDAnimSequence* InTakeDMGAnim, UPaperZDAnimSequence* InHealAnim)
 
-USTRUCT(BlueprintType)
-struct FAttackActionData
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere)
-	FText Name;
-	UPROPERTY(EditAnywhere)
-	FText Description;
-	UPROPERTY(EditAnywhere)
-	ECombatElementType Element;
-	UPROPERTY(EditAnywhere)
-	bool bIsRange;
-	UPROPERTY(EditAnywhere)
-	TObjectPtr<UPaperZDAnimSequence> ActionAnim;
-	UPROPERTY(EditAnywhere)
-	TObjectPtr<UPaperFlipbook> RangeProjectileSprite;
-
-	FAttackActionData()
-	{
-		Name = FText::FromString("");
-		Description = FText::FromString("");
-		Element = ECombatElementType::NONE;
-		bIsRange = false;
-		ActionAnim = nullptr;
-		RangeProjectileSprite = nullptr;
-	}
-
-	FAttackActionData(const FText& InName, const FText& InDesc, ECombatElementType InElement, bool IsRange, UPaperZDAnimSequence* InActionAnim, UPaperFlipbook* InProjectileSprite)
-		:Name(InName), Description(InDesc), Element(InElement), bIsRange(bIsRange), ActionAnim(InActionAnim), RangeProjectileSprite(InProjectileSprite)
-	{}
-};
-
-USTRUCT(BlueprintType)
-struct FDefendActionData
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere)
-	FText Name;
-	UPROPERTY(EditAnywhere)
-	FText Description;
-	UPROPERTY(EditAnywhere)
-	TObjectPtr<UPaperZDAnimSequence> ActionAnim;
-
-	FDefendActionData()
-	{
-		Name = FText::FromString("");
-		Description = FText::FromString("");
-		ActionAnim = nullptr;
-	}
-
-	FDefendActionData(const FText& InName, const FText& InDesc, UPaperZDAnimSequence* InActionAnim)
-		:Name(InName), Description(InDesc), ActionAnim(InActionAnim)
+		:Name(InName), Class(InClass), MaxHP(InMaxHP), MaxME(InMaxME), AttackDMG(InAttackDMG)
+		 , BaseDefense(InBaseDefense), BaseDodge(InBaseDodge), Cooldown(InCooldown), Strength(InStrength)
+		 , Agility(InAgility), Wisdom(InWisdom), Endurance(InEndurance), Element(InElement)
+		 , Sprite(InSprite), AnimInstanceClass(InAnimClass), TakeDMGAnim(InTakeDMGAnim), HealAnim(InHealAnim)
 	{}
 };

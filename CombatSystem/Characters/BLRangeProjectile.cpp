@@ -14,6 +14,7 @@
 ABLRangeProjectile::ABLRangeProjectile()
 {
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+	Movement->MaxWalkSpeed = 1200.f;
 }
 
 // Called when the game starts or when spawned
@@ -30,33 +31,28 @@ void ABLRangeProjectile::Tick(float DeltaTime)
 
 }
 
-void ABLRangeProjectile::SetData(UPaperFlipbook* ProjectileSprite, float Damage, ECombatElementType Element)
+void ABLRangeProjectile::SetData(UPaperFlipbook* ProjectileSprite)
 {
 	PaperFlipbook->SetFlipbook(ProjectileSprite);
-	ProjectileDamage = Damage;
-	ElementType = Element;
 }
 
 void ABLRangeProjectile::FlyToTarget(ABLCombatCharacter* Target)
 {
-	TargetCharacter = Target;
 	AAIController* AIC = Cast<AAIController>(GetController());
-	if (AIC)
+	if (AIC && Target)
 	{
-		AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLRangeProjectile::ReachedAttackDestination);
-		UE_LOG(LogTemp, Warning, TEXT("STARTED"));
+		AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLRangeProjectile::ReachedDestination);
 		AIC->MoveToActor(Target, 10.f);
 	}
 }
 
-void ABLRangeProjectile::ReachedAttackDestination(FAIRequestID RequestID, const FPathFollowingResult& Result)
+void ABLRangeProjectile::ReachedDestination(FAIRequestID RequestID, const FPathFollowingResult& Result)
 {
 	AAIController* AIC = Cast<AAIController>(GetController());
 	if (AIC)
 	{
 		AIC->GetPathFollowingComponent()->OnRequestFinished.RemoveAll(this);
-		TargetCharacter->HandleHitByAction(ProjectileDamage, ElementType);
-		OnEndProjectile.ExecuteIfBound(true);
+		OnReachedDestination.ExecuteIfBound();
 		Destroy();
 	}
 }

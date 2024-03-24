@@ -116,8 +116,8 @@ void ABLCombatCharacter::DefaultAction()
 {
 	if (CurrentAction)
 	{
-		CurrentAction->ExecuteAction(this, nullptr);
 		CurrentAction->OnEndExecution.BindLambda([this](){ EndAction(true); });
+		CurrentAction->ExecuteAction(this, nullptr);		
 	}
 }
 
@@ -131,9 +131,20 @@ void ABLCombatCharacter::DefaultMeleeAction()
 	}
 }
 
-void ABLCombatCharacter::DefaultRangeAction()
+void ABLCombatCharacter::DefaultRangeAction(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite)
 {
-
+	if (ProjectileClass)
+	{
+		FActorSpawnParameters SpawnInfo;
+		SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		ABLRangeProjectile* Projectile = GetWorld()->SpawnActor<ABLRangeProjectile>(ProjectileClass, GetActorLocation(), GetActorRotation(), SpawnInfo);
+		if (Projectile)
+		{
+			Projectile->SetData(ProjectileSprite);
+			Projectile->OnReachedDestination.BindUObject(this, &ABLCombatCharacter::ReachedActionDestination);
+			Projectile->FlyToTarget(TargetCharacter);
+		}
+	}
 }
 
 float ABLCombatCharacter::CalculateElementsMultipliers(ECombatElementType DamageElementType, ECombatElementType CharacterElementType, bool& OutIsHeal)
@@ -186,6 +197,7 @@ void ABLCombatCharacter::EndCooldown()
 
 void ABLCombatCharacter::EndAction(bool bResult)
 {
+	UE_LOG(LogTemp, Warning, TEXT("End Action"));
 	CurrentAction->ConditionalBeginDestroy();
 	CurrentAction = nullptr;
 	OnActionEnded.ExecuteIfBound();
@@ -194,7 +206,7 @@ void ABLCombatCharacter::EndAction(bool bResult)
 
 void ABLCombatCharacter::ReachedActionDestination(FAIRequestID RequestID, const FPathFollowingResult& Result)
 {	
-	UE_LOG(LogTemp, Warning, TEXT("REACHED, %s"));
+	UE_LOG(LogTemp, Warning, TEXT("REACHED"));
 	
 	if (AIC)
 	{
@@ -203,13 +215,23 @@ void ABLCombatCharacter::ReachedActionDestination(FAIRequestID RequestID, const 
 
 		if (CurrentAction)
 		{
-			CurrentAction->ExecuteAction(this, TargetCharacter);
 			CurrentAction->OnEndExecution.BindLambda([this](){ AIC->MoveToLocation(SlotLocation, 10.f); });
+			CurrentAction->ExecuteAction(this, TargetCharacter);		
 		}
 		else
 		{
 			AIC->MoveToLocation(SlotLocation, 10.f);
 		}	
+	}
+}
+
+void ABLCombatCharacter::ReachedActionDestination()
+{
+	if (CurrentAction)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("REACHED projectile"));	
+		CurrentAction->OnEndExecution.BindLambda([this]() { EndAction(true); });
+		CurrentAction->ExecuteAction(this, TargetCharacter);
 	}
 }
 

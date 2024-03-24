@@ -13,7 +13,7 @@ class ABLCombatCharacter;
 class UPaperFlipbook;
 class UPaperZDAnimSequence;
 
-DECLARE_DELEGATE_OneParam(FOnEndProjectile, bool /*result*/);
+DECLARE_DELEGATE(FOnReachedDestination);
 
 UCLASS()
 class BLADEOFLEGEND_API ABLRangeProjectile : public ABLBaseChar
@@ -32,17 +32,11 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	void SetData(UPaperFlipbook* ProjectileSprite, float Damage, ECombatElementType Element);
+	void SetData(UPaperFlipbook* ProjectileSprite);
 	void FlyToTarget(ABLCombatCharacter* Target);
-	void ReachedAttackDestination(FAIRequestID RequestID, const FPathFollowingResult& Result);
+	void ReachedDestination(FAIRequestID RequestID, const FPathFollowingResult& Result);
 
 public:
-	FOnEndProjectile OnEndProjectile;
+	FOnReachedDestination OnReachedDestination;
 
-private:
-	UPROPERTY()
-	TObjectPtr<ABLCombatCharacter> TargetCharacter;
-
-	float ProjectileDamage;
-	ECombatElementType ElementType;
 };

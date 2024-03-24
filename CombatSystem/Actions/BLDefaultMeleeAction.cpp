@@ -16,7 +16,7 @@ void UBLDefaultMeleeAction::ActivateAction(ABLCombatCharacter* Owner)
 
 void UBLDefaultMeleeAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharacter* Target)
 {
-	if (!Owner || !Target || !ActionAnim)
+	if (!Owner || !Target)
 	{
 		OnEndExecution.ExecuteIfBound();
 	}
@@ -27,6 +27,11 @@ void UBLDefaultMeleeAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCh
 		EndAnimDel.BindLambda([this](bool bResult) { OnEndExecution.ExecuteIfBound(); });
 		Owner->GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(ActionAnim, "DefaultSlot", 1.f, 0.0f, EndAnimDel);
 		Target->HandleHitByAction(Owner->BaseData.AttackDMG, Element);
+	}
+	else
+	{
+		Target->HandleHitByAction(Owner->BaseData.AttackDMG, Element);
+		OnEndExecution.ExecuteIfBound();
 	}
 }
 
