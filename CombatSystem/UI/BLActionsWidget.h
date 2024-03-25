@@ -13,9 +13,9 @@ class UWidgetSwitcher;
 class UBLActionWidget;
 class UBLAttackActionWidget;
 class UBLDefendActionWidget;
-class UBLAction;
+class UBLCrystalActionWidget;
 
-DECLARE_DELEGATE_TwoParams(FOnChosenAction, ECombatActionType /*ActionType*/, int32 /*ActionIndex*/);
+DECLARE_DELEGATE_ThreeParams(FOnChosenAction, ECombatActionType /*ActionType*/, int32 /*ActionIndex*/, ECrystalColor /*CrystalColor*/);
 
 /**
  * 
@@ -29,7 +29,7 @@ protected:
 	virtual void NativeConstruct() override;
 
 public:
-	void SetActionsData(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions);
+	void SetActionsData(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions);
 
 	/** Returns widget to default state */
 	void ResetWidget();
@@ -57,7 +57,7 @@ private:
 	void ResetAction();
 	
 	/** Calls delegate with chosen action and index */
-	void ChosenAction(ECombatActionType Action, int32 ActionIndex);
+	void ChosenAction(ECombatActionType Action, int32 ActionIndex, ECrystalColor CrystalColor = ECrystalColor::NONE);
 
 public:
 	FOnChosenAction OnChosenAction;
@@ -88,6 +88,8 @@ protected:
 	TObjectPtr<UBLAttackActionWidget> AttackAction;
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
 	TObjectPtr<UBLDefendActionWidget> DefendAction;
+	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
+	TObjectPtr<UBLCrystalActionWidget> CrystalAction;
 
 	//TODO: Other actions
 

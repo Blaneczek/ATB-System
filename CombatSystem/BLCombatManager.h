@@ -27,18 +27,24 @@ struct FActionQueue
 	int32 ActionIndex;
 	UPROPERTY()
 	bool bEnemyAction;
+	UPROPERTY()
+	ECrystalColor CrystalColor;
 
 	FActionQueue()
 	{
 		OwnerSlot = nullptr;
 		TargetSlot = nullptr;
-		ActionType = ECombatActionType::NONE;
+		ActionType = ECombatActionType::NONE;	
 		ActionIndex = 0;
 		bEnemyAction = false;
+		CrystalColor = ECrystalColor::NONE;
 	}
 
-	FActionQueue(ABLCombatSlot* InOwnerSlot, ABLCombatSlot* InTargetSlot, ECombatActionType InActionType, int32 InIndex, bool InEnemyAction)
-		:OwnerSlot(InOwnerSlot), TargetSlot(InTargetSlot), ActionType(InActionType), ActionIndex(InIndex), bEnemyAction(InEnemyAction)
+	FActionQueue(ABLCombatSlot* InOwnerSlot, ABLCombatSlot* InTargetSlot, ECombatActionType InActionType
+				, int32 InIndex, bool InEnemyAction, ECrystalColor InCrystalColor = ECrystalColor::NONE)
+
+		:OwnerSlot(InOwnerSlot), TargetSlot(InTargetSlot), ActionType(InActionType) 
+		, ActionIndex(InIndex), bEnemyAction(InEnemyAction), CrystalColor(InCrystalColor)
 	{}
 };
 
@@ -72,16 +78,16 @@ private:
 	/** Handles situations where one of the slots in the level has been clicked */
 	void HandleSlotClicked(AActor* Slot);
 
-	/** Highlights and sets as current clicked enemy slot */
-	void ChooseEnemySlot(ABLCombatSlot* Slot);
+	/** Highlights and sets as current clicked target slot (could be hero or enemy) */
+	void ChooseTargetSlot(ABLCombatSlot* Slot);
 
 	/** Highlights and sets as current clicked player slot */
 	void ChoosePlayerSlot(ABLCombatSlot* Slot);
 
-	/** Unhighlights and nulls current enemy slot */
-	void ClearEnemySlot();
-	/** Unhighlights given enemy slot */
-	void ClearEnemySlot(ABLCombatSlot* EnemySlot);
+	/** Unhighlights and nulls current target slot (could be hero or enemy) */
+	void ClearTargetSlot();
+	/** Unhighlights given target slot */
+	void ClearTargetSlot(ABLCombatSlot* EnemySlot);
 
 	/** Unhighlights and nulls current player slot */
 	void ClearPlayerSlot();
@@ -89,13 +95,13 @@ private:
 	/** Highlights and sets as current random available player slot */
 	void ChooseRandomPlayerSlot();
 
-	void AddActionToQueue(ABLCombatSlot* OwnerSlot, ABLCombatSlot* TargetSlot, ECombatActionType Action, int32 InActionIndex, bool bEnemyAction);
+	void AddActionToQueue(ABLCombatSlot* OwnerSlot, ABLCombatSlot* TargetSlot, ECombatActionType Action, int32 InActionIndex, bool bEnemyAction, ECrystalColor CrystalColor = ECrystalColor::NONE);
 
 	/** Executes if it can the first action from the queue, checks the ability at constant intervals */
 	void HandleActionsQueue();
 
 	/** Pauses all cooldowns and calls the appropriate OwnerSlot function */
-	void DoAction(ABLCombatSlot* OwnerSlot, ABLCombatSlot* TargetSlot, ECombatActionType Action, int32 InActionIndex, bool bEnemyAction);
+	void DoAction(ABLCombatSlot* OwnerSlot, ABLCombatSlot* TargetSlot, ECombatActionType Action, int32 InActionIndex, bool bEnemyAction, ECrystalColor CrystalColor = ECrystalColor::NONE);
 
 	/** Finds new active target slot */
 	ABLCombatSlot* FindNewTargetSlot(bool bEnemyAction);
@@ -107,14 +113,15 @@ private:
 	void ActionEnded(ABLCombatSlot* OwnerSlot, bool bWasEnemy);
 
 	/** Sets current ActionType and chosen action */
-	void ChooseAction(ECombatActionType InActionType, int32 InActionIndex);
+	void ChooseAction(ECombatActionType InActionType, int32 InActionIndex, ECrystalColor CrystalColor = ECrystalColor::NONE);
 
 	/** Resets action and sets new CurrentPlayerSlot */
 	void ResetAction(ABLCombatSlot* NewPlayerSlot);
 
 	/** Player's actions */
-	void PlayerAttackAction(ABLCombatSlot* EnemySlot);
+	void PlayerAttackAction(ABLCombatSlot* TargetSlot);
 	void PlayerDefendAction();
+	void PlayerCrystalAction(ABLCombatSlot* TargetSlot);
 
 	/** Pauses the cooldowns of enemies and heroes */
 	void PauseCooldowns();
@@ -132,7 +139,7 @@ private:
 	void UpdateHeroHealth(ABLCombatSlot* PlayerSlot);
 	void UpdateHeroMagicEnergy(ABLCombatSlot* PlayerSlot);
 
-	/** Handles character deaths */
+	/** Handles characters deaths */
 	void CharacterDied(ABLCombatSlot* Slot, bool bIsEnemy);
 	void HeroDied(ABLCombatSlot* PlayerSlot);
 	void EnemyDied(ABLCombatSlot* EnemySlot);
@@ -161,7 +168,7 @@ private:
 	UPROPERTY()
 	TObjectPtr<ABLCombatSlot> CurrentPlayerSlot;
 	UPROPERTY()
-	TObjectPtr<ABLCombatSlot> CurrentEnemySlot;
+	TObjectPtr<ABLCombatSlot> CurrentTargetSlot;
 
 	UPROPERTY()
 	TArray<FActionQueue> ActionQueue;
@@ -182,6 +189,10 @@ private:
 	/** Current selected action index */
 	UPROPERTY()
 	int32 ActionIndex;
+
+	/** Current selected crystal if Action is Crystal Skill */
+	UPROPERTY()
+	ECrystalColor ActionCrystalColor;
 
 	/** If an action is currently being executed */
 	UPROPERTY()

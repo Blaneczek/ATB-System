@@ -44,9 +44,37 @@ void ABLCombatSlot::Tick(float DeltaTime)
 
 }
 
+
 float ABLCombatSlot::GetCooldown() const
 {
-	return Character->GetCooldown();
+	if (GetCharacter())
+	{
+		return GetCharacter()->GetCooldown();
+	}
+	
+	return 0.f;
+}
+
+void ABLCombatSlot::SpawnCharacter(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& AttackActions, const TArray<TSoftClassPtr<UBLAction>>& DefendActions, const TMap<ECrystalColor, FCrystalSkills>& CrystalActions)
+{
+	if (BaseData.Class)
+	{
+		FActorSpawnParameters SpawnInfo;
+		SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		Character = GetWorld()->SpawnActor<ABLCombatCharacter>(BaseData.Class, GetActorTransform(), SpawnInfo);
+		if (Character)
+		{
+			Character->SetData(BaseData, AttackActions, DefendActions, CrystalActions);
+			Character->OnEndCooldown.BindUObject(this, &ABLCombatSlot::EndCharCooldown);
+			Character->OnActionEnded.BindUObject(this, &ABLCombatSlot::ActionEnded);
+			Character->OnDeath.BindUObject(this, &ABLCombatSlot::HandleCharDeath);
+			Character->OnHealthUpdate.BindUObject(this, &ABLCombatSlot::UpdateCharHealth);	
+			bIsActive = true;
+			// Cooldown will start after 1 sek
+			FTimerHandle CooldownTimer;
+			GetWorld()->GetTimerManager().SetTimer(CooldownTimer, this, &ABLCombatSlot::StartCharCooldown, 1.f, false);
+		}
+	}
 }
 
 void ABLCombatSlot::SpawnCharacter(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& AttackActions, const TArray<TSoftClassPtr<UBLAction>>& DefendActions)
@@ -62,7 +90,7 @@ void ABLCombatSlot::SpawnCharacter(const FCombatCharData& BaseData, const TArray
 			Character->OnEndCooldown.BindUObject(this, &ABLCombatSlot::EndCharCooldown);
 			Character->OnActionEnded.BindUObject(this, &ABLCombatSlot::ActionEnded);
 			Character->OnDeath.BindUObject(this, &ABLCombatSlot::HandleCharDeath);
-			Character->OnHealthUpdate.BindUObject(this, &ABLCombatSlot::UpdateCharHealth);	
+			Character->OnHealthUpdate.BindUObject(this, &ABLCombatSlot::UpdateCharHealth);
 			bIsActive = true;
 			// Cooldown will start after 1 sek
 			FTimerHandle CooldownTimer;
@@ -87,9 +115,9 @@ void ABLCombatSlot::UnPauseCharCooldown()
 	}
 }
 
-void ABLCombatSlot::DoAction(ECombatActionType ActionType, int32 ActionIndex, ABLCombatSlot* TargetSlot)
+void ABLCombatSlot::DoAction(ECombatActionType ActionType, int32 ActionIndex, ABLCombatSlot* TargetSlot, ECrystalColor CrystalColor)
 {
-	Character->CreateAction(GetActorLocation(), ActionType, ActionIndex, TargetSlot->GetCharacter());	
+	Character->CreateAction(GetActorLocation(), ActionType, ActionIndex, TargetSlot->GetCharacter(), CrystalColor);	
 }
 
 void ABLCombatSlot::EndCharCooldown()

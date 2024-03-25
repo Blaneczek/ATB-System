@@ -9,6 +9,7 @@ class UPaperZDAnimInstance;
 class UPaperZDAnimSequence;
 class UPaperFlipbook;
 class ABLCombatCharacter;
+class UBLAction;
 
 UENUM(BlueprintType)
 enum class ECombatActionType : uint8
@@ -35,6 +36,24 @@ enum class ECombatElementType : uint8
 	DARK	UMETA(DisplayName = "Dark"),
 	WHITE	UMETA(DisplayName = "White"),
 	NONE	UMETA(DisplayName = "None")
+};
+
+UENUM(BlueprintType)
+enum class ECrystalColor : uint8
+{
+	NONE	UMETA(DisplayName = "None"),
+	RED		UMETA(DisplayName = "Red"),
+	GREEN	UMETA(DisplayName = "Green"),
+	BLUE	UMETA(DisplayName = "Blue")
+};
+
+USTRUCT(BlueprintType)
+struct FCrystalSkills
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere)
+	TArray<TSoftClassPtr<UBLAction>> Skills;
 };
 
 USTRUCT(BlueprintType)

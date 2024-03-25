@@ -21,10 +21,10 @@ struct FHeroAssetInfo
 	TSubclassOf<ABLCombatCharacter> Class;
 
 	UPROPERTY(EditAnywhere)
-	float Cooldown;
+	float Cooldown{ 0 };
 
 	UPROPERTY(EditAnywhere)
-	ECombatElementType Element;
+	ECombatElementType Element{ ECombatElementType::NONE };
 		
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UPaperFlipbook> Sprite;
@@ -44,21 +44,13 @@ struct FHeroAssetInfo
 	UPROPERTY(EditAnywhere)
 	TArray<TSoftClassPtr<UBLAction>> DefendActions;
 
+	UPROPERTY(EditAnywhere)
+	TMap<ECrystalColor, FCrystalSkills> CrystalActions;
+
 	// special skills info
 
 	// crystal skills info
 
-	FHeroAssetInfo()
-	{
-		HeroAttributes = FHeroAttributes();
-		Class = nullptr;
-		Cooldown = 0.f;
-		Element = ECombatElementType::NONE;
-		Sprite = nullptr;
-		AnimInstanceClass = nullptr;
-		TakeDMGAnim = nullptr;
-		HealAnim = nullptr;
-	}
 };
 
 /**

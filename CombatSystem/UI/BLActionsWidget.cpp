@@ -7,6 +7,7 @@
 #include "Components/WidgetSwitcher.h"
 #include "UI/Actions/BLAttackActionWidget.h"
 #include "UI/Actions/BLDefendActionWidget.h"
+#include "UI/Actions/BLCrystalActionWidget.h"
 #include "Actions/BLAction.h"
 
 void UBLActionsWidget::NativeConstruct()
@@ -20,10 +21,11 @@ void UBLActionsWidget::NativeConstruct()
 	BindActions();
 }
 
-void UBLActionsWidget::SetActionsData(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions)
+void UBLActionsWidget::SetActionsData(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions)
 {	
 	AttackAction->AddActions(InAttackActions, BaseData.AttackDMG);
 	DefendAction->AddActions(InDefendActions);
+	CrystalAction->AddActions(InCrystalActions);
 }
 
 void UBLActionsWidget::BindButtons()
@@ -40,6 +42,7 @@ void UBLActionsWidget::BindActions()
 {
 	AttackAction->OnAction.BindUObject(this, &UBLActionsWidget::ChosenAction);
 	DefendAction->OnAction.BindUObject(this, &UBLActionsWidget::ChosenAction);
+	CrystalAction->OnAction.BindUObject(this, &UBLActionsWidget::ChosenAction);
 	//other actions
 }
 
@@ -65,7 +68,12 @@ void UBLActionsWidget::OnBTDefendClicked()
 
 void UBLActionsWidget::OnBTCrystalClicked()
 {
-
+	ResetButton();
+	ResetAction();
+	ClickedButton = BTCrystal;
+	ClickedAction = CrystalAction;
+	ClickedButton->SetBackgroundColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.f));
+	ActionTypeSwitcher->SetActiveWidget(CrystalAction);
 }
 
 void UBLActionsWidget::OnBTSpecialSkillClicked()
@@ -108,7 +116,7 @@ void UBLActionsWidget::ResetWidget()
 	ActionTypeSwitcher->SetActiveWidget(NoneAction);
 }
 
-void UBLActionsWidget::ChosenAction(ECombatActionType Action, int32 ActionIndex)
+void UBLActionsWidget::ChosenAction(ECombatActionType Action, int32 ActionIndex, ECrystalColor CrystalColor)
 {
-	OnChosenAction.ExecuteIfBound(Action, ActionIndex);
+	OnChosenAction.ExecuteIfBound(Action, ActionIndex, CrystalColor);
 }

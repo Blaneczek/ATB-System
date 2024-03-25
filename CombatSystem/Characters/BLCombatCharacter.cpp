@@ -36,6 +36,13 @@ void ABLCombatCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions)
+{
+	SetData(InBaseData, InAttackActions, InDefendActions);
+
+	CrystalActions = InCrystalActions;
+}
+
 void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions)
 {
 	bDefendIdle = false;
@@ -45,14 +52,14 @@ void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData, const TArray
 	CurrentDefense = BaseData.BaseDefense;
 
 	AttackActions = InAttackActions;
-	DefendActions = InDefendActions;
+	DefendActions = InDefendActions;	
 
 	PaperFlipbook->SetFlipbook(BaseData.Sprite);
 	GetAnimationComponent()->SetAnimInstanceClass(BaseData.AnimInstanceClass);
 }
 
 
-void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, ECombatActionType ActionType, int32 ActionIndex, ABLCombatCharacter* Target)
+void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, ECombatActionType ActionType, int32 ActionIndex, ABLCombatCharacter* Target, ECrystalColor CrystalColor)
 {
 	switch (ActionType)
 	{
@@ -91,7 +98,17 @@ void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, ECombatA
 		}
 		case ECombatActionType::CRYSTAL_SKILL:
 		{
-			//TODO
+			if (CrystalColor != ECrystalColor::NONE && !CrystalActions.Find(CrystalColor)->Skills.IsValidIndex(ActionIndex))
+			{
+				EndAction(true);
+				return;
+			}
+
+			CurrentAction = NewObject<UBLAction>(this, CrystalActions.Find(CrystalColor)->Skills[ActionIndex].LoadSynchronous());
+			if (CurrentAction)
+			{
+				CurrentAction->OnCreateAction(this);
+			}
 			return;
 		}
 		case ECombatActionType::SPECIAL_SKILL:

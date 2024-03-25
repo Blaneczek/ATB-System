@@ -35,26 +35,17 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	ABLCombatCharacter* GetCharacter() const
-	{
-		return Character;
-	};
-	uint32 GetIndex() const
-	{
-		return Index;
-	};
-	bool IsEnemy() const
-	{
-		return bIsEnemy;
-	}
-
+	ABLCombatCharacter* GetCharacter() const { return Character; };
+	uint32 GetIndex() const { return Index; };
+	bool IsEnemy() const { return bIsEnemy; };
 	float GetCooldown() const;
 
-	void SpawnCharacter(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions);
+	void SpawnCharacter(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& AttackActions, const TArray<TSoftClassPtr<UBLAction>>& DefendActions, const TMap<ECrystalColor, FCrystalSkills>& CrystalActions);
+	void SpawnCharacter(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& AttackActions, const TArray<TSoftClassPtr<UBLAction>>& DefendActions);
 	void PauseCharCooldown();
 	void UnPauseCharCooldown();
 
-	void DoAction(ECombatActionType ActionType, int32 ActionIndex, ABLCombatSlot* TargetSlot);
+	void DoAction(ECombatActionType ActionType, int32 ActionIndex, ABLCombatSlot* TargetSlot, ECrystalColor CrystalColor = ECrystalColor::NONE);
 
 private:
 	UFUNCTION()
@@ -69,11 +60,12 @@ private:
 	UFUNCTION()
 	void UpdateCharHealth();
 
-	/** Hovered slot effect */
+	/** Temporary solution for clicked and hovered effect */
 	UFUNCTION()
 	void OnBeginMouseOver(UPrimitiveComponent* TouchedComponent);
 	UFUNCTION()
 	void OnEndMouseOver(UPrimitiveComponent* TouchedComponent);
+	/**/
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
@@ -88,6 +80,7 @@ public:
 	TObjectPtr<UMaterialInstance> ClickedMaterial;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "BL|Combat")
 	TObjectPtr<UMaterialInstance> HoveredMaterial;
+	/**/
 
 	UPROPERTY()
 	bool bIsActive;

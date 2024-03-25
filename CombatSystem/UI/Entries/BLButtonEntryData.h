@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include "BLCombatUtilities.h"
 #include "BLButtonEntryData.generated.h"
 
 /**
@@ -16,11 +17,13 @@ class BLADEOFLEGEND_API UBLButtonEntryData : public UObject
 	
 public:
 	/** Sets the data needed for UI */
-	void Init(int32 InIndex, const FText& InName);
+	void Init(int32 InIndex, const FText& InName, ECrystalColor InCrystalColor = ECrystalColor::NONE);
 
 public:
 	UPROPERTY()
 	int32 Index;
 	UPROPERTY()
 	FText Name;
+	UPROPERTY()
+	ECrystalColor CrystalColor;
 };

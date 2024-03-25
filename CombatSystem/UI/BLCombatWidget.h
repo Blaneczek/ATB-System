@@ -14,7 +14,7 @@ class UWidgetSwitcher;
 class UBorder;
 class UBLAction;
 
-DECLARE_DELEGATE_TwoParams(FOnActionTypeChosen, ECombatActionType /*ActionType*/, int32 /*ActionIndex*/);
+DECLARE_DELEGATE_ThreeParams(FOnActionTypeChosen, ECombatActionType /*ActionType*/, int32 /*ActionIndex*/, ECrystalColor /*CrystalColor*/);
 
 /**
  * 
@@ -35,7 +35,7 @@ public:
 	/** Adds cell with enemy to widget */
 	void AddEnemy(int32 SlotIndex, const FString& EnemyName);
 	/** Populate actions */
-	void AddHeroActions(int32 SlotIndex, const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions);
+	void AddHeroActions(int32 SlotIndex, const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions);
 
 	/** Highlights chosen hero and shows his actions */
 	void SetCurrentHero(int32 SlotIndex);
@@ -62,7 +62,7 @@ public:
 	void HideActions();
 
 private:
-	void ChosenAction(ECombatActionType Action, int32 ActionIndex);
+	void ChosenAction(ECombatActionType Action, int32 ActionIndex, ECrystalColor CrystalColor = ECrystalColor::NONE);
 
 public:
 	FOnActionTypeChosen OnActionChosen;

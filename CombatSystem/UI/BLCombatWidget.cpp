@@ -42,11 +42,11 @@ void UBLCombatWidget::AddEnemy(int32 SlotIndex, const FString& EnemyName)
 	Enemies->AddEnemy(SlotIndex, EnemyName);
 }
 
-void UBLCombatWidget::AddHeroActions(int32 SlotIndex, const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions)
+void UBLCombatWidget::AddHeroActions(int32 SlotIndex, const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions)
 {
 	if (Actions.IsValidIndex(SlotIndex) && Actions[SlotIndex])
 	{
-		Actions[SlotIndex]->SetActionsData(BaseData, InAttackActions, InDefendActions);
+		Actions[SlotIndex]->SetActionsData(BaseData, InAttackActions, InDefendActions, InCrystalActions);
 		Actions[SlotIndex]->OnChosenAction.BindUObject(this, &UBLCombatWidget::ChosenAction);
 	}
 }
@@ -120,7 +120,7 @@ void UBLCombatWidget::HideActions()
 	ActionsSwitcher->SetActiveWidget(NoneActions);
 }
 
-void UBLCombatWidget::ChosenAction(ECombatActionType Action, int32 ActionIndex)
+void UBLCombatWidget::ChosenAction(ECombatActionType Action, int32 ActionIndex, ECrystalColor CrystalColor)
 {
-	OnActionChosen.ExecuteIfBound(Action, ActionIndex);
+	OnActionChosen.ExecuteIfBound(Action, ActionIndex, CrystalColor);
 }

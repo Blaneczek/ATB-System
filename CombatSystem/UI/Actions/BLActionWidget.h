@@ -12,7 +12,7 @@ class UBLAction;
 class UListView;
 class UBLButtonEntryWidget;
 
-DECLARE_DELEGATE_TwoParams(FOnAction, ECombatActionType /*ActionType*/, int32 /*ActionIndex*/);
+DECLARE_DELEGATE_ThreeParams(FOnAction, ECombatActionType /*ActionType*/, int32 /*ActionIndex*/, ECrystalColor /*CrystalColor*/);
 
 /**
  * 
@@ -30,13 +30,16 @@ protected:
 
 public:
 	/** Adds Attack actions to Widget */
-	virtual void AddActions(const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, float AttackDMG){};
+	virtual void AddActions(const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, float AttackDMG) {};
 
 	/** Adds Defend actions to Widget */
 	virtual void AddActions(const TArray<TSoftClassPtr<UBLAction>>& InDefendActions) {};
 
+	/** Adds Crystal actions to Widget */
+	virtual void AddActions(const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions) {};
+
 	/** Resets action to default state (no description and normal button) */
-	void ResetAction();
+	virtual void ResetAction();
 
 public:
 	FOnAction OnAction;

@@ -36,6 +36,7 @@ public:
 public:
 	virtual void Tick(float DeltaTime);
 
+	void SetData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions);
 	void SetData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions);
 
 	virtual void HandleHitByAction(float Damage, ECombatElementType DamageElementType);
@@ -51,7 +52,11 @@ public:
 	float GetCurrentME() const { return CurrentME; };
 	float GetMaxME() const { return BaseData.MaxME; };
 
-	void CreateAction(const FVector& OwnerSlotLocation, ECombatActionType ActionType, int32 ActionIndex, ABLCombatCharacter* Target);
+	/** Only for text render (Debug) */
+	UFUNCTION(BlueprintCallable)
+	FString GetName() const { return BaseData.Name; };
+
+	void CreateAction(const FVector& OwnerSlotLocation, ECombatActionType ActionType, int32 ActionIndex, ABLCombatCharacter* Target, ECrystalColor CrystalColor = ECrystalColor::NONE);
 
 	/** Action is executing in place, no targets */
 	void DefaultAction();
@@ -81,10 +86,6 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
 	bool bDefendIdle;
-
-	//only for text render
-	UFUNCTION(BlueprintCallable)
-	FString GetName() const { return BaseData.Name; };
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
 	FCombatCharData BaseData;
@@ -118,4 +119,6 @@ private:
 	TArray<TSoftClassPtr<UBLAction>> AttackActions;
 	UPROPERTY()
 	TArray<TSoftClassPtr<UBLAction>> DefendActions;
+	UPROPERTY()
+	TMap<ECrystalColor, FCrystalSkills> CrystalActions;
 };
