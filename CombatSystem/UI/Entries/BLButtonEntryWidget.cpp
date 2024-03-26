@@ -10,12 +10,13 @@ void UBLButtonEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 	UBLButtonEntryData* Item = Cast<UBLButtonEntryData>(ListItemObject);
 	if (Item)
 	{
-		SetData(Item->Index, Item->Name);
+		SetData(Item->Index, Item->Name, Item->MECost);
 	}
 }
 
-void UBLButtonEntryWidget::SetData(int32 InIndex, const FText& InName)
+void UBLButtonEntryWidget::SetData(int32 InIndex, const FText& InName, float InMECost)
 {
 	Index = InIndex;
 	Name->SetText(InName);
+	MECost = InMECost;
 }

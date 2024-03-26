@@ -13,8 +13,9 @@ class UBLActionsWidget;
 class UWidgetSwitcher;
 class UBorder;
 class UBLAction;
+class UTextBlock;
 
-DECLARE_DELEGATE_ThreeParams(FOnActionTypeChosen, ECombatActionType /*ActionType*/, int32 /*ActionIndex*/, ECrystalColor /*CrystalColor*/);
+DECLARE_DELEGATE_FourParams(FOnActionTypeChosen, ECombatActionType /*ActionType*/, int32 /*ActionIndex*/, ECrystalColor /*CrystalColor*/, float /*ActionMECost*/);
 
 /**
  * 
@@ -61,8 +62,10 @@ public:
 
 	void HideActions();
 
+	void ActivateNotEnoughME();
+
 private:
-	void ChosenAction(ECombatActionType Action, int32 ActionIndex, ECrystalColor CrystalColor = ECrystalColor::NONE);
+	void ChosenAction(ECombatActionType Action, int32 ActionIndex, ECrystalColor CrystalColor = ECrystalColor::NONE, float ActionMECost = 0.f);
 
 public:
 	FOnActionTypeChosen OnActionChosen;
@@ -89,6 +92,9 @@ protected:
 	TObjectPtr<UBLActionsWidget> Actions_3;
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
 	TObjectPtr<UBLActionsWidget> Actions_4;
+
+	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
+	TObjectPtr<UTextBlock> NotEnoughME;
 
 private:
 	UPROPERTY()

@@ -57,7 +57,7 @@ void UBLHeroEntryWidget::UpdateME(float MaxME, float CurrentME)
 	FFormatNamedArguments Args;
 	Args.Add(TEXT("MaxME"), MaxME);
 	Args.Add(TEXT("CurrentME"), CurrentME);
-	HP->SetText(FText::Format(FText::FromString("ME: {CurrentME}/{MaxME}"), Args));
+	ME->SetText(FText::Format(FText::FromString("ME: {CurrentME}/{MaxME}"), Args));
 }
 
 void UBLHeroEntryWidget::StartCooldownBar(float Cooldown)

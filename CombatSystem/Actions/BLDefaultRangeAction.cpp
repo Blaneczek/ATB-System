@@ -23,7 +23,9 @@ void UBLDefaultRangeAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCh
 		OnEndExecution.ExecuteIfBound();
 	}
 
-	Target->HandleHitByAction(Owner->BaseData.AttackDMG, Element);
+	Owner->SetCurrentME(FMath::Clamp((Owner->GetCurrentME() - MECost), 0.f, Owner->GetMaxME()));
+
+	ActionCalculations(Owner, Target);
 	FTimerHandle Delay;
 	FTimerDelegate DelayDel;
 	DelayDel.BindLambda([this]() { OnEndExecution.ExecuteIfBound(); });

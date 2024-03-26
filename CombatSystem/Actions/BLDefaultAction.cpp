@@ -22,8 +22,11 @@ void UBLDefaultAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharact
 		OnEndExecution.ExecuteIfBound();
 	}
 
-	Owner->CurrentDefense = Owner->BaseData.BaseDefense * 1.5f;
-	Owner->bDefendIdle = true;
+
+	ActionCalculations(Owner, Target);
+
+	Owner->SetCurrentME(FMath::Clamp((Owner->GetCurrentME() - MECost), 0.f, Owner->GetMaxME()));
+
 	if (ActionAnim)
 	{
 		FZDOnAnimationOverrideEndSignature EndAnimDel;

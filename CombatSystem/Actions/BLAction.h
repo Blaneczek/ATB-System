@@ -25,7 +25,10 @@ public:
 	virtual void OnCreateAction(ABLCombatCharacter* Owner);
 	virtual void ActivateAction(ABLCombatCharacter* Owner) {};
 	virtual void ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharacter* Target) {};
-	virtual void EndAction();
+
+protected:
+	UFUNCTION(BlueprintImplementableEvent)
+	void ActionCalculations(ABLCombatCharacter* Owner, ABLCombatCharacter* Target);
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
@@ -35,7 +38,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
 	TObjectPtr<UPaperZDAnimSequence> ActionAnim;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
-	ECombatElementType Element;
+	ECombatElementType Element{ ECombatElementType::NONE };
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
+	float MECost{ 0.f };
 
 
 	FOnEndExecution OnEndExecution;

@@ -37,7 +37,7 @@ void UBLDefendActionWidget::OnActionClicked(UObject* Item)
 		{
 			DescDisplay->SetText(Descriptions[Button->Index]);
 		}
-		OnAction.ExecuteIfBound(ECombatActionType::DEFEND, Button->Index, ECrystalColor::NONE);
+		OnAction.ExecuteIfBound(ECombatActionType::DEFEND, Button->Index, ECrystalColor::NONE, 0.f);
 	}
 }
 

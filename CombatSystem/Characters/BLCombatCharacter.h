@@ -39,6 +39,7 @@ public:
 	void SetData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions);
 	void SetData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions);
 
+	UFUNCTION(BlueprintCallable)
 	virtual void HandleHitByAction(float Damage, ECombatElementType DamageElementType);
 
 	UFUNCTION()
@@ -48,9 +49,25 @@ public:
 
 	float GetCooldown() const { return BaseData.Cooldown; };
 	float GetCurrentHP() const { return CurrentHP; };
+	void SetCurrentHP(float NewHP) { CurrentHP = NewHP; };
 	float GetMaxHP() const { return BaseData.MaxHP; };
 	float GetCurrentME() const { return CurrentME; };
+	void SetCurrentME(float NewME) { CurrentME = NewME; };
 	float GetMaxME() const { return BaseData.MaxME; };
+
+	UFUNCTION(BlueprintCallable)
+	float GetAttackDMG() const { return BaseData.AttackDMG; };
+	UFUNCTION(BlueprintCallable)
+	float GetBaseDefense() const { return BaseData.BaseDefense; };
+	UFUNCTION(BlueprintCallable)
+	void SetDefense(float NewDefense) { CurrentDefense = NewDefense; };
+
+	/**
+	* Activates/deactivates Defend idle animation
+	* @param NewActive: true - active, false - inactive
+	*/
+	UFUNCTION(BlueprintCallable)
+	void DefendIdleActivation(bool NewActiv) { bDefendIdle = NewActiv; };
 
 	/** Only for text render (Debug) */
 	UFUNCTION(BlueprintCallable)
@@ -84,6 +101,7 @@ public:
 	FOnHealthUpdate OnHealthUpdate;
 	FOnDeath OnDeath;
 
+protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
 	bool bDefendIdle;
 
@@ -96,8 +114,6 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
 	float CurrentDefense;
 	
-
-protected:
 	UPROPERTY()
 	FTimerHandle CooldownTimer;
 

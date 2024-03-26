@@ -110,7 +110,6 @@ void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, ECombatA
 			CurrentAction = NewObject<UBLAction>(this, CrystalActions.Find(CrystalColor)->Skills[ActionIndex].LoadSynchronous());
 			if (CurrentAction)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("%s"), *CurrentAction->GetName());
 				CurrentAction->OnCreateAction(this);
 			}
 			return;

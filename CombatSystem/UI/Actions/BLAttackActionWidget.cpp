@@ -42,7 +42,7 @@ void UBLAttackActionWidget::OnActionClicked(UObject* Item)
 		{
 			DescDisplay->SetText(Descriptions[Button->Index]);
 		}
-		OnAction.ExecuteIfBound(ECombatActionType::ATTACK, Button->Index, ECrystalColor::NONE);
+		OnAction.ExecuteIfBound(ECombatActionType::ATTACK, Button->Index, ECrystalColor::NONE, 0.f);
 	}
 }
 

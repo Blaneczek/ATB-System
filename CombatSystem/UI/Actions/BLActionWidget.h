@@ -12,7 +12,7 @@ class UBLAction;
 class UListView;
 class UBLButtonEntryWidget;
 
-DECLARE_DELEGATE_ThreeParams(FOnAction, ECombatActionType /*ActionType*/, int32 /*ActionIndex*/, ECrystalColor /*CrystalColor*/);
+DECLARE_DELEGATE_FourParams(FOnAction, ECombatActionType /*ActionType*/, int32 /*ActionIndex*/, ECrystalColor /*CrystalColor*/, float /*ActionMECost*/);
 
 /**
  * 
@@ -56,6 +56,9 @@ protected:
 	/** Stores descriptions for all actions in a particular Action type */
 	UPROPERTY()
 	TArray<FText> Descriptions;
+
+	UPROPERTY()
+	TArray<float> MECosts;
 
 	/** Clicked item in ListView */
 	UPROPERTY()

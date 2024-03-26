@@ -29,7 +29,7 @@ void UBLCrystalActionWidget::AddActions(const TMap<ECrystalColor, FCrystalSkills
 			UBLButtonEntryData* EntryItem = NewObject<UBLButtonEntryData>();
 			if (Action && EntryItem)
 			{
-				EntryItem->Init(Index, Action->Name, ECrystalColor::BLUE);
+				EntryItem->Init(Index, Action->Name, ECrystalColor::BLUE, Action->MECost);
 				BlueItems.Add(EntryItem);
 				if (CrystalsDescriptions.Contains(ECrystalColor::BLUE))
 				{
@@ -55,7 +55,7 @@ void UBLCrystalActionWidget::AddActions(const TMap<ECrystalColor, FCrystalSkills
 			UBLButtonEntryData* EntryItem = NewObject<UBLButtonEntryData>();
 			if (Action && EntryItem)
 			{
-				EntryItem->Init(Index, Action->Name, ECrystalColor::RED);
+				EntryItem->Init(Index, Action->Name, ECrystalColor::RED, Action->MECost);
 				RedItems.Add(EntryItem);
 				if (CrystalsDescriptions.Contains(ECrystalColor::RED))
 				{
@@ -107,7 +107,7 @@ void UBLCrystalActionWidget::OnActionClicked(UObject* Item)
 		{
 			DescDisplay->SetText(CrystalsDescriptions.Find(ClickedColor)->Descriptions[Button->Index]);
 		}
-		OnAction.ExecuteIfBound(ECombatActionType::CRYSTAL_SKILL, Button->Index, ClickedColor);
+		OnAction.ExecuteIfBound(ECombatActionType::CRYSTAL_SKILL, Button->Index, ClickedColor, Button->MECost);
 	}
 }
 

@@ -17,7 +17,7 @@ class BLADEOFLEGEND_API UBLButtonEntryData : public UObject
 	
 public:
 	/** Sets the data needed for UI */
-	void Init(int32 InIndex, const FText& InName, ECrystalColor InCrystalColor = ECrystalColor::NONE);
+	void Init(int32 InIndex, const FText& InName, ECrystalColor InCrystalColor = ECrystalColor::NONE, float InMECost = 0.f);
 
 public:
 	UPROPERTY()
@@ -26,4 +26,6 @@ public:
 	FText Name;
 	UPROPERTY()
 	ECrystalColor CrystalColor;
+	UPROPERTY()
+	float MECost;
 };

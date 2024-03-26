@@ -8,12 +8,14 @@
 #include "Components/WidgetSwitcher.h"
 #include "Components/Border.h"
 #include "Actions/BLAction.h"
+#include "Components/TextBlock.h"
 
 void UBLCombatWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
 	ActionsSwitcher->SetActiveWidget(NoneActions);
+	NotEnoughME->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void UBLCombatWidget::NativeOnInitialized()
@@ -120,7 +122,19 @@ void UBLCombatWidget::HideActions()
 	ActionsSwitcher->SetActiveWidget(NoneActions);
 }
 
-void UBLCombatWidget::ChosenAction(ECombatActionType Action, int32 ActionIndex, ECrystalColor CrystalColor)
+void UBLCombatWidget::ActivateNotEnoughME()
 {
-	OnActionChosen.ExecuteIfBound(Action, ActionIndex, CrystalColor);
+	if (NotEnoughME->GetVisibility() == ESlateVisibility::Hidden)
+	{
+		NotEnoughME->SetVisibility(ESlateVisibility::Visible);
+		FTimerDelegate DelayDel;
+		DelayDel.BindLambda([this]() { NotEnoughME->SetVisibility(ESlateVisibility::Hidden); });
+		FTimerHandle DelayTimer;
+		GetWorld()->GetTimerManager().SetTimer(DelayTimer, DelayDel, 1.5f, false);
+	}
+}
+
+void UBLCombatWidget::ChosenAction(ECombatActionType Action, int32 ActionIndex, ECrystalColor CrystalColor, float ActionMECost)
+{
+	OnActionChosen.ExecuteIfBound(Action, ActionIndex, CrystalColor, ActionMECost);
 }

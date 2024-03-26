@@ -24,6 +24,7 @@ ABLCombatManager::ABLCombatManager()
 	ActionIndex = 0;
 	CurrentPlayerSlot = nullptr;
 	CurrentTargetSlot = nullptr;
+	ActionMECost = 0.f;
 	ActionCrystalColor = ECrystalColor::NONE;
 
 	for (int32 Index = 0; Index < 5; ++Index)
@@ -377,31 +378,38 @@ void ABLCombatManager::HandleEnemyAction(ABLCombatSlot* EnemySlot, ECombatAction
 
 void ABLCombatManager::ActionEnded(ABLCombatSlot* OwnerSlot, bool bWasEnemy)
 {
-	if (Widget)
+	if (!Widget)
 	{
-		Widget->PauseCooldownBars(false);
-		Widget->SetIsActionVisibility(ESlateVisibility::Hidden);
-		if (!bWasEnemy)
-		{
-			Widget->StartHeroCooldownBar(OwnerSlot->GetIndex(), OwnerSlot->GetCooldown());
-		}
+		return;
+	}
+
+	Widget->PauseCooldownBars(false);
+	Widget->SetIsActionVisibility(ESlateVisibility::Hidden);
+	if (!bWasEnemy)
+	{
+		Widget->StartHeroCooldownBar(OwnerSlot->GetIndex(), OwnerSlot->GetCooldown());
+		UpdateHeroMagicEnergy(OwnerSlot);
 	}
 
 	UnPauseCooldowns();
 	bAction = false;
 }
 
-void ABLCombatManager::ChooseAction(ECombatActionType InActionType, int32 InActionIndex, ECrystalColor CrystalColor)
+void ABLCombatManager::ChooseAction(ECombatActionType InActionType, int32 InActionIndex, ECrystalColor CrystalColor, float MECost)
 {
 	UE_LOG(LogTemp, Warning, TEXT("choosen action"));
 	ActionType = InActionType;
 	ActionIndex = InActionIndex;
 	ActionCrystalColor = CrystalColor;
+	ActionMECost = MECost;
 }
 
 void ABLCombatManager::ResetAction(ABLCombatSlot* NewPlayerSlot)
 {
 	ActionType = ECombatActionType::NONE;
+	ActionIndex = 0;
+	ActionCrystalColor = ECrystalColor::NONE;
+	ActionMECost = 0.f;
 	ClearPlayerSlot();
 	ClearTargetSlot();
 	ChoosePlayerSlot(NewPlayerSlot);
@@ -441,15 +449,25 @@ void ABLCombatManager::PlayerDefendAction()
 
 void ABLCombatManager::PlayerCrystalAction(ABLCombatSlot* TargetSlot)
 {
+	if (!Widget)
+	{
+		return;
+	}
+
+	if (ActionMECost > CurrentPlayerSlot->GetCharacter()->GetCurrentME())
+	{
+		Widget->ActivateNotEnoughME();
+		return;
+	}
+
 	ClearTargetSlot();
 	ChooseTargetSlot(TargetSlot);
 	AddActionToQueue(CurrentPlayerSlot, CurrentTargetSlot, ActionType, ActionIndex, false, ActionCrystalColor);
 	CurrentPlayerSlot->bCanDoAction = false;
 	ActionType = ECombatActionType::NONE;
-	if (Widget)
-	{
-		Widget->ResetHeroCooldownBar(CurrentPlayerSlot->GetIndex());
-	}
+
+	Widget->ResetHeroCooldownBar(CurrentPlayerSlot->GetIndex());
+
 	ClearPlayerSlot();
 	ChooseRandomPlayerSlot();
 	FTimerHandle ClearEnemyDelay;

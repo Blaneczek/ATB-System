@@ -113,7 +113,7 @@ private:
 	void ActionEnded(ABLCombatSlot* OwnerSlot, bool bWasEnemy);
 
 	/** Sets current ActionType and chosen action */
-	void ChooseAction(ECombatActionType InActionType, int32 InActionIndex, ECrystalColor CrystalColor = ECrystalColor::NONE);
+	void ChooseAction(ECombatActionType InActionType, int32 InActionIndex, ECrystalColor CrystalColor = ECrystalColor::NONE, float MECost = 0.f);
 
 	/** Resets action and sets new CurrentPlayerSlot */
 	void ResetAction(ABLCombatSlot* NewPlayerSlot);
@@ -193,6 +193,10 @@ private:
 	/** Current selected crystal if Action is Crystal Skill */
 	UPROPERTY()
 	ECrystalColor ActionCrystalColor;
+
+	/** Magic energy cost of the clicked action */
+	UPROPERTY()
+	float ActionMECost;
 
 	/** If an action is currently being executed */
 	UPROPERTY()

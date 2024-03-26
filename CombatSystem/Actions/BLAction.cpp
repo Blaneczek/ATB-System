@@ -11,10 +11,7 @@ void UBLAction::OnCreateAction(ABLCombatCharacter* Owner)
 	}	
 }
 
-void UBLAction::EndAction()
-{
-	//
-}
+
 
 
 
