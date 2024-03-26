@@ -7,6 +7,7 @@
 #include "BLCrystalActionWidget.generated.h"
 
 class UWidgetSwitcher;
+class UButton;
 
 USTRUCT(BlueprintType)
 struct FCrystalDescriptions
@@ -35,7 +36,13 @@ protected:
 
 	virtual void OnActionClicked(UObject* Item) override;
 
+private:
 	void OnColorClicked(UObject* Item);
+
+	void ResetColorsAction();
+
+	UFUNCTION()
+	void OnBTBackClicked();
 
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
@@ -43,6 +50,9 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
 	TObjectPtr<UWidgetSwitcher> ColorsSwitcher;
+
+	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
+	TObjectPtr<UButton> BTBack;
 
 private:
 	UPROPERTY()
@@ -59,4 +69,6 @@ private:
 	/** Clicked item in Crystals ListView */
 	UPROPERTY()
 	TObjectPtr<UBLButtonEntryWidget> ClickedColorButton;
+
+	
 };

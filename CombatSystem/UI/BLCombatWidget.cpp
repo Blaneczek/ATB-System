@@ -102,7 +102,7 @@ void UBLCombatWidget::ResetHeroCooldownBar(int32 SlotIndex)
 
 void UBLCombatWidget::SetIsActionVisibility(ESlateVisibility InVisibility)
 {
-
+	//
 }
 
 void UBLCombatWidget::UpdateHeroHealth(int32 SlotIndex, float MaxHP, float CurrentHP)

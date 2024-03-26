@@ -9,6 +9,7 @@
 #include "Components/ListView.h"
 #include "Components/Border.h"
 #include "Components/WidgetSwitcher.h"
+#include "Components/Button.h"
 
 void UBLCrystalActionWidget::AddActions(const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions)
 {
@@ -69,9 +70,17 @@ void UBLCrystalActionWidget::AddActions(const TMap<ECrystalColor, FCrystalSkills
 
 void UBLCrystalActionWidget::ResetAction()
 {
-	Super::ResetAction();
+	ResetColorsAction();
 
-	//
+	if (ClickedColorButton)
+	{
+		ClickedColorButton->Border->SetBrushColor(FLinearColor(0.5f, 0.5f, 0.5f, 1.f));
+		ClickedColorButton = nullptr;
+	}
+	BTBack->SetVisibility(ESlateVisibility::Hidden);
+	DescDisplay->SetText(FText::FromString(""));
+
+	ColorsSwitcher->SetActiveWidget(CrystalsList);
 }
 
 void UBLCrystalActionWidget::NativeConstruct()
@@ -81,57 +90,69 @@ void UBLCrystalActionWidget::NativeConstruct()
 	ColorsSwitcher->SetActiveWidget(CrystalsList);
 	CrystalsList->OnItemClicked().AddUObject(this, &UBLCrystalActionWidget::OnColorClicked);
 
+	BTBack->OnClicked.AddDynamic(this, &UBLCrystalActionWidget::OnBTBackClicked);
+	BTBack->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void UBLCrystalActionWidget::OnActionClicked(UObject* Item)
 {
-	//TODO: FIX THIS (can't click on ActionsList after switch
-	UE_LOG(LogTemp, Warning, TEXT("ggggggg"));
-	ResetAction();
+	ResetColorsAction();
 
 	UBLButtonEntryWidget* Button = Cast<UBLButtonEntryWidget>(ActionsList->GetEntryWidgetFromItem(Item));
 	if (Button)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("sdsd"));
 		ClickedButton = Button;
 		Button->Border->SetBrushColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.f));
 		if (CrystalsDescriptions.Contains(ClickedColor) && CrystalsDescriptions.Find(ClickedColor)->Descriptions.IsValidIndex(Button->Index))
 		{
 			DescDisplay->SetText(CrystalsDescriptions.Find(ClickedColor)->Descriptions[Button->Index]);
 		}
-		OnAction.ExecuteIfBound(ECombatActionType::ATTACK, Button->Index, ClickedColor);
+		OnAction.ExecuteIfBound(ECombatActionType::CRYSTAL_SKILL, Button->Index, ClickedColor);
 	}
 }
 
 void UBLCrystalActionWidget::OnColorClicked(UObject* Item)
 {
-	//ResetColor();
-
 	UBLButtonEntryWidget* Button = Cast<UBLButtonEntryWidget>(CrystalsList->GetEntryWidgetFromItem(Item));
 	UBLButtonEntryData* ButtonData = Cast<UBLButtonEntryData>(Item);
-	if (Button && ButtonData)
+	if (!Button || !ButtonData)
 	{
-		ClickedColorButton = Button;
-		Button->Border->SetBrushColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.f));
-		ClickedColor = ButtonData->CrystalColor;
-		
-		switch (ClickedColor)
-		{
-			case ECrystalColor::RED:
-			{
-				UE_LOG(LogTemp, Warning, TEXT("red"));
-				ActionsList->SetListItems(RedItems);
-				break;
-			}
-			case ECrystalColor::BLUE:
-			{
-				UE_LOG(LogTemp, Warning, TEXT("blue"));
-				ActionsList->SetListItems(BlueItems);
-				break;
-			}
-			default: return;
-		}
-
-		ColorsSwitcher->SetActiveWidget(ActionsList);
+		return;
 	}
+
+	ClickedColorButton = Button;
+	Button->Border->SetBrushColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.f));
+	ClickedColor = ButtonData->CrystalColor;
+
+	switch (ClickedColor)
+	{
+	case ECrystalColor::RED:
+	{
+		ActionsList->SetListItems(RedItems);
+		break;
+	}
+	case ECrystalColor::BLUE:
+	{
+		ActionsList->SetListItems(BlueItems);
+		break;
+	}
+	default: return;
+	}
+
+	ColorsSwitcher->SetActiveWidget(ActionsList);
+	BTBack->SetVisibility(ESlateVisibility::Visible);
+}
+
+void UBLCrystalActionWidget::ResetColorsAction()
+{
+	if (ClickedButton)
+	{
+		ClickedButton->Border->SetBrushColor(FLinearColor(0.5f, 0.5f, 0.5f, 1.f));
+		ClickedButton = nullptr;
+	}
+}
+
+void UBLCrystalActionWidget::OnBTBackClicked()
+{
+	ResetAction();
 }
