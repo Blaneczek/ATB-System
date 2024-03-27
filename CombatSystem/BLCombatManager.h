@@ -84,6 +84,9 @@ private:
 	/** Highlights and sets as current clicked player slot */
 	void ChoosePlayerSlot(ABLCombatSlot* Slot);
 
+	/** Highlights and sets as current clicked player slot */
+	void ChoosePlayerSlot(int32 Index);
+
 	/** Unhighlights and nulls current target slot (could be hero or enemy) */
 	void ClearTargetSlot();
 	/** Unhighlights given target slot */
@@ -122,6 +125,7 @@ private:
 	void PlayerAttackAction(ABLCombatSlot* TargetSlot);
 	void PlayerDefendAction();
 	void PlayerCrystalAction(ABLCombatSlot* TargetSlot);
+	void PlayerSpecialAction(ABLCombatSlot* TargetSlot);
 
 	/** Pauses the cooldowns of enemies and heroes */
 	void PauseCooldowns();

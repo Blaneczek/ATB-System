@@ -80,11 +80,11 @@ void ABLCombatManager::SetPlayerTeam()
 			const FCombatCharData CharBaseData = Data->CalculateBaseCombatData(Index);
 			if (PlayerTeam[Index])
 			{
-				PlayerTeam[Index]->SpawnCharacter(CharBaseData, Data->Heroes[Index].AttackActions, Data->Heroes[Index].DefendActions, Data->Heroes[Index].CrystalActions);
+				PlayerTeam[Index]->SpawnCharacter(CharBaseData, Data->Heroes[Index].AttackActions, Data->Heroes[Index].DefendActions, Data->Heroes[Index].CrystalActions, Data->Heroes[Index].SpecialActions);
 				if (Widget)
 				{
 					Widget->AddHero(PlayerTeam[Index]->GetIndex(), CharBaseData);
-					Widget->AddHeroActions(PlayerTeam[Index]->GetIndex(), CharBaseData, Data->Heroes[Index].AttackActions, Data->Heroes[Index].DefendActions, Data->Heroes[Index].CrystalActions);
+					Widget->AddHeroActions(PlayerTeam[Index]->GetIndex(), CharBaseData, Data->Heroes[Index].AttackActions, Data->Heroes[Index].DefendActions, Data->Heroes[Index].CrystalActions, Data->Heroes[Index].SpecialActions);
 				}
 			}					
 		};
@@ -121,6 +121,7 @@ void ABLCombatManager::InitializeWidget()
 	{
 		Widget = CreateWidget<UBLCombatWidget>(GetWorld(), WidgetClass);
 		Widget->OnActionChosen.BindUObject(this, &ABLCombatManager::ChooseAction);
+		Widget->OnHeroSelected.BindUObject(this, &ABLCombatManager::ChoosePlayerSlot);
 	}
 }
 
@@ -134,27 +135,12 @@ void ABLCombatManager::HandleSlotClicked(AActor* Slot)
 
 	switch (ActionType)
 	{
-		case ECombatActionType::NONE:
-		{
-			// If clicked on the hero
-			if (!CurrentSlot->IsEnemy() && CurrentSlot->bCanDoAction)
-			{
-				ClearPlayerSlot();
-				ChoosePlayerSlot(CurrentSlot);
-			}
-			return;
-		}
 		case ECombatActionType::ATTACK:
 		{
 			// If clicked on the enemy
 			if (CurrentSlot->IsEnemy())
 			{
 				PlayerAttackAction(CurrentSlot);
-			}
-			// If clicked on the hero
-			else if (CurrentSlot->bCanDoAction)
-			{
-				ResetAction(CurrentSlot);
 			}
 			return;
 		}
@@ -165,16 +151,22 @@ void ABLCombatManager::HandleSlotClicked(AActor* Slot)
 			{
 				PlayerDefendAction();
 			}
-			// If clicked on a different hero
-			else if (!CurrentSlot->IsEnemy() && CurrentSlot->bCanDoAction)
-			{
-				ResetAction(CurrentSlot);
-			}
 			return;
 		}
 		case ECombatActionType::CRYSTAL_SKILL:
 		{
-			PlayerCrystalAction(CurrentSlot);
+			if (CurrentSlot != CurrentPlayerSlot)
+			{
+				PlayerCrystalAction(CurrentSlot);
+			}		
+			return;
+		}
+		case ECombatActionType::SPECIAL_SKILL:
+		{
+			if (CurrentSlot != CurrentPlayerSlot)
+			{
+				PlayerSpecialAction(CurrentSlot);
+			}
 			return;
 		}
 		default: return;
@@ -202,6 +194,15 @@ void ABLCombatManager::ChoosePlayerSlot(ABLCombatSlot* Slot)
 		CurrentPlayerSlot->Platform->SetMaterial(0, CurrentPlayerSlot->ClickedMaterial);
 	}
 	CurrentPlayerSlot->bClicked = true;
+}
+
+void ABLCombatManager::ChoosePlayerSlot(int32 Index)
+{
+	if (PlayerTeam.IsValidIndex(Index))
+	{
+		ClearPlayerSlot();
+		ChoosePlayerSlot(PlayerTeam[Index]);
+	}
 }
 
 void ABLCombatManager::ClearTargetSlot()
@@ -428,10 +429,10 @@ void ABLCombatManager::PlayerAttackAction(ABLCombatSlot* TargetSlot)
 	}
 	ClearPlayerSlot();
 	ChooseRandomPlayerSlot();
-	FTimerHandle ClearEnemyDelay;
-	FTimerDelegate ClearEnemyDel;
-	ClearEnemyDel.BindUObject(this, &ABLCombatManager::ClearTargetSlot, TargetSlot);
-	GetWorld()->GetTimerManager().SetTimer(ClearEnemyDelay, ClearEnemyDel, 1.f, false);
+	FTimerHandle ClearTargetDelay;
+	FTimerDelegate ClearTargetDel;
+	ClearTargetDel.BindUObject(this, &ABLCombatManager::ClearTargetSlot, TargetSlot);
+	GetWorld()->GetTimerManager().SetTimer(ClearTargetDelay, ClearTargetDel, 1.f, false);
 }
 
 void ABLCombatManager::PlayerDefendAction()
@@ -470,10 +471,39 @@ void ABLCombatManager::PlayerCrystalAction(ABLCombatSlot* TargetSlot)
 
 	ClearPlayerSlot();
 	ChooseRandomPlayerSlot();
-	FTimerHandle ClearEnemyDelay;
-	FTimerDelegate ClearEnemyDel;
-	ClearEnemyDel.BindUObject(this, &ABLCombatManager::ClearTargetSlot, TargetSlot);
-	GetWorld()->GetTimerManager().SetTimer(ClearEnemyDelay, ClearEnemyDel, 1.f, false);
+	FTimerHandle ClearTargetDelay;
+	FTimerDelegate ClearTargetDel;
+	ClearTargetDel.BindUObject(this, &ABLCombatManager::ClearTargetSlot, TargetSlot);
+	GetWorld()->GetTimerManager().SetTimer(ClearTargetDelay, ClearTargetDel, 1.f, false);
+}
+
+void ABLCombatManager::PlayerSpecialAction(ABLCombatSlot* TargetSlot)
+{
+	if (!Widget)
+	{
+		return;
+	}
+
+	if (ActionMECost > CurrentPlayerSlot->GetCharacter()->GetCurrentME())
+	{
+		Widget->ActivateNotEnoughME();
+		return;
+	}
+
+	ClearTargetSlot();
+	ChooseTargetSlot(TargetSlot);
+	AddActionToQueue(CurrentPlayerSlot, CurrentTargetSlot, ActionType, ActionIndex, false);
+	CurrentPlayerSlot->bCanDoAction = false;
+	ActionType = ECombatActionType::NONE;
+
+	Widget->ResetHeroCooldownBar(CurrentPlayerSlot->GetIndex());
+
+	ClearPlayerSlot();
+	ChooseRandomPlayerSlot();
+	FTimerHandle ClearTargetDelay;
+	FTimerDelegate ClearTargetDel;
+	ClearTargetDel.BindUObject(this, &ABLCombatManager::ClearTargetSlot, TargetSlot);
+	GetWorld()->GetTimerManager().SetTimer(ClearTargetDelay, ClearTargetDel, 1.f, false);
 }
 
 void ABLCombatManager::PauseCooldowns()

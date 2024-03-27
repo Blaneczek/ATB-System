@@ -8,6 +8,8 @@
 
 class UProgressBar;
 
+DECLARE_DELEGATE(FOnCooldownEnded);
+
 /**
  *
  * 
@@ -20,16 +22,22 @@ class BLADEOFLEGEND_API UBLCooldownBarWidget : public UUserWidget
 public:
 	/** Starts filling bar from zero */
 	void StartCooldown(float Cooldown);
+
 	/** Resets bar to zero */
 	void ResetCooldown();
+
 	/** Stops filling bar */
 	void PauseCooldown();
+
 	/** Starts filling stopped bar */
 	void UnPauseCooldown();
 
 private:
 	/** Increases bar value by TimerInterval */
 	void UpdateBar(float Cooldown);
+
+public:
+	FOnCooldownEnded OnCooldownEnded;
 
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))

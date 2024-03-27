@@ -1,7 +1,7 @@
 // Copyright (c) 2023 Smoking Carrots. All rights reserved.
 
 
-#include "BLDefendActionWidget.h"
+#include "BLSpecialActionWidget.h"
 #include "Components/TextBlock.h"
 #include "Actions/BLAction.h"
 #include "UI/Entries/BLButtonEntryData.h"
@@ -9,7 +9,7 @@
 #include "Components/Border.h"
 #include "UI/Entries/BLButtonEntryWidget.h"
 
-void UBLDefendActionWidget::AddActions(const TArray<TSoftClassPtr<UBLAction>>& InActions)
+void UBLSpecialActionWidget::AddActions(const TArray<TSoftClassPtr<UBLAction>>& InActions)
 {
 	for (int32 Index = 0; Index < InActions.Num(); ++Index)
 	{
@@ -17,14 +17,14 @@ void UBLDefendActionWidget::AddActions(const TArray<TSoftClassPtr<UBLAction>>& I
 		UBLButtonEntryData* EntryItem = NewObject<UBLButtonEntryData>();
 		if (Action && EntryItem)
 		{
-			EntryItem->Init(Index, Action->Name);
+			EntryItem->Init(Index, Action->Name, ECrystalColor::NONE, Action->MECost);
 			ActionsList->AddItem(EntryItem);
 			Descriptions.Add(Action->Description);
 		}
 	}
 }
 
-void UBLDefendActionWidget::OnActionClicked(UObject* Item)
+void UBLSpecialActionWidget::OnActionClicked(UObject* Item)
 {
 	ResetAction();
 
@@ -37,7 +37,6 @@ void UBLDefendActionWidget::OnActionClicked(UObject* Item)
 		{
 			DescDisplay->SetText(Descriptions[Button->Index]);
 		}
-		OnAction.ExecuteIfBound(ECombatActionType::DEFEND, Button->Index, ECrystalColor::NONE, 0.f);
+		OnAction.ExecuteIfBound(ECombatActionType::SPECIAL_SKILL, Button->Index, ECrystalColor::NONE, Button->MECost);
 	}
 }
-

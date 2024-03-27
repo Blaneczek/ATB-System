@@ -29,7 +29,7 @@ protected:
 	virtual void NativeConstruct() override;
 
 public:
-	void SetActionsData(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions);
+	void SetActionsData(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions, const TArray<TSoftClassPtr<UBLAction>>& InSpecialActions);
 
 	/** Returns widget to default state */
 	void ResetWidget();
@@ -71,7 +71,7 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
 	TObjectPtr<UButton> BTCrystal;
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
-	TObjectPtr<UButton> BTSpecialSkill;
+	TObjectPtr<UButton> BTSpecial;
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
 	TObjectPtr<UButton> BTItem;
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
@@ -85,12 +85,13 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
 	TObjectPtr<UBorder> NoneAction;
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
-	TObjectPtr<UBLAttackActionWidget> AttackAction;
+	TObjectPtr<UBLActionWidget> AttackAction;
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
-	TObjectPtr<UBLDefendActionWidget> DefendAction;
+	TObjectPtr<UBLActionWidget> DefendAction;
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
-	TObjectPtr<UBLCrystalActionWidget> CrystalAction;
-
+	TObjectPtr<UBLActionWidget> CrystalAction;
+	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
+	TObjectPtr<UBLActionWidget> SpecialAction;
 	//TODO: Other actions
 
 private:

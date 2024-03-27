@@ -7,6 +7,7 @@
 #include "Components/Border.h"
 #include "UI/BLCooldownBarWidget.h"
 
+
 void UBLHeroEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 {
 	UBLHeroEntryData* Item = Cast<UBLHeroEntryData>(ListItemObject);
@@ -14,6 +15,13 @@ void UBLHeroEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 	{
 		SetData(Item->Index, Item->Name, Item->HP, Item->ME);
 	}
+}
+
+void UBLHeroEntryWidget::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	CooldownBar->OnCooldownEnded.BindLambda([this](){ bCanDoAction = true; });
 }
 
 void UBLHeroEntryWidget::SetData(int32 InIndex, const FText& InName, float InHP, float InME)
@@ -62,6 +70,7 @@ void UBLHeroEntryWidget::UpdateME(float MaxME, float CurrentME)
 
 void UBLHeroEntryWidget::StartCooldownBar(float Cooldown)
 {
+	bCanDoAction = false;
 	CooldownBar->StartCooldown(Cooldown);
 }
 
@@ -77,5 +86,6 @@ void UBLHeroEntryWidget::UnPauseCooldownBar()
 
 void UBLHeroEntryWidget::ResetCooldownBar()
 {
+	bCanDoAction = false;
 	CooldownBar->ResetCooldown();
 }

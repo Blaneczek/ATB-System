@@ -9,6 +9,8 @@
 void UBLHeroesWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
+
+	HeroesTileView->OnItemClicked().AddUObject(this, &UBLHeroesWidget::HeroClicked);
 }
 
 void UBLHeroesWidget::AddHero(int32 Index, const FString& HeroName, float HP, float ME)
@@ -30,12 +32,21 @@ void UBLHeroesWidget::HeroDied(int32 Index)
 	}
 }
 
-void UBLHeroesWidget::HighlightHero(int32 Index, bool bNewColor)
+void UBLHeroesWidget::HighlightsHero(int32 Index, bool bNewColor)
 {
 	UBLHeroEntryWidget* HeroWidget = Cast<UBLHeroEntryWidget>(HeroesTileView->GetEntryWidgetFromItem(HeroesTileView->GetItemAt(Index)));
 	if (HeroWidget)
 	{
 		bNewColor ? HeroWidget->HighlightHero() : HeroWidget->UnlightHero();
+	}
+}
+
+void UBLHeroesWidget::UnlightsHero()
+{
+	if (ClickedHero)
+	{
+		ClickedHero->UnlightHero();
+		ClickedHero = nullptr;
 	}
 }
 
@@ -76,6 +87,18 @@ void UBLHeroesWidget::PauseAllCooldownBars(bool bNewPause)
 		{
 			bNewPause ? HeroWidget->PauseCooldownBar() : HeroWidget->UnPauseCooldownBar();
 		}
+	}
+}
+
+void UBLHeroesWidget::HeroClicked(UObject* Item)
+{
+	UBLHeroEntryWidget* Hero = Cast<UBLHeroEntryWidget>(HeroesTileView->GetEntryWidgetFromItem(Item));
+	if (Hero && Hero->CanDoAction())
+	{
+		UnlightsHero();
+		ClickedHero = Hero;
+		ClickedHero->HighlightHero();
+		OnHeroClicked.ExecuteIfBound(Hero->GetIndex());
 	}
 }
 

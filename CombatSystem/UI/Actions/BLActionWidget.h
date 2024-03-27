@@ -32,8 +32,8 @@ public:
 	/** Adds Attack actions to Widget */
 	virtual void AddActions(const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, float AttackDMG) {};
 
-	/** Adds Defend actions to Widget */
-	virtual void AddActions(const TArray<TSoftClassPtr<UBLAction>>& InDefendActions) {};
+	/** Adds Defend/Special actions to Widget */
+	virtual void AddActions(const TArray<TSoftClassPtr<UBLAction>>& InActions) {};
 
 	/** Adds Crystal actions to Widget */
 	virtual void AddActions(const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions) {};

@@ -16,6 +16,7 @@ class UBLAction;
 class UTextBlock;
 
 DECLARE_DELEGATE_FourParams(FOnActionTypeChosen, ECombatActionType /*ActionType*/, int32 /*ActionIndex*/, ECrystalColor /*CrystalColor*/, float /*ActionMECost*/);
+DECLARE_DELEGATE_OneParam(FOnHeroSelected, int32 /*HeroIndex*/);
 
 /**
  * 
@@ -36,7 +37,7 @@ public:
 	/** Adds cell with enemy to widget */
 	void AddEnemy(int32 SlotIndex, const FString& EnemyName);
 	/** Populate actions */
-	void AddHeroActions(int32 SlotIndex, const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions);
+	void AddHeroActions(int32 SlotIndex, const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions, const TArray<TSoftClassPtr<UBLAction>>& InSpecialActions);
 
 	/** Highlights chosen hero and shows his actions */
 	void SetCurrentHero(int32 SlotIndex);
@@ -67,8 +68,11 @@ public:
 private:
 	void ChosenAction(ECombatActionType Action, int32 ActionIndex, ECrystalColor CrystalColor = ECrystalColor::NONE, float ActionMECost = 0.f);
 
+	void HeroClicked(int32 HeroIndex);
+
 public:
 	FOnActionTypeChosen OnActionChosen;
+	FOnHeroSelected OnHeroSelected;
 
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))

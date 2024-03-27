@@ -47,9 +47,8 @@ struct FHeroAssetInfo
 	UPROPERTY(EditAnywhere)
 	TMap<ECrystalColor, FCrystalSkills> CrystalActions;
 
-	// special skills info
-
-	// crystal skills info
+	UPROPERTY(EditAnywhere)
+	TArray<TSoftClassPtr<UBLAction>> SpecialActions;
 
 };
 
@@ -62,9 +61,11 @@ class BLADEOFLEGEND_API UBLHeroDataAsset : public UDataAsset
 	GENERATED_BODY()
 
 public:
+	/** Takes data from the hero (stats) and calculates the variables needed for combat */
 	FCombatCharData CalculateBaseCombatData(int32 Index);
 
 public:
+	/** Heroes in player's team */
 	UPROPERTY(EditAnywhere)
 	TArray<FHeroAssetInfo> Heroes;
 

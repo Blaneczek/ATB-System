@@ -36,7 +36,7 @@ public:
 public:
 	virtual void Tick(float DeltaTime);
 
-	void SetData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions);
+	void SetData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions, const TArray<TSoftClassPtr<UBLAction>>& InSpecialActions);
 	void SetData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions);
 
 	UFUNCTION(BlueprintCallable)
@@ -137,4 +137,6 @@ private:
 	TArray<TSoftClassPtr<UBLAction>> DefendActions;
 	UPROPERTY()
 	TMap<ECrystalColor, FCrystalSkills> CrystalActions;
+	UPROPERTY()
+	TArray<TSoftClassPtr<UBLAction>> SpecialActions;
 };

@@ -36,11 +36,12 @@ void ABLCombatCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions)
+void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions, const TArray<TSoftClassPtr<UBLAction>>& InSpecialActions)
 {
 	SetData(InBaseData, InAttackActions, InDefendActions);
 
 	CrystalActions = InCrystalActions;
+	SpecialActions = InSpecialActions;
 }
 
 void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions)
@@ -116,7 +117,20 @@ void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, ECombatA
 		}
 		case ECombatActionType::SPECIAL_SKILL:
 		{
-			//TODO
+			if (!SpecialActions.IsValidIndex(ActionIndex))
+			{
+				EndAction(true);
+				return;
+			}
+
+			SlotLocation = OwnerSlotLocation;
+			TargetCharacter = Target;
+
+			CurrentAction = NewObject<UBLAction>(this, SpecialActions[ActionIndex].LoadSynchronous());
+			if (CurrentAction)
+			{
+				CurrentAction->OnCreateAction(this);
+			}
 			return;
 		}
 		case ECombatActionType::ITEM:

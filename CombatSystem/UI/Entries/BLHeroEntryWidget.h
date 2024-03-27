@@ -23,6 +23,8 @@ protected:
 	/** IUserObjectListEntry interface implementation */ 
 	virtual void NativeOnListItemObjectSet(UObject* ListItemObject) override;
 
+	virtual void NativeConstruct() override;
+
 public:
 	/** Sets Hero data for widget */
 	void SetData(int32 InIndex, const FText& InName, float InHP, float InME);
@@ -47,6 +49,9 @@ public:
 	void ResetCooldownBar();
 
 	bool IsDead() const { return bDied; };
+	bool CanDoAction() const { return !bDied && bCanDoAction; };
+
+	int32 GetIndex() const { return Index; };
 
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
@@ -67,5 +72,6 @@ protected:
 	UPROPERTY()
 	int32 Index;
 
-	bool bDied = false;
+	bool bDied { false };
+	bool bCanDoAction{ false };
 };

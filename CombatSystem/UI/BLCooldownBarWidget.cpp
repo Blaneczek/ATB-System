@@ -41,5 +41,6 @@ void UBLCooldownBarWidget::UpdateBar(float Cooldown)
 	if (Time >= Cooldown && CooldownTimer.IsValid())
 	{
 		GetWorld()->GetTimerManager().ClearTimer(CooldownTimer);
+		OnCooldownEnded.ExecuteIfBound();  
 	}
 }

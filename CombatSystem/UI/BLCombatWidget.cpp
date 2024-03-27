@@ -32,6 +32,7 @@ void UBLCombatWidget::NativeOnInitialized()
 void UBLCombatWidget::AddHero(int32 SlotIndex, const FCombatCharData& BaseData)
 {
 	Heroes->AddHero(SlotIndex, BaseData.Name, BaseData.MaxHP, BaseData.MaxME);
+	Heroes->OnHeroClicked.BindUObject(this, &UBLCombatWidget::HeroClicked);
 	//Cooldown bar will start after 1 sek
 	FTimerDelegate CooldownDel;
 	CooldownDel.BindUObject(this, &UBLCombatWidget::StartHeroCooldownBar, SlotIndex, BaseData.Cooldown);
@@ -44,18 +45,18 @@ void UBLCombatWidget::AddEnemy(int32 SlotIndex, const FString& EnemyName)
 	Enemies->AddEnemy(SlotIndex, EnemyName);
 }
 
-void UBLCombatWidget::AddHeroActions(int32 SlotIndex, const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions)
+void UBLCombatWidget::AddHeroActions(int32 SlotIndex, const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions, const TArray<TSoftClassPtr<UBLAction>>& InSpecialActions)
 {
 	if (Actions.IsValidIndex(SlotIndex) && Actions[SlotIndex])
 	{
-		Actions[SlotIndex]->SetActionsData(BaseData, InAttackActions, InDefendActions, InCrystalActions);
+		Actions[SlotIndex]->SetActionsData(BaseData, InAttackActions, InDefendActions, InCrystalActions, InSpecialActions);
 		Actions[SlotIndex]->OnChosenAction.BindUObject(this, &UBLCombatWidget::ChosenAction);
 	}
 }
 
 void UBLCombatWidget::SetCurrentHero(int32 SlotIndex)
 {
-	Heroes->HighlightHero(SlotIndex, true);
+	Heroes->HighlightsHero(SlotIndex, true);
 	if (Actions.IsValidIndex(SlotIndex) && Actions[SlotIndex])
 	{
 		ActionsSwitcher->SetActiveWidget(Actions[SlotIndex]);
@@ -64,7 +65,7 @@ void UBLCombatWidget::SetCurrentHero(int32 SlotIndex)
 
 void UBLCombatWidget::ResetCurrentHero(int32 SlotIndex)
 {
-	Heroes->HighlightHero(SlotIndex, false);
+	Heroes->HighlightsHero(SlotIndex, false);
 	if (Actions.IsValidIndex(SlotIndex) && Actions[SlotIndex])
 	{
 		Actions[SlotIndex]->ResetWidget();
@@ -137,4 +138,9 @@ void UBLCombatWidget::ActivateNotEnoughME()
 void UBLCombatWidget::ChosenAction(ECombatActionType Action, int32 ActionIndex, ECrystalColor CrystalColor, float ActionMECost)
 {
 	OnActionChosen.ExecuteIfBound(Action, ActionIndex, CrystalColor, ActionMECost);
+}
+
+void UBLCombatWidget::HeroClicked(int32 HeroIndex)
+{
+	OnHeroSelected.ExecuteIfBound(HeroIndex);
 }

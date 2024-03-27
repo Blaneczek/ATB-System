@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "BLActionWidget.h"
-#include "BLDefendActionWidget.generated.h"
+#include "BLSpecialActionWidget.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class BLADEOFLEGEND_API UBLDefendActionWidget : public UBLActionWidget
+class BLADEOFLEGEND_API UBLSpecialActionWidget : public UBLActionWidget
 {
 	GENERATED_BODY()
 

@@ -21,11 +21,12 @@ void UBLActionsWidget::NativeConstruct()
 	BindActions();
 }
 
-void UBLActionsWidget::SetActionsData(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions)
+void UBLActionsWidget::SetActionsData(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions, const TArray<TSoftClassPtr<UBLAction>>& InSpecialActions)
 {	
 	AttackAction->AddActions(InAttackActions, BaseData.AttackDMG);
 	DefendAction->AddActions(InDefendActions);
 	CrystalAction->AddActions(InCrystalActions);
+	SpecialAction->AddActions(InSpecialActions);
 }
 
 void UBLActionsWidget::BindButtons()
@@ -33,7 +34,7 @@ void UBLActionsWidget::BindButtons()
 	BTAttack->OnClicked.AddDynamic(this, &UBLActionsWidget::OnBTAttackClicked);
 	BTDefend->OnClicked.AddDynamic(this, &UBLActionsWidget::OnBTDefendClicked);
 	BTCrystal->OnClicked.AddDynamic(this, &UBLActionsWidget::OnBTCrystalClicked);
-	BTSpecialSkill->OnClicked.AddDynamic(this, &UBLActionsWidget::OnBTSpecialSkillClicked);
+	BTSpecial->OnClicked.AddDynamic(this, &UBLActionsWidget::OnBTSpecialSkillClicked);
 	BTItem->OnClicked.AddDynamic(this, &UBLActionsWidget::OnBTItemClicked);
 	BTRun->OnClicked.AddDynamic(this, &UBLActionsWidget::OnBTRunClicked);
 }
@@ -43,6 +44,7 @@ void UBLActionsWidget::BindActions()
 	AttackAction->OnAction.BindUObject(this, &UBLActionsWidget::ChosenAction);
 	DefendAction->OnAction.BindUObject(this, &UBLActionsWidget::ChosenAction);
 	CrystalAction->OnAction.BindUObject(this, &UBLActionsWidget::ChosenAction);
+	SpecialAction->OnAction.BindUObject(this, &UBLActionsWidget::ChosenAction);
 	//other actions
 }
 
@@ -78,7 +80,12 @@ void UBLActionsWidget::OnBTCrystalClicked()
 
 void UBLActionsWidget::OnBTSpecialSkillClicked()
 {
-
+	ResetButton();
+	ResetAction();
+	ClickedButton = BTSpecial;
+	ClickedAction = SpecialAction;
+	ClickedButton->SetBackgroundColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.f));
+	ActionTypeSwitcher->SetActiveWidget(SpecialAction);
 }
 
 void UBLActionsWidget::OnBTItemClicked()

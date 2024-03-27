@@ -55,7 +55,7 @@ float ABLCombatSlot::GetCooldown() const
 	return 0.f;
 }
 
-void ABLCombatSlot::SpawnCharacter(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& AttackActions, const TArray<TSoftClassPtr<UBLAction>>& DefendActions, const TMap<ECrystalColor, FCrystalSkills>& CrystalActions)
+void ABLCombatSlot::SpawnCharacter(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& AttackActions, const TArray<TSoftClassPtr<UBLAction>>& DefendActions, const TMap<ECrystalColor, FCrystalSkills>& CrystalActions, const TArray<TSoftClassPtr<UBLAction>>& SpecialActions)
 {
 	if (BaseData.Class)
 	{
@@ -64,7 +64,7 @@ void ABLCombatSlot::SpawnCharacter(const FCombatCharData& BaseData, const TArray
 		Character = GetWorld()->SpawnActor<ABLCombatCharacter>(BaseData.Class, GetActorTransform(), SpawnInfo);
 		if (Character)
 		{
-			Character->SetData(BaseData, AttackActions, DefendActions, CrystalActions);
+			Character->SetData(BaseData, AttackActions, DefendActions, CrystalActions, SpecialActions);
 			Character->OnEndCooldown.BindUObject(this, &ABLCombatSlot::EndCharCooldown);
 			Character->OnActionEnded.BindUObject(this, &ABLCombatSlot::ActionEnded);
 			Character->OnDeath.BindUObject(this, &ABLCombatSlot::HandleCharDeath);
