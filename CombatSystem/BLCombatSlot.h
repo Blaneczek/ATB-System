@@ -36,8 +36,9 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	ABLCombatCharacter* GetCharacter() const { return Character; };
-	uint32 GetIndex() const { return Index; };
+	int32 GetIndex() const { return Index; };
 	bool IsEnemy() const { return bIsEnemy; };
+	bool IsActive() const { return bIsActive; };
 	float GetCooldown() const;
 
 	void SpawnCharacter(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& AttackActions, const TArray<TSoftClassPtr<UBLAction>>& DefendActions, const TMap<ECrystalColor, FCrystalSkills>& CrystalActions, const TArray<TSoftClassPtr<UBLAction>>& SpecialActions);
@@ -45,7 +46,7 @@ public:
 	void PauseCharCooldown();
 	void UnPauseCharCooldown();
 
-	void DoAction(ECombatActionType ActionType, int32 ActionIndex, ABLCombatSlot* TargetSlot, ECrystalColor CrystalColor = ECrystalColor::NONE);
+	void DoAction(ECombatActionType ActionType, int32 ActionIndex, const TArray<ABLCombatSlot*>& TargetsSlots, ECrystalColor CrystalColor = ECrystalColor::NONE);
 
 private:
 	UFUNCTION()
@@ -82,8 +83,7 @@ public:
 	TObjectPtr<UMaterialInstance> HoveredMaterial;
 	/**/
 
-	UPROPERTY()
-	bool bIsActive;
+	
 	UPROPERTY()
 	bool bCanDoAction;
 	UPROPERTY()
@@ -97,9 +97,14 @@ public:
 
 private:
 	UPROPERTY()
+	bool bIsActive;
+
+	UPROPERTY()
 	TObjectPtr<ABLCombatCharacter> Character;
+
 	UPROPERTY(EditInstanceOnly, Category = "BL|Combat")
-	uint32 Index;
+	int32 Index;
+
 	UPROPERTY(EditInstanceOnly, Category = "BL|Combat")
 	bool bIsEnemy;
 

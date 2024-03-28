@@ -10,6 +10,7 @@ void UBLDefaultRangeAction::ActivateAction(ABLCombatCharacter* Owner)
 {
 	if (Owner && ActionAnim)
 	{
+		Owner->SetCurrentME(FMath::Clamp((Owner->GetCurrentME() - MECost), 0.f, Owner->GetMaxME()));
 		FZDOnAnimationOverrideEndSignature EndAnimDel;
 		EndAnimDel.BindLambda([this, Owner](bool bResult) { Owner->DefaultRangeAction(ProjectileClass, ProjectileSprite); });
 		Owner->GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(ActionAnim, "DefaultSlot", 1.f, 0.0f, EndAnimDel);
@@ -22,8 +23,6 @@ void UBLDefaultRangeAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCh
 	{
 		OnEndExecution.ExecuteIfBound();
 	}
-
-	Owner->SetCurrentME(FMath::Clamp((Owner->GetCurrentME() - MECost), 0.f, Owner->GetMaxME()));
 
 	ActionCalculations(Owner, Target);
 	FTimerHandle Delay;

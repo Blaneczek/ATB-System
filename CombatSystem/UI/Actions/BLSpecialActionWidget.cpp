@@ -17,7 +17,7 @@ void UBLSpecialActionWidget::AddActions(const TArray<TSoftClassPtr<UBLAction>>& 
 		UBLButtonEntryData* EntryItem = NewObject<UBLButtonEntryData>();
 		if (Action && EntryItem)
 		{
-			EntryItem->Init(Index, Action->Name, ECrystalColor::NONE, Action->MECost);
+			EntryItem->Init(Index, Action->Name, ECrystalColor::NONE, Action->MECost, Action->TargetsNumber);
 			ActionsList->AddItem(EntryItem);
 			Descriptions.Add(Action->Description);
 		}
@@ -37,6 +37,6 @@ void UBLSpecialActionWidget::OnActionClicked(UObject* Item)
 		{
 			DescDisplay->SetText(Descriptions[Button->Index]);
 		}
-		OnAction.ExecuteIfBound(ECombatActionType::SPECIAL_SKILL, Button->Index, ECrystalColor::NONE, Button->MECost);
+		OnAction.ExecuteIfBound(ECombatActionType::SPECIAL_SKILL, Button->Index, ECrystalColor::NONE, Button->MECost, Button->TargetsNum);
 	}
 }

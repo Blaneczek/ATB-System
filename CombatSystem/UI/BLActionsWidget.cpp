@@ -123,7 +123,7 @@ void UBLActionsWidget::ResetWidget()
 	ActionTypeSwitcher->SetActiveWidget(NoneAction);
 }
 
-void UBLActionsWidget::ChosenAction(ECombatActionType Action, int32 ActionIndex, ECrystalColor CrystalColor, float ActionMECost)
+void UBLActionsWidget::ChosenAction(ECombatActionType Action, int32 ActionIndex, ECrystalColor CrystalColor, float ActionMECost, int32 TargetsNum)
 {
-	OnChosenAction.ExecuteIfBound(Action, ActionIndex, CrystalColor, ActionMECost);
+	OnChosenAction.ExecuteIfBound(Action, ActionIndex, CrystalColor, ActionMECost, TargetsNum);
 }

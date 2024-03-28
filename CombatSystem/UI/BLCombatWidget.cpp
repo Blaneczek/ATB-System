@@ -135,9 +135,9 @@ void UBLCombatWidget::ActivateNotEnoughME()
 	}
 }
 
-void UBLCombatWidget::ChosenAction(ECombatActionType Action, int32 ActionIndex, ECrystalColor CrystalColor, float ActionMECost)
+void UBLCombatWidget::ChosenAction(ECombatActionType Action, int32 ActionIndex, ECrystalColor CrystalColor, float ActionMECost, int32 TargetsNum)
 {
-	OnActionChosen.ExecuteIfBound(Action, ActionIndex, CrystalColor, ActionMECost);
+	OnActionChosen.ExecuteIfBound(Action, ActionIndex, CrystalColor, ActionMECost, TargetsNum);
 }
 
 void UBLCombatWidget::HeroClicked(int32 HeroIndex)

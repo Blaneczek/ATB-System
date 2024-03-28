@@ -20,7 +20,7 @@ struct FActionQueue
 	UPROPERTY()
 	TObjectPtr<ABLCombatSlot> OwnerSlot;
 	UPROPERTY()
-	TObjectPtr<ABLCombatSlot> TargetSlot;
+	TArray<TObjectPtr<ABLCombatSlot>> TargetsSlots;
 	UPROPERTY()
 	ECombatActionType ActionType;
 	UPROPERTY()
@@ -33,17 +33,16 @@ struct FActionQueue
 	FActionQueue()
 	{
 		OwnerSlot = nullptr;
-		TargetSlot = nullptr;
 		ActionType = ECombatActionType::NONE;	
 		ActionIndex = 0;
 		bEnemyAction = false;
 		CrystalColor = ECrystalColor::NONE;
 	}
 
-	FActionQueue(ABLCombatSlot* InOwnerSlot, ABLCombatSlot* InTargetSlot, ECombatActionType InActionType
-				, int32 InIndex, bool InEnemyAction, ECrystalColor InCrystalColor = ECrystalColor::NONE)
+	FActionQueue(ABLCombatSlot* InOwnerSlot, TArray<ABLCombatSlot*> InTargetsSlots, ECombatActionType InActionType
+				, int32 InIndex, bool InEnemyAction, ECrystalColor InCrystalColor = ECrystalColor::NONE, int32 InTargetsNum = 1)
 
-		:OwnerSlot(InOwnerSlot), TargetSlot(InTargetSlot), ActionType(InActionType) 
+		:OwnerSlot(InOwnerSlot), TargetsSlots(InTargetsSlots), ActionType(InActionType) 
 		, ActionIndex(InIndex), bEnemyAction(InEnemyAction), CrystalColor(InCrystalColor)
 	{}
 };
@@ -87,8 +86,8 @@ private:
 	/** Highlights and sets as current clicked player slot */
 	void ChoosePlayerSlot(int32 Index);
 
-	/** Unhighlights and nulls current target slot (could be hero or enemy) */
-	void ClearTargetSlot();
+	/** Unhighlights and nulls current targets slots (could be heroes or enemies) */
+	void ClearTargetsSlots();
 	/** Unhighlights given target slot */
 	void ClearTargetSlot(ABLCombatSlot* EnemySlot);
 
@@ -98,13 +97,13 @@ private:
 	/** Highlights and sets as current random available player slot */
 	void ChooseRandomPlayerSlot();
 
-	void AddActionToQueue(ABLCombatSlot* OwnerSlot, ABLCombatSlot* TargetSlot, ECombatActionType Action, int32 InActionIndex, bool bEnemyAction, ECrystalColor CrystalColor = ECrystalColor::NONE);
+	void AddActionToQueue(ABLCombatSlot* OwnerSlot, const TArray<ABLCombatSlot*>& TargetsSlots, ECombatActionType Action, int32 InActionIndex, bool bEnemyAction, ECrystalColor CrystalColor = ECrystalColor::NONE);
 
 	/** Executes if it can the first action from the queue, checks the ability at constant intervals */
 	void HandleActionsQueue();
 
 	/** Pauses all cooldowns and calls the appropriate OwnerSlot function */
-	void DoAction(ABLCombatSlot* OwnerSlot, ABLCombatSlot* TargetSlot, ECombatActionType Action, int32 InActionIndex, bool bEnemyAction, ECrystalColor CrystalColor = ECrystalColor::NONE);
+	void DoAction(ABLCombatSlot* OwnerSlot, TArray<ABLCombatSlot*> TargetsSlots, ECombatActionType Action, int32 InActionIndex, bool bEnemyAction, ECrystalColor CrystalColor = ECrystalColor::NONE);
 
 	/** Finds new active target slot */
 	ABLCombatSlot* FindNewTargetSlot(bool bEnemyAction);
@@ -116,16 +115,16 @@ private:
 	void ActionEnded(ABLCombatSlot* OwnerSlot, bool bWasEnemy);
 
 	/** Sets current ActionType and chosen action */
-	void ChooseAction(ECombatActionType InActionType, int32 InActionIndex, ECrystalColor CrystalColor = ECrystalColor::NONE, float MECost = 0.f);
+	void ChooseAction(ECombatActionType InActionType, int32 InActionIndex, ECrystalColor CrystalColor = ECrystalColor::NONE, float MECost = 0.f, int32 TargetsNum = 1);
 
 	/** Resets action and sets new CurrentPlayerSlot */
 	void ResetAction(ABLCombatSlot* NewPlayerSlot);
 
 	/** Player's actions */
-	void PlayerAttackAction(ABLCombatSlot* TargetSlot);
+	void PlayerAttackAction();
 	void PlayerDefendAction();
-	void PlayerCrystalAction(ABLCombatSlot* TargetSlot);
-	void PlayerSpecialAction(ABLCombatSlot* TargetSlot);
+	void PlayerCrystalAction();
+	void PlayerSpecialAction();
 
 	/** Pauses the cooldowns of enemies and heroes */
 	void PauseCooldowns();
@@ -173,6 +172,8 @@ private:
 	TObjectPtr<ABLCombatSlot> CurrentPlayerSlot;
 	UPROPERTY()
 	TObjectPtr<ABLCombatSlot> CurrentTargetSlot;
+	UPROPERTY()
+	TArray<TObjectPtr<ABLCombatSlot>> CurrentTargetsSlots;
 
 	UPROPERTY()
 	TArray<FActionQueue> ActionQueue;
@@ -205,4 +206,7 @@ private:
 	/** If an action is currently being executed */
 	UPROPERTY()
 	bool bAction;
+
+	UPROPERTY()
+	int32 ActionTargetsNum;
 };

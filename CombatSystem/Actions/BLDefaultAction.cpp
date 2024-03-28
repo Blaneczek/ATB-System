@@ -10,9 +10,9 @@ void UBLDefaultAction::ActivateAction(ABLCombatCharacter* Owner)
 {
 	if (Owner)
 	{
-		Owner->DefaultAction();
-	}
-		
+		Owner->DefaultAction();	
+		Owner->SetCurrentME(FMath::Clamp((Owner->GetCurrentME() - MECost), 0.f, Owner->GetMaxME()));
+	}		
 }
 
 void UBLDefaultAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharacter* Target)
@@ -22,10 +22,7 @@ void UBLDefaultAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharact
 		OnEndExecution.ExecuteIfBound();
 	}
 
-
 	ActionCalculations(Owner, Target);
-
-	Owner->SetCurrentME(FMath::Clamp((Owner->GetCurrentME() - MECost), 0.f, Owner->GetMaxME()));
 
 	if (ActionAnim)
 	{

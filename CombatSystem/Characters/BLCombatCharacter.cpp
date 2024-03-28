@@ -19,7 +19,6 @@ ABLCombatCharacter::ABLCombatCharacter()
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
 	AIC = nullptr;
-	TargetCharacter = nullptr;
 	CurrentAction = nullptr;
 	Movement->MaxWalkSpeed = 600.f;
 }
@@ -60,7 +59,7 @@ void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData, const TArray
 }
 
 
-void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, ECombatActionType ActionType, int32 ActionIndex, ABLCombatCharacter* Target, ECrystalColor CrystalColor)
+void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, ECombatActionType ActionType, int32 ActionIndex, const TArray<ABLCombatCharacter*>& Targets, ECrystalColor CrystalColor)
 {
 	switch (ActionType)
 	{
@@ -73,7 +72,7 @@ void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, ECombatA
 			}
 
 			SlotLocation = OwnerSlotLocation;
-			TargetCharacter = Target;
+			TargetCharacters = Targets;
 
 			CurrentAction = NewObject<UBLAction>(this, AttackActions[ActionIndex].LoadSynchronous());
 			if (CurrentAction)
@@ -106,7 +105,7 @@ void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, ECombatA
 			}
 
 			SlotLocation = OwnerSlotLocation;
-			TargetCharacter = Target;
+			TargetCharacters = Targets;
 
 			CurrentAction = NewObject<UBLAction>(this, CrystalActions.Find(CrystalColor)->Skills[ActionIndex].LoadSynchronous());
 			if (CurrentAction)
@@ -124,7 +123,7 @@ void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, ECombatA
 			}
 
 			SlotLocation = OwnerSlotLocation;
-			TargetCharacter = Target;
+			TargetCharacters = Targets;
 
 			CurrentAction = NewObject<UBLAction>(this, SpecialActions[ActionIndex].LoadSynchronous());
 			if (CurrentAction)
@@ -157,12 +156,14 @@ void ABLCombatCharacter::DefaultAction()
 
 void ABLCombatCharacter::DefaultMeleeAction()
 {
-	if (AIC)
+	if (!IsValid(AIC) || !TargetCharacters.IsValidIndex(0) || !TargetCharacters[0])
 	{
-		AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLCombatCharacter::ReachedActionDestination);
-		UE_LOG(LogTemp, Warning, TEXT("STARTED"));
-		AIC->MoveToActor(TargetCharacter, 70.f);
+		return;
 	}
+
+	AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLCombatCharacter::ReachedActionDestination);
+	UE_LOG(LogTemp, Warning, TEXT("STARTED"));
+	AIC->MoveToActor(TargetCharacters[0], 70.f);
 }
 
 void ABLCombatCharacter::DefaultRangeAction(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite)
@@ -176,9 +177,21 @@ void ABLCombatCharacter::DefaultRangeAction(TSubclassOf<ABLRangeProjectile> Proj
 		{
 			Projectile->SetData(ProjectileSprite);
 			Projectile->OnReachedDestination.BindUObject(this, &ABLCombatCharacter::ReachedActionDestination);
-			Projectile->FlyToTarget(TargetCharacter);
+			Projectile->FlyToTarget(TargetCharacters[0]);
 		}
 	}
+}
+
+void ABLCombatCharacter::MultipleDefaultMeleeAction()
+{
+	if (!IsValid(AIC) || !TargetCharacters.IsValidIndex(0) || !TargetCharacters[0])
+	{
+		return;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("STARTED"));
+	AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLCombatCharacter::ReachedActionDestination, 0);
+	AIC->MoveToActor(TargetCharacters[0], 70.f);
 }
 
 float ABLCombatCharacter::CalculateElementsMultipliers(ECombatElementType DamageElementType, ECombatElementType CharacterElementType, bool& OutIsHeal)
@@ -239,39 +252,61 @@ void ABLCombatCharacter::EndAction(bool bResult)
 }
 
 void ABLCombatCharacter::ReachedActionDestination(FAIRequestID RequestID, const FPathFollowingResult& Result)
-{	
+{
+	if (!IsValid(AIC) || !IsValid(CurrentAction) || !TargetCharacters.IsValidIndex(0) || !TargetCharacters[0])
+	{
+		return;
+	}
+
 	UE_LOG(LogTemp, Warning, TEXT("REACHED"));
 	
-	if (AIC)
-	{
-		AIC->GetPathFollowingComponent()->OnRequestFinished.RemoveAll(this);
-		AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLCombatCharacter::ReachedSlotLocation);
+	AIC->GetPathFollowingComponent()->OnRequestFinished.RemoveAll(this);
+	AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLCombatCharacter::ReachedSlotLocation);
 
-		if (CurrentAction)
-		{
-			CurrentAction->OnEndExecution.BindLambda([this](){ AIC->MoveToLocation(SlotLocation, 10.f); });
-			CurrentAction->ExecuteAction(this, TargetCharacter);		
-		}
-		else
-		{
-			AIC->MoveToLocation(SlotLocation, 10.f);
-		}	
-	}
+	CurrentAction->OnEndExecution.BindLambda([this](){ AIC->MoveToLocation(SlotLocation, 10.f); });
+	CurrentAction->ExecuteAction(this, TargetCharacters[0]);
 }
 
+void ABLCombatCharacter::ReachedActionDestination(FAIRequestID RequestID, const FPathFollowingResult& Result, int32 TargetIndex)
+{
+	if (!IsValid(AIC) || !IsValid(CurrentAction))
+	{
+		return;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("REACHED"));
+	AIC->GetPathFollowingComponent()->OnRequestFinished.RemoveAll(this);
+
+	if (TargetCharacters.IsValidIndex(TargetIndex + 1) && TargetCharacters[TargetIndex + 1])
+	{
+		AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLCombatCharacter::ReachedActionDestination, TargetIndex + 1);
+		CurrentAction->OnEndExecution.BindLambda([this, TargetIndex]() { AIC->MoveToActor(TargetCharacters[TargetIndex + 1], 10.f); });
+	}
+	else
+	{
+		AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLCombatCharacter::ReachedSlotLocation);
+		CurrentAction->OnEndExecution.BindLambda([this]() { AIC->MoveToLocation(SlotLocation, 10.f); });	
+	}
+
+	CurrentAction->ExecuteAction(this, TargetCharacters[TargetIndex]);
+}
+
+// for projectile
 void ABLCombatCharacter::ReachedActionDestination()
 {
-	if (CurrentAction)
+	if (!IsValid(CurrentAction) || !TargetCharacters.IsValidIndex(0) || !TargetCharacters[0])
 	{
-		UE_LOG(LogTemp, Warning, TEXT("REACHED projectile"));	
-		CurrentAction->OnEndExecution.BindLambda([this]() { EndAction(true); });
-		CurrentAction->ExecuteAction(this, TargetCharacter);
+		return;
 	}
+
+	UE_LOG(LogTemp, Warning, TEXT("REACHED projectile"));	
+	CurrentAction->OnEndExecution.BindLambda([this]() { EndAction(true); });
+	CurrentAction->ExecuteAction(this, TargetCharacters[0]);
 }
 
 void ABLCombatCharacter::ReachedSlotLocation(FAIRequestID RequestID, const FPathFollowingResult& Result)
 {
-	if (AIC)
+	if (IsValid(AIC))
 	{		
 		AIC->GetPathFollowingComponent()->OnRequestFinished.RemoveAll(this);
 		EndAction(true);

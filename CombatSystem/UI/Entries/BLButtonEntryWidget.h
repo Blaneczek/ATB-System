@@ -23,7 +23,7 @@ protected:
 	virtual void NativeOnListItemObjectSet(UObject* ListItemObject) override;
 
 public:
-	void SetData(int32 InIndex, const FText& InName, float InMECost = 0.f);
+	void SetData(int32 InIndex, const FText& InName, float InMECost = 0.f, int32 InTargetsNum = 1);
 
 public:
 	UPROPERTY()
@@ -31,6 +31,9 @@ public:
 
 	UPROPERTY()
 	float MECost;
+
+	UPROPERTY()
+	int32 TargetsNum;
 
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
 	TObjectPtr<UBorder> Border;

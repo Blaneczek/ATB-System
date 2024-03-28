@@ -1,21 +1,21 @@
 // Copyright (c) 2023 Smoking Carrots. All rights reserved.
 
 
-#include "BLDefaultMeleeAction.h"
+#include "BLMultipleDefaultMeleeAction.h"
 #include "Characters/BLCombatCharacter.h"
 #include "PaperZDAnimInstance.h"
 #include "PaperZDAnimationComponent.h"
 
-void UBLDefaultMeleeAction::ActivateAction(ABLCombatCharacter* Owner)
+void UBLMultipleDefaultMeleeAction::ActivateAction(ABLCombatCharacter* Owner)
 {
 	if (Owner)
 	{
-		Owner->DefaultMeleeAction();
+		Owner->MultipleDefaultMeleeAction();
 		Owner->SetCurrentME(FMath::Clamp((Owner->GetCurrentME() - MECost), 0.f, Owner->GetMaxME()));
 	}
 }
 
-void UBLDefaultMeleeAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharacter* Target)
+void UBLMultipleDefaultMeleeAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharacter* Target)
 {
 	if (!Owner || !Target)
 	{
@@ -30,4 +30,3 @@ void UBLDefaultMeleeAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCh
 		ActionCalculations(Owner, Target);
 	}
 }
-

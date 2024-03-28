@@ -38,10 +38,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
 	TObjectPtr<UPaperZDAnimSequence> ActionAnim;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
-	ECombatElementType Element{ ECombatElementType::NONE };
+	ECombatElementType Element { ECombatElementType::NONE };
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
-	float MECost{ 0.f };
-
+	float MECost { 0.f };
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
+	int32 TargetsNumber { 1 };
 
 	FOnEndExecution OnEndExecution;
 };

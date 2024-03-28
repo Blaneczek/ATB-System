@@ -12,7 +12,7 @@ class UBLAction;
 class UListView;
 class UBLButtonEntryWidget;
 
-DECLARE_DELEGATE_FourParams(FOnAction, ECombatActionType /*ActionType*/, int32 /*ActionIndex*/, ECrystalColor /*CrystalColor*/, float /*ActionMECost*/);
+DECLARE_DELEGATE_FiveParams(FOnAction, ECombatActionType /*ActionType*/, int32 /*ActionIndex*/, ECrystalColor /*CrystalColor*/, float /*ActionMECost*/, int32 /*TargetsNum*/);
 
 /**
  * 

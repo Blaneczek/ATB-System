@@ -61,7 +61,7 @@ public:
 	float GetBaseDefense() const { return BaseData.BaseDefense; };
 	UFUNCTION(BlueprintCallable)
 	void SetDefense(float NewDefense) { CurrentDefense = NewDefense; };
-
+	
 	/**
 	* Activates/deactivates Defend idle animation
 	* @param NewActive: true - active, false - inactive
@@ -69,11 +69,14 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void DefendIdleActivation(bool NewActiv) { bDefendIdle = NewActiv; };
 
+	UFUNCTION(BlueprintCallable)
+	bool IsDefendIdle() const { return bDefendIdle; };
+
 	/** Only for text render (Debug) */
 	UFUNCTION(BlueprintCallable)
 	FString GetName() const { return BaseData.Name; };
 
-	void CreateAction(const FVector& OwnerSlotLocation, ECombatActionType ActionType, int32 ActionIndex, ABLCombatCharacter* Target, ECrystalColor CrystalColor = ECrystalColor::NONE);
+	void CreateAction(const FVector& OwnerSlotLocation, ECombatActionType ActionType, int32 ActionIndex, const TArray<ABLCombatCharacter*>& Targets, ECrystalColor CrystalColor = ECrystalColor::NONE);
 
 	/** Action is executing in place, no targets */
 	void DefaultAction();
@@ -81,6 +84,8 @@ public:
 	void DefaultMeleeAction();
 	/** Character creates a projectile that flies to the target and executes action */
 	void DefaultRangeAction(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite);
+	/** Character runs up to the targets one by one and executes action for every target */
+	void MultipleDefaultMeleeAction();
 
 private:
 	float CalculateElementsMultipliers(ECombatElementType DamageElementType, ECombatElementType CharacterElementType, bool& OutIsHeal);
@@ -91,7 +96,9 @@ private:
 	UFUNCTION()
 	void EndAction(bool bResult);
 
+	/** Default teached*/
 	void ReachedActionDestination(FAIRequestID RequestID, const FPathFollowingResult& Result);
+	void ReachedActionDestination(FAIRequestID RequestID, const FPathFollowingResult& Result, int32 TargetIndex);
 	void ReachedActionDestination();
 	void ReachedSlotLocation(FAIRequestID RequestID, const FPathFollowingResult& Result);
 
@@ -102,7 +109,7 @@ public:
 	FOnDeath OnDeath;
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
+	UPROPERTY()
 	bool bDefendIdle;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
@@ -122,7 +129,7 @@ private:
 	TObjectPtr<AAIController> AIC;
 
 	UPROPERTY()
-	TObjectPtr<ABLCombatCharacter> TargetCharacter;
+	TArray<TObjectPtr<ABLCombatCharacter>> TargetCharacters;
 
 	/** Pointer to created Action to prevent GC while it is still running. Nulled after end of action */
 	UPROPERTY()

@@ -3,10 +3,11 @@
 
 #include "BLButtonEntryData.h"
 
-void UBLButtonEntryData::Init(int32 InIndex, const FText& InName, ECrystalColor InCrystalColor, float InMECost)
+void UBLButtonEntryData::Init(int32 InIndex, const FText& InName, ECrystalColor InCrystalColor, float InMECost, int32 InTargetsNum)
 {
 	Index = InIndex;
 	Name = InName;
 	CrystalColor = InCrystalColor;
 	MECost = InMECost;
+	TargetsNum = InTargetsNum;
 }

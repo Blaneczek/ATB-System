@@ -50,6 +50,7 @@ struct FHeroAssetInfo
 	UPROPERTY(EditAnywhere)
 	TArray<TSoftClassPtr<UBLAction>> SpecialActions;
 
+	//eq info
 };
 
 /**
