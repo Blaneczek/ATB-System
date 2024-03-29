@@ -38,11 +38,17 @@ void ABLCombatPlayerController::SetupInputComponent()
 
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent))
 	{
-		EnhancedInputComponent->BindAction(MouseClickAction, ETriggerEvent::Triggered, this, &ABLCombatPlayerController::MouseClick);
+		EnhancedInputComponent->BindAction(MouseLeftClickAction, ETriggerEvent::Triggered, this, &ABLCombatPlayerController::MouseLeftClick);
+		EnhancedInputComponent->BindAction(MouseRightClickAction, ETriggerEvent::Triggered, this, &ABLCombatPlayerController::MouseRightClick);
 	}
 }
 
-void ABLCombatPlayerController::MouseClick()
+void ABLCombatPlayerController::MouseRightClick()
+{
+	OnSlotRemoved.ExecuteIfBound();
+}
+
+void ABLCombatPlayerController::MouseLeftClick()
 {
 	FHitResult HitResult;
 	const bool bResult = GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(ECC_GameTraceChannel1), true, HitResult);

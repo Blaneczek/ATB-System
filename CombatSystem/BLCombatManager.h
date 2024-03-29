@@ -77,6 +77,9 @@ private:
 	/** Handles situations where one of the slots in the level has been clicked */
 	void HandleSlotClicked(AActor* Slot);
 
+	/** Deselects and clears the last clicked slot */
+	void DeselectClickedSlot();
+
 	/** Highlights and sets as current clicked target slot (could be hero or enemy) */
 	void ChooseTargetSlot(ABLCombatSlot* Slot);
 
@@ -88,8 +91,9 @@ private:
 
 	/** Unhighlights and nulls current targets slots (could be heroes or enemies) */
 	void ClearTargetsSlots();
+
 	/** Unhighlights given target slot */
-	void ClearTargetSlot(ABLCombatSlot* EnemySlot);
+	void ClearTargetSlot(ABLCombatSlot* Slot);
 
 	/** Unhighlights and nulls current player slot */
 	void ClearPlayerSlot();

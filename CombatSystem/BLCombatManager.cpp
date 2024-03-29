@@ -41,6 +41,7 @@ void ABLCombatManager::BeginPlay()
 	if (AC)
 	{
 		AC->OnSlotClicked.BindUObject(this, &ABLCombatManager::HandleSlotClicked);
+		AC->OnSlotRemoved.BindUObject(this, &ABLCombatManager::DeselectClickedSlot);
 	}
 
 	InitializeWidget();
@@ -177,6 +178,15 @@ void ABLCombatManager::HandleSlotClicked(AActor* Slot)
 	}	
 }
 
+void ABLCombatManager::DeselectClickedSlot()
+{
+	if (!CurrentTargetsSlots.IsEmpty())
+	{
+		
+		ClearTargetSlot(CurrentTargetsSlots.Pop());
+	}
+}
+
 void ABLCombatManager::ChooseTargetSlot(ABLCombatSlot* Slot)
 {
 	CurrentTargetsSlots.Add(Slot);
@@ -227,15 +237,15 @@ void ABLCombatManager::ClearTargetsSlots()
 	CurrentTargetsSlots.Empty();
 }
 
-void ABLCombatManager::ClearTargetSlot(ABLCombatSlot* EnemySlot)
+void ABLCombatManager::ClearTargetSlot(ABLCombatSlot* Slot)
 {
-	if (EnemySlot)
+	if (Slot)
 	{
-		if (EnemySlot->DefaultMaterial)
+		if (Slot->DefaultMaterial)
 		{
-			EnemySlot->Platform->SetMaterial(0, EnemySlot->DefaultMaterial);
+			Slot->Platform->SetMaterial(0, Slot->DefaultMaterial);
 		}
-		EnemySlot->bClicked = false;
+		Slot->bClicked = false;
 	}
 }
 

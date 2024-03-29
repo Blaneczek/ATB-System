@@ -11,6 +11,7 @@ class UInputMappingContext;
 class UInputAction;
 
 DECLARE_DELEGATE_OneParam(FOnSlotClicked, AActor* /*ClickedActor*/);
+DECLARE_DELEGATE(FOnSlotRemoved);
 
 /**
  * 
@@ -28,16 +29,21 @@ public:
 
 private:
 	UFUNCTION()
-	void MouseClick();
+	void MouseLeftClick();
+	UFUNCTION()
+	void MouseRightClick();
 
 public:
 	FOnSlotClicked OnSlotClicked;
+	FOnSlotRemoved OnSlotRemoved;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
 	TObjectPtr<UInputMappingContext> MappingContext;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
-	TObjectPtr<UInputAction> MouseClickAction;
+	TObjectPtr<UInputAction> MouseLeftClickAction;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
+	TObjectPtr<UInputAction> MouseRightClickAction;
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "BL|Combat")
