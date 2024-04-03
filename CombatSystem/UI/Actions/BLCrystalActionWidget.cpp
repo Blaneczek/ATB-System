@@ -98,6 +98,13 @@ void UBLCrystalActionWidget::OnActionClicked(UObject* Item)
 {
 	ResetColorsAction();
 
+	UBLButtonEntryData* Action = Cast<UBLButtonEntryData>(Item);
+	if (Action && !Action->bCanBeUsed)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("nie mozna uzyc"));
+		return;
+	}
+
 	UBLButtonEntryWidget* Button = Cast<UBLButtonEntryWidget>(ActionsList->GetEntryWidgetFromItem(Item));
 	if (Button)
 	{
@@ -107,7 +114,7 @@ void UBLCrystalActionWidget::OnActionClicked(UObject* Item)
 		{
 			DescDisplay->SetText(CrystalsDescriptions.Find(ClickedColor)->Descriptions[Button->Index]);
 		}
-		OnAction.ExecuteIfBound(ECombatActionType::CRYSTAL_SKILL, Button->Index, ClickedColor, Button->MECost, Button->TargetsNum);
+		OnAction.ExecuteIfBound(ECombatActionType::CRYSTAL_SKILL, Button->Index, ClickedColor, Button->MECost, Button->TargetsNum, Item);
 	}
 }
 

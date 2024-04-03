@@ -42,7 +42,12 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
 	float MECost { 0.f };
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
+	int32 TurnsCost { 0 };
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
 	int32 TargetsNumber { 1 };
+
+	UPROPERTY()
+	bool bCanBeUsed { true };
 
 	FOnEndExecution OnEndExecution;
 };

@@ -15,6 +15,7 @@ class UPaperZDAnimInstance;
 class UPaperFlipbook;
 class ABLRangeProjectile;
 class UBLAction;
+class UBLButtonEntryData;
 
 DECLARE_DELEGATE(FOnEndCooldown);
 DECLARE_DELEGATE(FOnActionEnded);
@@ -77,7 +78,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FString GetName() const { return BaseData.Name; };
 
-	void CreateAction(const FVector& OwnerSlotLocation, ECombatActionType ActionType, int32 ActionIndex, const TArray<ABLCombatCharacter*>& Targets, ECrystalColor CrystalColor = ECrystalColor::NONE);
+	void CreateAction(const FVector& OwnerSlotLocation, ECombatActionType ActionType, int32 ActionIndex, const TArray<ABLCombatCharacter*>& Targets, ECrystalColor CrystalColor = ECrystalColor::NONE, UObject* InActionEntryData = nullptr);
 
 	/** Action is executing in place, no targets */
 	void DefaultAction();
@@ -88,10 +89,15 @@ public:
 	/** Character runs up to the targets one by one and executes action for every target */
 	void MultipleDefaultMeleeAction();
 
+	/** Special actions turns cooldown */
+	void StartActionCooldown(int32 TurnsCost);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void DisplayTextDMG(float DMG, bool bHeal);
+
 private:
 	float CalculateElementsMultipliers(ECombatElementType DamageElementType, ECombatElementType CharacterElementType, bool& OutIsHeal);
 
-	
 	UFUNCTION()
 	void EndCooldown();
 	UFUNCTION()
@@ -121,7 +127,10 @@ protected:
 	float CurrentME;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
 	float CurrentDefense;
-	
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
+	TObjectPtr<UWidgetComponent> DMGDisplay;
+
 	UPROPERTY()
 	FTimerHandle CooldownTimer;
 
@@ -148,4 +157,8 @@ private:
 	UPROPERTY()
 	TArray<TSoftClassPtr<UBLAction>> SpecialActions;
 
+	UPROPERTY()
+	TMap<TObjectPtr<UBLButtonEntryData>, int32> ActionsTurnsCooldown;
+	UPROPERTY()
+	TObjectPtr<UBLButtonEntryData> ClickedActionEntry;
 };

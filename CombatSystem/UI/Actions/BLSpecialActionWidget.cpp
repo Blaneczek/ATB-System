@@ -17,7 +17,7 @@ void UBLSpecialActionWidget::AddActions(const TArray<TSoftClassPtr<UBLAction>>& 
 		UBLButtonEntryData* EntryItem = NewObject<UBLButtonEntryData>();
 		if (Action && EntryItem)
 		{
-			EntryItem->Init(Index, Action->Name, ECrystalColor::NONE, Action->MECost, Action->TargetsNumber);
+			EntryItem->Init(Index, Action->Name, ECrystalColor::NONE, Action->MECost, Action->TurnsCost, Action->TargetsNumber);
 			ActionsList->AddItem(EntryItem);
 			Descriptions.Add(Action->Description);
 		}
@@ -28,15 +28,26 @@ void UBLSpecialActionWidget::OnActionClicked(UObject* Item)
 {
 	ResetAction();
 
+	UBLButtonEntryData* Action = Cast<UBLButtonEntryData>(Item);
+	if (Action && !Action->bCanBeUsed)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("nie mozna uzyc"));
+		return;
+	}
+
 	UBLButtonEntryWidget* Button = Cast<UBLButtonEntryWidget>(ActionsList->GetEntryWidgetFromItem(Item));
 	if (Button)
 	{
-		ClickedButton = Button;
+		ClickedButton = Button; 
 		Button->Border->SetBrushColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.f));
 		if (Descriptions.IsValidIndex(Button->Index))
 		{
 			DescDisplay->SetText(Descriptions[Button->Index]);
 		}
-		OnAction.ExecuteIfBound(ECombatActionType::SPECIAL_SKILL, Button->Index, ECrystalColor::NONE, Button->MECost, Button->TargetsNum);
+		if (Item)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("special action jest"));
+		}
+		OnAction.ExecuteIfBound(ECombatActionType::SPECIAL_SKILL, Button->Index, ECrystalColor::NONE, Button->MECost, Button->TargetsNum, Item);
 	}
 }

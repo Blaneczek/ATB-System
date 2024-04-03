@@ -14,8 +14,9 @@ class UWidgetSwitcher;
 class UBorder;
 class UBLAction;
 class UTextBlock;
+class UBLButtonEntryData;
 
-DECLARE_DELEGATE_FiveParams(FOnActionTypeChosen, ECombatActionType /*ActionType*/, int32 /*ActionIndex*/, ECrystalColor /*CrystalColor*/, float /*ActionMECost*/, int32 /*TargetsNum*/);
+DECLARE_DELEGATE_SixParams(FOnActionTypeChosen, ECombatActionType /*ActionType*/, int32 /*ActionIndex*/, ECrystalColor /*CrystalColor*/, float /*ActionMECost*/, int32 /*TargetsNum*/, UObject* /*ActionEntry*/);
 DECLARE_DELEGATE_OneParam(FOnHeroSelected, int32 /*HeroIndex*/);
 
 /**
@@ -66,7 +67,7 @@ public:
 	void ActivateNotEnoughME();
 
 private:
-	void ChosenAction(ECombatActionType Action, int32 ActionIndex, ECrystalColor CrystalColor = ECrystalColor::NONE, float ActionMECost = 0.f, int32 TargetsNum = 1);
+	void ChosenAction(ECombatActionType Action, int32 ActionIndex, ECrystalColor CrystalColor = ECrystalColor::NONE, float ActionMECost = 0.f, int32 TargetsNum = 1, UObject* ActionEntry = nullptr);
 
 	void HeroClicked(int32 HeroIndex);
 

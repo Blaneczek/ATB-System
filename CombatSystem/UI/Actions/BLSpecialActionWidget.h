@@ -19,4 +19,11 @@ public:
 
 protected:
 	virtual void OnActionClicked(UObject* Item) override;
+
+public:
+	UPROPERTY()
+	int32 TurnsCost { 0 };
+
+	UPROPERTY()
+	bool bCanBeUsed { true };
 };

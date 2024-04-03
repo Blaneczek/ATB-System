@@ -135,9 +135,13 @@ void UBLCombatWidget::ActivateNotEnoughME()
 	}
 }
 
-void UBLCombatWidget::ChosenAction(ECombatActionType Action, int32 ActionIndex, ECrystalColor CrystalColor, float ActionMECost, int32 TargetsNum)
+void UBLCombatWidget::ChosenAction(ECombatActionType Action, int32 ActionIndex, ECrystalColor CrystalColor, float ActionMECost, int32 TargetsNum, UObject* ActionEntry)
 {
-	OnActionChosen.ExecuteIfBound(Action, ActionIndex, CrystalColor, ActionMECost, TargetsNum);
+	if (ActionEntry)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("combat widget jest"));
+	}
+	OnActionChosen.ExecuteIfBound(Action, ActionIndex, CrystalColor, ActionMECost, TargetsNum, ActionEntry);
 }
 
 void UBLCombatWidget::HeroClicked(int32 HeroIndex)

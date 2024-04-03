@@ -13,14 +13,19 @@
 #include "BLRangeProjectile.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "Actions/BLAction.h"
+#include "Components/WidgetComponent.h"
+#include "UI/Entries/BLButtonEntryData.h"
 
 ABLCombatCharacter::ABLCombatCharacter()
 {
+	DMGDisplay = CreateDefaultSubobject<UWidgetComponent>(TEXT("DMG Display"));
+	DMGDisplay->SetupAttachment(PaperFlipbook);
+
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
 	AIC = nullptr;
 	CurrentAction = nullptr;
-	Movement->MaxWalkSpeed = 600.f;
+	Movement->MaxWalkSpeed = 900.f;
 }
 
 void ABLCombatCharacter::BeginPlay()
@@ -59,8 +64,10 @@ void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData, const TArray
 }
 
 
-void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, ECombatActionType ActionType, int32 ActionIndex, const TArray<ABLCombatCharacter*>& Targets, ECrystalColor CrystalColor)
+void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, ECombatActionType ActionType, int32 ActionIndex, const TArray<ABLCombatCharacter*>& Targets, ECrystalColor CrystalColor, UObject* InClickedActionEntry)
 {
+	ClickedActionEntry = Cast<UBLButtonEntryData>(InClickedActionEntry);
+
 	switch (ActionType)
 	{
 		case ECombatActionType::ATTACK:
@@ -194,6 +201,15 @@ void ABLCombatCharacter::MultipleDefaultMeleeAction()
 	AIC->MoveToActor(TargetCharacters[0], 70.f);
 }
 
+void ABLCombatCharacter::StartActionCooldown(int32 TurnsCost)
+{
+	if (ClickedActionEntry)
+	{
+		ClickedActionEntry->bCanBeUsed = false;
+		ActionsTurnsCooldown.Add(ClickedActionEntry, TurnsCost);
+	}
+}
+
 float ABLCombatCharacter::CalculateElementsMultipliers(ECombatElementType DamageElementType, ECombatElementType CharacterElementType, bool& OutIsHeal)
 { 
 	OutIsHeal = false;
@@ -239,6 +255,27 @@ void ABLCombatCharacter::EndCooldown()
 {
 	CurrentDefense = BaseData.BaseDefense;
 	bDefendIdle = false;
+
+	TArray<UBLButtonEntryData*> EntriesToDelete;
+
+	for (auto& Item : ActionsTurnsCooldown)
+	{	
+		if (Item.Key->bCanBeUsed) continue;
+
+		if (--Item.Value <= 0)
+		{
+			Item.Key->bCanBeUsed = true;
+			EntriesToDelete.Add(Item.Key);
+		}
+	}
+
+	for (auto* Item : EntriesToDelete)
+	{
+		if (ActionsTurnsCooldown.Contains(Item))
+		{
+			ActionsTurnsCooldown.Remove(Item);
+		}
+	}
 	OnEndCooldown.ExecuteIfBound();
 }
 
@@ -277,7 +314,7 @@ void ABLCombatCharacter::ReachedActionDestination(FAIRequestID RequestID, const 
 	UE_LOG(LogTemp, Warning, TEXT("REACHED"));
 	AIC->GetPathFollowingComponent()->OnRequestFinished.RemoveAll(this);
 
-	if (TargetCharacters.IsValidIndex(TargetIndex + 1) && TargetCharacters[TargetIndex + 1])
+	if (TargetCharacters.IsValidIndex(TargetIndex + 1) && TargetCharacters[TargetIndex + 1] && TargetCharacters[TargetIndex + 1]->GetCurrentHP() > 0)
 	{
 		AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLCombatCharacter::ReachedActionDestination, TargetIndex + 1);
 		CurrentAction->OnEndExecution.BindLambda([this, TargetIndex]() { AIC->MoveToActor(TargetCharacters[TargetIndex + 1], 10.f); });
@@ -323,7 +360,7 @@ void ABLCombatCharacter::HandleHitByAction(float Damage, ECombatElementType Dama
 	{
 		const float HealValue = Damage * DMGMultiplier;
 		CurrentHP = FMath::Clamp((CurrentHP + HealValue), 0, BaseData.MaxHP);
-		//TODO: display heal value
+		DisplayTextDMG(HealValue, true);
 		if (BaseData.HealAnim)
 		{
 			GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(BaseData.HealAnim);
@@ -334,7 +371,7 @@ void ABLCombatCharacter::HandleHitByAction(float Damage, ECombatElementType Dama
 		//TODO: change how Defense works	
 		const float DMGValue = DMGMultiplier > 0 ? (Damage * DMGMultiplier) - CurrentDefense : 0.f;
 		CurrentHP = FMath::Clamp((CurrentHP - DMGValue), 0, BaseData.MaxHP);
-		//TODO: display dmg value
+		DisplayTextDMG(DMGValue, false);
 		if (BaseData.TakeDMGAnim)
 		{
 			GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(BaseData.TakeDMGAnim);

@@ -17,9 +17,11 @@ void UBLMultipleDefaultMeleeAction::ActivateAction(ABLCombatCharacter* Owner)
 
 void UBLMultipleDefaultMeleeAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharacter* Target)
 {
-	if (!Owner || !Target)
+	if (!Owner || !Target || Target->GetCurrentHP() <= 0)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("asdasd"));
 		OnEndExecution.ExecuteIfBound();
+		return;
 	}
 
 	if (ActionAnim)
@@ -30,3 +32,4 @@ void UBLMultipleDefaultMeleeAction::ExecuteAction(ABLCombatCharacter* Owner, ABL
 		ActionCalculations(Owner, Target);
 	}
 }
+ 

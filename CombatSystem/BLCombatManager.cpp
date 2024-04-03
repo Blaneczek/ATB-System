@@ -252,9 +252,9 @@ void ABLCombatManager::ChooseRandomPlayerSlot()
 	}
 }
 
-void ABLCombatManager::AddActionToQueue(ABLCombatSlot* OwnerSlot, const TArray<ABLCombatSlot*>& TargetsSlots, ECombatActionType Action, int32 InActionIndex, bool bEnemyAction, ECrystalColor CrystalColor)
+void ABLCombatManager::AddActionToQueue(ABLCombatSlot* OwnerSlot, const TArray<ABLCombatSlot*>& TargetsSlots, ECombatActionType Action, int32 InActionIndex, bool bEnemyAction, ECrystalColor CrystalColor, UObject* InActionEntry)
 {
-	ActionQueue.Add(FActionQueue(OwnerSlot, TargetsSlots, Action, InActionIndex, bEnemyAction, CrystalColor));
+	ActionQueue.Add(FActionQueue(OwnerSlot, TargetsSlots, Action, InActionIndex, bEnemyAction, CrystalColor, InActionEntry));
 }
 
 void ABLCombatManager::HandleActionsQueue()
@@ -286,11 +286,11 @@ void ABLCombatManager::HandleActionsQueue()
 		}
 	}
 
-	DoAction(ActionQueue[0].OwnerSlot, ActionQueue[0].TargetsSlots, ActionQueue[0].ActionType, ActionQueue[0].ActionIndex, ActionQueue[0].bEnemyAction, ActionQueue[0].CrystalColor);
+	DoAction(ActionQueue[0].OwnerSlot, ActionQueue[0].TargetsSlots, ActionQueue[0].ActionType, ActionQueue[0].ActionIndex, ActionQueue[0].bEnemyAction, ActionQueue[0].CrystalColor, ActionQueue[0].ActionEntry);
 	ActionQueue.RemoveAt(0);
 }
 
-void ABLCombatManager::DoAction(ABLCombatSlot* OwnerSlot, TArray<ABLCombatSlot*> TargetsSlots, ECombatActionType Action, int32 InActionIndex, bool bEnemyAction, ECrystalColor CrystalColor)
+void ABLCombatManager::DoAction(ABLCombatSlot* OwnerSlot, TArray<ABLCombatSlot*> TargetsSlots, ECombatActionType Action, int32 InActionIndex, bool bEnemyAction, ECrystalColor CrystalColor, UObject* InActionEntry)
 {	
 	if (!OwnerSlot) return;
 
@@ -307,7 +307,7 @@ void ABLCombatManager::DoAction(ABLCombatSlot* OwnerSlot, TArray<ABLCombatSlot*>
 		}
 	}
 
-	OwnerSlot->DoAction(Action, InActionIndex, TargetsSlots, CrystalColor);
+	OwnerSlot->DoAction(Action, InActionIndex, TargetsSlots, CrystalColor, InActionEntry);
 }
 
 ABLCombatSlot* ABLCombatManager::FindNewTargetSlot(bool bEnemyAction)
@@ -372,7 +372,7 @@ void ABLCombatManager::ActionEnded(ABLCombatSlot* OwnerSlot, bool bWasEnemy)
 	bAction = false;
 }
 
-void ABLCombatManager::ChooseAction(ECombatActionType InActionType, int32 InActionIndex, ECrystalColor CrystalColor, float MECost, int32 TargetsNum)
+void ABLCombatManager::ChooseAction(ECombatActionType InActionType, int32 InActionIndex, ECrystalColor CrystalColor, float MECost, int32 TargetsNum, UObject* InActionEntry)
 {
 	UE_LOG(LogTemp, Warning, TEXT("choosen action"));
 	ActionType = InActionType;
@@ -380,6 +380,7 @@ void ABLCombatManager::ChooseAction(ECombatActionType InActionType, int32 InActi
 	ActionCrystalColor = CrystalColor;
 	ActionMECost = MECost;
 	ActionTargetsNum = TargetsNum;
+	ActionEntry = InActionEntry;
 }
 
 void ABLCombatManager::ResetAction(ABLCombatSlot* NewPlayerSlot)
@@ -438,7 +439,7 @@ void ABLCombatManager::PlayerCrystalAction()
 		return;
 	}
 
-	AddActionToQueue(CurrentPlayerSlot, CurrentTargetsSlots, ActionType, ActionIndex, false, ActionCrystalColor);
+	AddActionToQueue(CurrentPlayerSlot, CurrentTargetsSlots, ActionType, ActionIndex, false, ActionCrystalColor, ActionEntry);
 	CurrentPlayerSlot->bCanDoAction = false;
 	ActionType = ECombatActionType::NONE;
 
@@ -466,7 +467,7 @@ void ABLCombatManager::PlayerSpecialAction()
 		return;
 	}
 
-	AddActionToQueue(CurrentPlayerSlot, CurrentTargetsSlots, ActionType, ActionIndex, false);
+	AddActionToQueue(CurrentPlayerSlot, CurrentTargetsSlots, ActionType, ActionIndex, false, ECrystalColor::NONE, ActionEntry);
 	CurrentPlayerSlot->bCanDoAction = false;
 	ActionType = ECombatActionType::NONE;
 

@@ -11,6 +11,7 @@ class ABLCombatSlot;
 class UBLHeroDataAsset;
 class UBLEnemyDataAsset;
 class UBLCombatWidget;
+class UBLButtonEntryData;
 
 USTRUCT(BlueprintType)
 struct FActionQueue
@@ -29,6 +30,8 @@ struct FActionQueue
 	bool bEnemyAction;
 	UPROPERTY()
 	ECrystalColor CrystalColor;
+	UPROPERTY()
+	TObjectPtr<UObject> ActionEntry;
 
 	FActionQueue()
 	{
@@ -37,13 +40,15 @@ struct FActionQueue
 		ActionIndex = 0;
 		bEnemyAction = false;
 		CrystalColor = ECrystalColor::NONE;
+		ActionEntry = nullptr;
 	}
 
 	FActionQueue(ABLCombatSlot* InOwnerSlot, TArray<ABLCombatSlot*> InTargetsSlots, ECombatActionType InActionType
-				, int32 InIndex, bool InEnemyAction, ECrystalColor InCrystalColor = ECrystalColor::NONE, int32 InTargetsNum = 1)
+				, int32 InIndex, bool InEnemyAction, ECrystalColor InCrystalColor = ECrystalColor::NONE, UObject* InActionEntry = nullptr)
 
 		:OwnerSlot(InOwnerSlot), TargetsSlots(InTargetsSlots), ActionType(InActionType) 
 		, ActionIndex(InIndex), bEnemyAction(InEnemyAction), CrystalColor(InCrystalColor)
+		, ActionEntry(InActionEntry)
 	{}
 };
 
@@ -101,13 +106,13 @@ private:
 	/** Highlights and sets as current random available player slot */
 	void ChooseRandomPlayerSlot();
 
-	void AddActionToQueue(ABLCombatSlot* OwnerSlot, const TArray<ABLCombatSlot*>& TargetsSlots, ECombatActionType Action, int32 InActionIndex, bool bEnemyAction, ECrystalColor CrystalColor = ECrystalColor::NONE);
+	void AddActionToQueue(ABLCombatSlot* OwnerSlot, const TArray<ABLCombatSlot*>& TargetsSlots, ECombatActionType Action, int32 InActionIndex, bool bEnemyAction, ECrystalColor CrystalColor = ECrystalColor::NONE, UObject* InActionEntry = nullptr);
 
 	/** Executes if it can the first action from the queue, checks the ability at constant intervals */
 	void HandleActionsQueue();
 
 	/** Pauses all cooldowns and calls the appropriate OwnerSlot function */
-	void DoAction(ABLCombatSlot* OwnerSlot, TArray<ABLCombatSlot*> TargetsSlots, ECombatActionType Action, int32 InActionIndex, bool bEnemyAction, ECrystalColor CrystalColor = ECrystalColor::NONE);
+	void DoAction(ABLCombatSlot* OwnerSlot, TArray<ABLCombatSlot*> TargetsSlots, ECombatActionType Action, int32 InActionIndex, bool bEnemyAction, ECrystalColor CrystalColor = ECrystalColor::NONE, UObject* InActionEntry = nullptr);
 
 	/** Finds new active target slot */
 	ABLCombatSlot* FindNewTargetSlot(bool bEnemyAction);
@@ -119,7 +124,7 @@ private:
 	void ActionEnded(ABLCombatSlot* OwnerSlot, bool bWasEnemy);
 
 	/** Sets current ActionType and chosen action */
-	void ChooseAction(ECombatActionType InActionType, int32 InActionIndex, ECrystalColor CrystalColor = ECrystalColor::NONE, float MECost = 0.f, int32 TargetsNum = 1);
+	void ChooseAction(ECombatActionType InActionType, int32 InActionIndex, ECrystalColor CrystalColor = ECrystalColor::NONE, float MECost = 0.f, int32 TargetsNum = 1, UObject* InActionEntry = nullptr);
 
 	/** Resets action and sets new CurrentPlayerSlot */
 	void ResetAction(ABLCombatSlot* NewPlayerSlot);
@@ -213,4 +218,7 @@ private:
 
 	UPROPERTY()
 	int32 ActionTargetsNum;
+
+	UPROPERTY()
+	TObjectPtr<UObject> ActionEntry;
 };

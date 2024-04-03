@@ -14,8 +14,9 @@ class UBLActionWidget;
 class UBLAttackActionWidget;
 class UBLDefendActionWidget;
 class UBLCrystalActionWidget;
+class UBLButtonEntryData;
 
-DECLARE_DELEGATE_FiveParams(FOnChosenAction, ECombatActionType /*ActionType*/, int32 /*ActionIndex*/, ECrystalColor /*CrystalColor*/, float /*ActionMECost*/, int32 /*TargetsNum*/);
+DECLARE_DELEGATE_SixParams(FOnChosenAction, ECombatActionType /*ActionType*/, int32 /*ActionIndex*/, ECrystalColor /*CrystalColor*/, float /*ActionMECost*/, int32 /*TargetsNum*/, UObject* /*ActionEntry*/);
 
 /**
  * 
@@ -57,7 +58,7 @@ private:
 	void ResetAction();
 	
 	/** Calls delegate with chosen action and index */
-	void ChosenAction(ECombatActionType Action, int32 ActionIndex, ECrystalColor CrystalColor = ECrystalColor::NONE, float ActionMECost = 0.f, int32 TargetsNum = 1);
+	void ChosenAction(ECombatActionType Action, int32 ActionIndex, ECrystalColor CrystalColor = ECrystalColor::NONE, float ActionMECost = 0.f, int32 TargetsNum = 1, UObject* ActionEntry = nullptr);
 
 public:
 	FOnChosenAction OnChosenAction;

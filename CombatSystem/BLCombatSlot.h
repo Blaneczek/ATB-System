@@ -12,6 +12,7 @@ class UBoxComponent;
 class UStaticMeshComponent;
 class UBLAction;
 class UWidgetComponent;
+class UBLButtonEntryData;
 
 DECLARE_DELEGATE_OneParam(FOnSelectedSlot, ABLCombatSlot* /*Slot*/);
 DECLARE_DELEGATE_TwoParams(FOnCharActionEnded, ABLCombatSlot* /*Slot*/, bool /*bIsEnemy*/);
@@ -47,7 +48,7 @@ public:
 	void PauseCharCooldown();
 	void UnPauseCharCooldown();
 
-	void DoAction(ECombatActionType ActionType, int32 ActionIndex, const TArray<ABLCombatSlot*>& TargetsSlots, ECrystalColor CrystalColor = ECrystalColor::NONE);
+	void DoAction(ECombatActionType ActionType, int32 ActionIndex, const TArray<ABLCombatSlot*>& TargetsSlots, ECrystalColor CrystalColor = ECrystalColor::NONE, UObject* ActionEntry = nullptr);
 
 	void SelectTarget(bool NewSelect);
 	void SelectHero(bool NewSelect);

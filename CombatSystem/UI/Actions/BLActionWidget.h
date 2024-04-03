@@ -11,8 +11,9 @@ class UTextBlock;
 class UBLAction;
 class UListView;
 class UBLButtonEntryWidget;
+class UBLButtonEntryData;
 
-DECLARE_DELEGATE_FiveParams(FOnAction, ECombatActionType /*ActionType*/, int32 /*ActionIndex*/, ECrystalColor /*CrystalColor*/, float /*ActionMECost*/, int32 /*TargetsNum*/);
+DECLARE_DELEGATE_SixParams(FOnAction, ECombatActionType /*ActionType*/, int32 /*ActionIndex*/, ECrystalColor /*CrystalColor*/, float /*ActionMECost*/, int32 /*TargetsNum*/, UObject* /*ActionEntry*/);
 
 /**
  * 

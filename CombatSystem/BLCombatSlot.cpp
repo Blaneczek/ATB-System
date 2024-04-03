@@ -125,7 +125,7 @@ void ABLCombatSlot::UnPauseCharCooldown()
 	}
 }
 
-void ABLCombatSlot::DoAction(ECombatActionType ActionType, int32 ActionIndex, const TArray<ABLCombatSlot*>& TargetsSlots, ECrystalColor CrystalColor)
+void ABLCombatSlot::DoAction(ECombatActionType ActionType, int32 ActionIndex, const TArray<ABLCombatSlot*>& TargetsSlots, ECrystalColor CrystalColor, UObject* ActionEntry)
 {
 	TArray<ABLCombatCharacter*> Targets;
 	for (auto* Slot : TargetsSlots)
@@ -133,7 +133,7 @@ void ABLCombatSlot::DoAction(ECombatActionType ActionType, int32 ActionIndex, co
 		Targets.Add(Slot->GetCharacter());
 	}
 
-	Character->CreateAction(HelperScene->GetComponentLocation(), ActionType, ActionIndex, Targets, CrystalColor);	
+	Character->CreateAction(HelperScene->GetComponentLocation(), ActionType, ActionIndex, Targets, CrystalColor, ActionEntry);	
 }
 
 void ABLCombatSlot::SelectTarget(bool NewSelect)
