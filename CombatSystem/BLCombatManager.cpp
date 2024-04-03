@@ -71,7 +71,7 @@ void ABLCombatManager::SetPlayerTeam()
 
 	if (Data)
 	{
-		for (int32 Index = 0; Index < Data->Heroes.Num(); ++Index)
+		for (int32 Index = 0; Index < FMath::Clamp(Data->Heroes.Num(), 1, 5); ++Index)
 		{
 			const FCombatCharData CharBaseData = Data->CalculateBaseCombatData(Index);
 			if (PlayerTeam[Index])
@@ -182,7 +182,6 @@ void ABLCombatManager::DeselectClickedSlot()
 {
 	if (!CurrentTargetsSlots.IsEmpty())
 	{
-		
 		ClearTargetSlot(CurrentTargetsSlots.Pop());
 	}
 }
@@ -190,24 +189,14 @@ void ABLCombatManager::DeselectClickedSlot()
 void ABLCombatManager::ChooseTargetSlot(ABLCombatSlot* Slot)
 {
 	CurrentTargetsSlots.Add(Slot);
-	//TODO: change clicked effect
-	if (Slot->ClickedMaterial)
-	{
-		Slot->Platform->SetMaterial(0, Slot->ClickedMaterial);
-	}
-	Slot->bClicked = true;
+	Slot->SelectTarget(true);
 }
 
 void ABLCombatManager::ChoosePlayerSlot(ABLCombatSlot* Slot)
 {
 	CurrentPlayerSlot = Slot;
 	ShowHeroActions(CurrentPlayerSlot);
-	//TODO: change clicked effect
-	if (CurrentPlayerSlot->ClickedMaterial)
-	{
-		CurrentPlayerSlot->Platform->SetMaterial(0, CurrentPlayerSlot->ClickedMaterial);
-	}
-	CurrentPlayerSlot->bClicked = true;
+	CurrentPlayerSlot->SelectHero(true);
 }
 
 void ABLCombatManager::ChoosePlayerSlot(int32 Index)
@@ -223,14 +212,9 @@ void ABLCombatManager::ClearTargetsSlots()
 {
 	for (ABLCombatSlot* Slot : CurrentTargetsSlots)
 	{		
-		//TODO: change clicked effect
 		if (Slot)
-		{
-			if (Slot->DefaultMaterial)
-			{
-				Slot->Platform->SetMaterial(0, Slot->DefaultMaterial);
-			}
-			Slot->bClicked = false;
+		{		
+			Slot->SelectTarget(false);
 		}
 	}
 
@@ -241,11 +225,7 @@ void ABLCombatManager::ClearTargetSlot(ABLCombatSlot* Slot)
 {
 	if (Slot)
 	{
-		if (Slot->DefaultMaterial)
-		{
-			Slot->Platform->SetMaterial(0, Slot->DefaultMaterial);
-		}
-		Slot->bClicked = false;
+		Slot->SelectTarget(false);
 	}
 }
 
@@ -254,12 +234,7 @@ void ABLCombatManager::ClearPlayerSlot()
 	if (CurrentPlayerSlot)
 	{	
 		HideHeroActions(CurrentPlayerSlot);
-		//TODO: change clicked effect
-		if (CurrentPlayerSlot->DefaultMaterial)
-		{
-			CurrentPlayerSlot->Platform->SetMaterial(0, CurrentPlayerSlot->DefaultMaterial);
-		}
-		CurrentPlayerSlot->bClicked = false;
+		CurrentPlayerSlot->SelectHero(false);
 		HideHeroActions(CurrentPlayerSlot);
 		CurrentPlayerSlot = nullptr;
 	}

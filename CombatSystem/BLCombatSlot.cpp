@@ -5,6 +5,8 @@
 #include "Characters/BLCombatCharacter.h"
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/WidgetComponent.h"
+#include "Components/SceneComponent.h"
 
 // Sets default values
 ABLCombatSlot::ABLCombatSlot()
@@ -17,8 +19,12 @@ ABLCombatSlot::ABLCombatSlot()
 	Box->SetBoxExtent(FVector(80.f, 80.f, 32.f));
 	Box->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
 
-	Platform = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Platform"));
-	Platform->SetupAttachment(Box);
+	HelperScene = CreateDefaultSubobject<USceneComponent>(TEXT("Helper"));
+	HelperScene->SetupAttachment(Box);
+
+	TargetPointer = CreateDefaultSubobject<UWidgetComponent>(TEXT("TargetPointer"));
+	TargetPointer->SetupAttachment(Box);
+	TargetPointer->SetHiddenInGame(true);
 
 	Index = 0;
 	bIsEnemy = false;
@@ -61,7 +67,9 @@ void ABLCombatSlot::SpawnCharacter(const FCombatCharData& BaseData, const TArray
 	{
 		FActorSpawnParameters SpawnInfo;
 		SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		Character = GetWorld()->SpawnActor<ABLCombatCharacter>(BaseData.Class, GetActorTransform(), SpawnInfo);
+		const FVector Location = FVector(GetActorLocation().X, GetActorLocation().Y + 50, GetActorLocation().Z);
+		const FRotator Rotation = GetActorRotation();
+		Character = GetWorld()->SpawnActor<ABLCombatCharacter>(BaseData.Class, HelperScene->GetComponentTransform(), SpawnInfo);
 		if (Character)
 		{
 			Character->SetData(BaseData, AttackActions, DefendActions, CrystalActions, SpecialActions);
@@ -83,7 +91,9 @@ void ABLCombatSlot::SpawnCharacter(const FCombatCharData& BaseData, const TArray
 	{
 		FActorSpawnParameters SpawnInfo;
 		SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		Character = GetWorld()->SpawnActor<ABLCombatCharacter>(BaseData.Class, GetActorTransform(), SpawnInfo);
+		const FVector Location = FVector(GetActorLocation().X, GetActorLocation().Y + 50, GetActorLocation().Z);
+		const FRotator Rotation = GetActorRotation();
+		Character = GetWorld()->SpawnActor<ABLCombatCharacter>(BaseData.Class, HelperScene->GetComponentTransform(), SpawnInfo);
 		if (Character)
 		{
 			Character->SetData(BaseData, AttackActions, DefendActions);
@@ -123,7 +133,55 @@ void ABLCombatSlot::DoAction(ECombatActionType ActionType, int32 ActionIndex, co
 		Targets.Add(Slot->GetCharacter());
 	}
 
-	Character->CreateAction(GetActorLocation(), ActionType, ActionIndex, Targets, CrystalColor);	
+	Character->CreateAction(HelperScene->GetComponentLocation(), ActionType, ActionIndex, Targets, CrystalColor);	
+}
+
+void ABLCombatSlot::SelectTarget(bool NewSelect)
+{
+	TargetPointer->SetWidgetClass(TargetWidgetClass);
+
+	if (NewSelect)
+	{
+		TargetPointer->SetHiddenInGame(false);
+		bClicked = true;
+	}
+	else
+	{
+		TargetPointer->SetHiddenInGame(true);
+		bClicked = false;
+	}
+}
+
+void ABLCombatSlot::SelectHero(bool NewSelect)
+{
+	TargetPointer->SetWidgetClass(HeroWidgetClass);
+
+	if (NewSelect)
+	{
+		TargetPointer->SetHiddenInGame(false);
+		bClicked = true;
+	}
+	else
+	{
+		TargetPointer->SetHiddenInGame(true);
+		bClicked = false;
+	}
+}
+
+void ABLCombatSlot::HoverMouse(bool NewHover)
+{
+	if (bClicked) return;
+
+	TargetPointer->SetWidgetClass(HoverWidgetClass);
+
+	if (NewHover)
+	{
+		TargetPointer->SetHiddenInGame(false);
+	}
+	else
+	{
+		TargetPointer->SetHiddenInGame(true);
+	}
 }
 
 void ABLCombatSlot::EndCharCooldown()
@@ -142,7 +200,7 @@ void ABLCombatSlot::EndCharCooldown()
 
 void ABLCombatSlot::ActionEnded()
 {
-	Character->SetActorTransform(GetActorTransform());
+	Character->SetActorTransform(HelperScene->GetComponentTransform());
 	if (bIsActive)
 	{
 		StartCharCooldown();
@@ -173,17 +231,17 @@ void ABLCombatSlot::UpdateCharHealth()
 
 void ABLCombatSlot::OnBeginMouseOver(UPrimitiveComponent* TouchedComponent)
 {
-	if (bIsActive && !bClicked && HoveredMaterial)
+	if (bIsActive)
 	{
-		Platform->SetMaterial(0, HoveredMaterial);
+		HoverMouse(true);
 	}
 }
 
 void ABLCombatSlot::OnEndMouseOver(UPrimitiveComponent* TouchedComponent)
 {
-	if (bIsActive && !bClicked && DefaultMaterial)
+	if (bIsActive)
 	{
-		Platform->SetMaterial(0, DefaultMaterial);
+		HoverMouse(false);
 	}
 }
 

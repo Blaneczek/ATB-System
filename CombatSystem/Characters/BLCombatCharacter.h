@@ -10,6 +10,7 @@
 #include "BLCombatCharacter.generated.h"
 
 class USphereComponent;
+class UWidgetComponent;
 class UPaperZDAnimInstance;
 class UPaperFlipbook;
 class ABLRangeProjectile;
@@ -146,4 +147,5 @@ private:
 	TMap<ECrystalColor, FCrystalSkills> CrystalActions;
 	UPROPERTY()
 	TArray<TSoftClassPtr<UBLAction>> SpecialActions;
+
 };

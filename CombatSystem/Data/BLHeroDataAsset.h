@@ -9,8 +9,8 @@
 
 class UBLAction;
 
-USTRUCT()
-struct FHeroAssetInfo 
+USTRUCT(BlueprintType)
+struct FHeroAssetInfo
 {
 	GENERATED_BODY()
 
@@ -21,16 +21,19 @@ struct FHeroAssetInfo
 	TSubclassOf<ABLCombatCharacter> Class;
 
 	UPROPERTY(EditAnywhere)
-	float Cooldown{ 0 };
+	float Cooldown{0};
 
 	UPROPERTY(EditAnywhere)
-	ECombatElementType Element{ ECombatElementType::NONE };
-		
-	UPROPERTY(EditAnywhere)
+	ECombatElementType Element{ECombatElementType::NONE};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UPaperFlipbook> Sprite;
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UPaperZDAnimInstance> AnimInstanceClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<UPaperZDAnimInstance> OutOfCombatAnimInstanceClass;
 
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UPaperZDAnimSequence> TakeDMGAnim;
@@ -67,7 +70,7 @@ public:
 
 public:
 	/** Heroes in player's team */
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FHeroAssetInfo> Heroes;
 
 	//items info

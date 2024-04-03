@@ -11,6 +11,7 @@ class ABLCombatCharacter;
 class UBoxComponent;
 class UStaticMeshComponent;
 class UBLAction;
+class UWidgetComponent;
 
 DECLARE_DELEGATE_OneParam(FOnSelectedSlot, ABLCombatSlot* /*Slot*/);
 DECLARE_DELEGATE_TwoParams(FOnCharActionEnded, ABLCombatSlot* /*Slot*/, bool /*bIsEnemy*/);
@@ -48,6 +49,10 @@ public:
 
 	void DoAction(ECombatActionType ActionType, int32 ActionIndex, const TArray<ABLCombatSlot*>& TargetsSlots, ECrystalColor CrystalColor = ECrystalColor::NONE);
 
+	void SelectTarget(bool NewSelect);
+	void SelectHero(bool NewSelect);
+	void HoverMouse(bool NewHover);
+
 private:
 	UFUNCTION()
 	void EndCharCooldown();
@@ -72,18 +77,12 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
 	TObjectPtr<UBoxComponent> Box;
 
-	/** Temporary solution for clicked and hovered effect */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BL|Combat")
-	TObjectPtr<UStaticMeshComponent> Platform;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "BL|Combat")
-	TObjectPtr<UMaterialInstance> DefaultMaterial;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "BL|Combat")
-	TObjectPtr<UMaterialInstance> ClickedMaterial;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "BL|Combat")
-	TObjectPtr<UMaterialInstance> HoveredMaterial;
-	/**/
-
+	TObjectPtr<UWidgetComponent> TargetPointer;
 	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
+	TObjectPtr<USceneComponent> HelperScene;
+
 	UPROPERTY()
 	bool bCanDoAction;
 	UPROPERTY()
@@ -94,7 +93,7 @@ public:
 	FOnCharHealthUpdate OnCharHealthUpdate;
 	FOnCharDeath OnCharDeath;
 	FOnEnemyAction OnEnemyAction;
-
+	
 private:
 	UPROPERTY()
 	bool bIsActive;
@@ -108,5 +107,11 @@ private:
 	UPROPERTY(EditInstanceOnly, Category = "BL|Combat")
 	bool bIsEnemy;
 
-	
+	UPROPERTY(EditDefaultsOnly, Category = "BL|Combat")
+	TSubclassOf<UUserWidget> TargetWidgetClass;
+	UPROPERTY(EditDefaultsOnly, Category = "BL|Combat")
+	TSubclassOf<UUserWidget> HoverWidgetClass;
+	UPROPERTY(EditDefaultsOnly, Category = "BL|Combat")
+	TSubclassOf<UUserWidget> HeroWidgetClass;
+
 }; 
