@@ -1,23 +1,23 @@
 // Copyright (c) 2023 Smoking Carrots. All rights reserved.
 
 
-#include "BLDefaultRangeAction.h"
+#include "BLMultipleDefaultRangeAction.h"
 #include "Characters/BLCombatCharacter.h"
 #include "PaperZDAnimInstance.h"
 #include "PaperZDAnimationComponent.h"
 
-void UBLDefaultRangeAction::ActivateAction(ABLCombatCharacter* Owner)
+void UBLMultipleDefaultRangeAction::ActivateAction(ABLCombatCharacter* Owner)
 {
 	if (Owner && ActionAnim)
 	{
 		Owner->SetCurrentME(FMath::Clamp((Owner->GetCurrentME() - MECost), 0.f, Owner->GetMaxME()));
 		FZDOnAnimationOverrideEndSignature EndAnimDel;
-		EndAnimDel.BindLambda([this, Owner](bool bResult) { Owner->DefaultRangeAction(ProjectileClass, ProjectileSprite); });
+		EndAnimDel.BindLambda([this, Owner](bool bResult) { Owner->MultipleDefaultRangeAction(ProjectileClass, ProjectileSprite); });
 		Owner->GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(ActionAnim, "DefaultSlot", 1.f, 0.0f, EndAnimDel);
 	}
 }
 
-void UBLDefaultRangeAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharacter* Target)
+void UBLMultipleDefaultRangeAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharacter* Target)
 {
 	if (!Owner || !Target)
 	{
@@ -28,5 +28,5 @@ void UBLDefaultRangeAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCh
 	FTimerHandle Delay;
 	FTimerDelegate DelayDel;
 	DelayDel.BindLambda([this]() { OnEndExecution.ExecuteIfBound(); });
-	GetWorld()->GetTimerManager().SetTimer(Delay, DelayDel, 0.5f, false);	
+	GetWorld()->GetTimerManager().SetTimer(Delay, DelayDel, 0.1f, false);
 }

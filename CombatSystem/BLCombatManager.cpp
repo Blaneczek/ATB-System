@@ -12,6 +12,7 @@
 #include "UObject/SoftObjectPtr.h"
 #include "UI/BLCombatWidget.h"
 #include "UI/BLActionsWidget.h"
+#include "BladeOfLegend/AREK/GameInstance/BLGameInstance.h"
 
 // Sets default values
 ABLCombatManager::ABLCombatManager()
@@ -91,8 +92,13 @@ void ABLCombatManager::SetPlayerTeam()
 
 void ABLCombatManager::SetEnemyTeam()
 {
-	UBLEnemyDataAsset* Data = EnemiesData.LoadSynchronous();
+	UBLGameInstance* GI = Cast<UBLGameInstance>(GetGameInstance());
+	if (!GI)
+	{
+		return;
+	}
 
+	UBLEnemyDataAsset* Data = GI->EnemyData.LoadSynchronous();
 	if (Data)
 	{
 		for (int32 Index = 0; Index < Data->Enemies.Num(); ++Index)
@@ -108,7 +114,7 @@ void ABLCombatManager::SetEnemyTeam()
 		}
 	}
 
-	EnemiesData.Reset();
+	GI->EnemyData.Reset();
 }
 
 void ABLCombatManager::InitializeWidget()
@@ -384,6 +390,7 @@ void ABLCombatManager::ResetAction(ABLCombatSlot* NewPlayerSlot)
 	ActionMECost = 0.f;
 	ActionTargetsNum = 1;
 	ActionEntry = nullptr;
+	CurrentTargetsSlots.Empty();
 	ClearPlayerSlot();
 	ClearTargetsSlots();
 	ChoosePlayerSlot(NewPlayerSlot);

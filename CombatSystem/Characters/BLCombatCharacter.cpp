@@ -26,6 +26,8 @@ ABLCombatCharacter::ABLCombatCharacter()
 	AIC = nullptr;
 	CurrentAction = nullptr;
 	Movement->MaxWalkSpeed = 900.f;
+	ProjectileTargetsNum = 0;
+	ProjectileTargetIndex = 0;
 }
 
 void ABLCombatCharacter::BeginPlay()
@@ -176,16 +178,18 @@ void ABLCombatCharacter::DefaultMeleeAction()
 
 void ABLCombatCharacter::DefaultRangeAction(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite)
 {
-	if (ProjectileClass)
+	ProjectileTargetsNum = 0;
+	if (ProjectileClass && ProjectileSprite)
 	{
 		FActorSpawnParameters SpawnInfo;
 		SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		ABLRangeProjectile* Projectile = GetWorld()->SpawnActor<ABLRangeProjectile>(ProjectileClass, GetActorLocation(), GetActorRotation(), SpawnInfo);
 		if (Projectile)
-		{
+		{		
 			Projectile->SetData(ProjectileSprite);
 			Projectile->OnReachedDestination.BindUObject(this, &ABLCombatCharacter::ReachedActionDestination);
 			Projectile->FlyToTarget(TargetCharacters[0]);
+			++ProjectileTargetsNum;
 		}
 	}
 }
@@ -200,6 +204,19 @@ void ABLCombatCharacter::MultipleDefaultMeleeAction()
 	UE_LOG(LogTemp, Warning, TEXT("STARTED"));
 	AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLCombatCharacter::ReachedActionDestination, 0);
 	AIC->MoveToActor(TargetCharacters[0], 30.f);
+}
+
+void ABLCombatCharacter::MultipleDefaultRangeAction(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite)
+{
+	ProjectileTargetsNum = 0;
+	if (ProjectileClass && ProjectileSprite)
+	{		
+		ProjectileTargetIndex = 0;
+		ProjectileTargetsNum = TargetCharacters.Num();
+		FTimerDelegate SpawnDel;
+		SpawnDel.BindUObject(this, &ABLCombatCharacter::SpawnProjectile, ProjectileClass, ProjectileSprite);
+		GetWorld()->GetTimerManager().SetTimer(ProjectileSpawnTimer, SpawnDel, 0.3f, true);
+	}		
 }
 
 void ABLCombatCharacter::StartActionCooldown(int32 TurnsCost)
@@ -250,13 +267,13 @@ float ABLCombatCharacter::CalculateElementsMultipliers(ECombatElementType Damage
 		{1.0f,   1.0f,   1.0f,   1.0f,   1.0f,   0.0f,   1.0f,   1.0f,   1.0f,   1.0f}   // NONE
 	};
 
-	const uint8 AttackIndex = static_cast<int>(DamageElementType);
-	const uint8 TargetIndex = static_cast<int>(CharacterElementType);
+	const uint8 AttackElementIndex = static_cast<int32>(DamageElementType);
+	const uint8 TargetElementIndex = static_cast<int32>(CharacterElementType);
 
-	const float Multiplier = ElementsTable[TargetIndex][AttackIndex];
+	const float Multiplier = ElementsTable[TargetElementIndex][AttackElementIndex];
 
 	// If Attack and Target Element is the same, heals target
-	if (AttackIndex == TargetIndex)
+	if (AttackElementIndex == TargetElementIndex)
 	{
 		OutIsHeal = true;
 		return Multiplier;
@@ -309,7 +326,6 @@ void ABLCombatCharacter::EndCooldown()
 
 void ABLCombatCharacter::EndAction(bool bResult)
 {
-	UE_LOG(LogTemp, Warning, TEXT("End Action"));
 	CurrentAction->ConditionalBeginDestroy();
 	CurrentAction = nullptr;
 	OnActionEnded.ExecuteIfBound();
@@ -322,8 +338,6 @@ void ABLCombatCharacter::ReachedActionDestination(FAIRequestID RequestID, const 
 	{
 		return;
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("REACHED"));
 	
 	AIC->GetPathFollowingComponent()->OnRequestFinished.RemoveAll(this);
 	AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLCombatCharacter::ReachedSlotLocation);
@@ -339,7 +353,6 @@ void ABLCombatCharacter::ReachedActionDestination(FAIRequestID RequestID, const 
 		return;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("REACHED"));
 	AIC->GetPathFollowingComponent()->OnRequestFinished.RemoveAll(this);
 
 	if (TargetCharacters.IsValidIndex(TargetIndex + 1) && TargetCharacters[TargetIndex + 1] && TargetCharacters[TargetIndex + 1]->GetCurrentHP() > 0)
@@ -364,9 +377,24 @@ void ABLCombatCharacter::ReachedActionDestination()
 		return;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("REACHED projectile"));	
-	CurrentAction->OnEndExecution.BindLambda([this]() { EndAction(true); });
+	CurrentAction->OnEndExecution.BindLambda([this]() { EndAction(true); });	
 	CurrentAction->ExecuteAction(this, TargetCharacters[0]);
+}
+
+void ABLCombatCharacter::ReachedActionDestination(int32 Index, bool bLastProjectile)
+{
+	if (!IsValid(CurrentAction) || !TargetCharacters.IsValidIndex(Index) || !TargetCharacters[Index])
+	{
+		return;
+	}
+
+	if (bLastProjectile)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Last"));
+		CurrentAction->OnEndExecution.BindLambda([this]() { EndAction(true); });
+	}
+
+	CurrentAction->ExecuteAction(this, TargetCharacters[Index]);
 }
 
 void ABLCombatCharacter::ReachedSlotLocation(FAIRequestID RequestID, const FPathFollowingResult& Result)
@@ -375,6 +403,31 @@ void ABLCombatCharacter::ReachedSlotLocation(FAIRequestID RequestID, const FPath
 	{		
 		AIC->GetPathFollowingComponent()->OnRequestFinished.RemoveAll(this);
 		EndAction(true);
+	}
+}
+
+void ABLCombatCharacter::SpawnProjectile(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite)
+{
+	if (TargetCharacters.IsValidIndex(ProjectileTargetIndex))
+	{
+		FActorSpawnParameters SpawnInfo;
+		SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		ABLRangeProjectile* Projectile = GetWorld()->SpawnActor<ABLRangeProjectile>(ProjectileClass, GetActorLocation(), GetActorRotation(), SpawnInfo);
+		if (Projectile)
+		{
+			bool bLast = TargetCharacters.Num() - 1 == ProjectileTargetIndex ? true : false;
+			Projectile->SetData(ProjectileSprite);
+			Projectile->OnReachedDestination.BindUObject(this, &ABLCombatCharacter::ReachedActionDestination, ProjectileTargetIndex, bLast);
+			Projectile->FlyToTarget(TargetCharacters[ProjectileTargetIndex]);
+		}
+		ProjectileTargetIndex++;
+	}
+	else
+	{
+		if (GetWorld()->GetTimerManager().IsTimerActive(ProjectileSpawnTimer))
+		{
+			GetWorld()->GetTimerManager().ClearTimer(ProjectileSpawnTimer);
+		}	
 	}
 }
 

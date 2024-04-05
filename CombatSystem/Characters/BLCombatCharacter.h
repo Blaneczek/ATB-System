@@ -88,10 +88,13 @@ public:
 	void DefaultRangeAction(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite);
 	/** Character runs up to the targets one by one and executes action for every target */
 	void MultipleDefaultMeleeAction();
+	/** Character creates multiple projectiles that flie to the target and execute action */
+	void MultipleDefaultRangeAction(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite);
 
 	/** Special actions turns cooldown */
 	void StartActionCooldown(int32 TurnsCost);
 
+	/** Shows taken dmg/healed value*/
 	UFUNCTION(BlueprintImplementableEvent)
 	void DisplayTextDMG(float DMG, bool bHeal, ECombatElementType DMGElement);
 
@@ -108,11 +111,13 @@ private:
 	UFUNCTION()
 	void EndAction(bool bResult);
 
-	/** Default teached*/
 	void ReachedActionDestination(FAIRequestID RequestID, const FPathFollowingResult& Result);
 	void ReachedActionDestination(FAIRequestID RequestID, const FPathFollowingResult& Result, int32 TargetIndex);
 	void ReachedActionDestination();
+	void ReachedActionDestination(int32 Index, bool bLastProjectile);
 	void ReachedSlotLocation(FAIRequestID RequestID, const FPathFollowingResult& Result);
+
+	void SpawnProjectile(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite);
 
 public:
 	FOnEndCooldown OnEndCooldown;
@@ -168,4 +173,12 @@ private:
 	TMap<TObjectPtr<UBLActionEntryData>, int32> ActionsTurnsCooldown;
 	UPROPERTY()
 	TObjectPtr<UBLActionEntryData> ClickedActionEntry;
+
+	/** Counter for multiple projectiles to now when ends action*/
+	UPROPERTY()
+	int32 ProjectileTargetsNum;
+	UPROPERTY()
+	int32 ProjectileTargetIndex;
+
+	FTimerHandle ProjectileSpawnTimer;
 };

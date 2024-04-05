@@ -28,9 +28,9 @@ void UBLCrystalActionWidget::AddActions(const TMap<ECrystalColor, FCrystalSkills
 			UBLAction* Action = Cast<UBLAction>(Actions[Index].LoadSynchronous()->GetDefaultObject());
 			UBLActionEntryData* EntryItem = NewObject<UBLActionEntryData>();
 			if (Action && EntryItem)
-			{
+			{				
+				EntryItem->Init(Index, Action->Name, CrystalAction.Key, Action->MECost, Action->TurnsCost, Action->TargetsNumber);
 				EntryItem->OnNameChange.BindUObject(this, &UBLCrystalActionWidget::ChangeName);
-				EntryItem->Init(Index, Action->Name, CrystalAction.Key, Action->MECost, Action->TargetsNumber);
 				switch (CrystalAction.Key)
 				{
 					case ECrystalColor::BLUE: 

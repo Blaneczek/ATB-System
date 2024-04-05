@@ -17,7 +17,9 @@ void UBLSpecialActionWidget::AddActions(const TArray<TSoftClassPtr<UBLAction>>& 
 		UBLActionEntryData* EntryItem = NewObject<UBLActionEntryData>();
 		if (Action && EntryItem)
 		{
-			EntryItem->Init(Index, Action->Name);
+			EntryItem->Init(Index, Action->Name, ECrystalColor::NONE, Action->MECost, Action->TurnsCost, Action->TargetsNumber);
+			EntryItem->OnNameChange.BindUObject(this, &UBLSpecialActionWidget::ChangeName);
+			ActionsList->AddItem(EntryItem);
 			FFormatNamedArguments Args;
 			Args.Add(TEXT("Desc"), Action->Description);
 			Args.Add(TEXT("MECost"), Action->MECost);
@@ -40,7 +42,7 @@ void UBLSpecialActionWidget::OnActionClicked(UObject* Item)
 	}
 
 	UBLActionEntryWidget* Button = Cast<UBLActionEntryWidget>(ActionsList->GetEntryWidgetFromItem(Item));
-	if (Button)
+	if (Button && Action)
 	{
 		ClickedButton = Button; 
 		Button->Border->SetBrushColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.f));

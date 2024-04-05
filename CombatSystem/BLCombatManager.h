@@ -172,10 +172,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "BL|Combat")
 	TSoftObjectPtr<UBLHeroDataAsset> HeroesData;
 
-	/** Data of every enemy in Enemy team */
-	UPROPERTY(EditDefaultsOnly, Category = "BL|Combat")
-	TSoftObjectPtr<UBLEnemyDataAsset> EnemiesData;
-
 private:
 	UPROPERTY()
 	TObjectPtr<ABLCombatSlot> CurrentPlayerSlot;
