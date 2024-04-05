@@ -4,27 +4,28 @@
 #include "BLAttackActionWidget.h"
 #include "Components/TextBlock.h"
 #include "Actions/BLAction.h"
-#include "UI/Entries/BLButtonEntryWidget.h"
-#include "UI/Entries/BLButtonEntryData.h"
+#include "UI/Entries/BLActionEntryWidget.h"
+#include "UI/Entries/BLActionEntryData.h"
 #include "Components/ListView.h"
 #include "Components/Border.h"
 
-void UBLAttackActionWidget::AddActions(const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, float AttackDMG)
+void UBLAttackActionWidget::AddActions(const TArray<TSoftClassPtr<UBLAction>>& InActions)
 {
-	for (int32 Index = 0; Index < InAttackActions.Num(); ++Index)
+	for (int32 Index = 0; Index < InActions.Num(); ++Index)
 	{
-		UBLAction* Action = Cast<UBLAction>(InAttackActions[Index].LoadSynchronous()->GetDefaultObject());
-		UBLButtonEntryData* EntryItem = NewObject<UBLButtonEntryData>();
+		UBLAction* Action = Cast<UBLAction>(InActions[Index].LoadSynchronous()->GetDefaultObject());
+		UBLActionEntryData* EntryItem = NewObject<UBLActionEntryData>();
 		if (Action && EntryItem)
 		{
 			EntryItem->Init(Index, Action->Name);
 			ActionsList->AddItem(EntryItem);
 			FFormatNamedArguments Args;
 			Args.Add(TEXT("Desc"), Action->Description);
-			Args.Add(TEXT("Elem"), UEnum::GetDisplayValueAsText(Action->Element));
-			Args.Add(TEXT("DMG"), AttackDMG);
-			const FText Desc = FText::Format(FText::FromString("{Desc}\rElement: {Elem}\rDMG: {DMG}"), Args);
- 			Descriptions.Add(Desc);
+			Args.Add(TEXT("MECost"), Action->MECost);
+			Args.Add(TEXT("TurnsCost"), Action->TurnsCost);
+			Args.Add(TEXT("TargetsNum"), Action->TargetsNumber);
+			const FText Desc = FText::Format(FText::FromString("{Desc}\r\rME: {MECost}\rTurns cooldown: {TurnsCost}\rTargets: {TargetsNum}"), Args);
+			Descriptions.Add(Desc);
 		}
 	}
 }
@@ -33,7 +34,7 @@ void UBLAttackActionWidget::OnActionClicked(UObject* Item)
 {
 	ResetAction();
 
-	UBLButtonEntryWidget* Button = Cast<UBLButtonEntryWidget>(ActionsList->GetEntryWidgetFromItem(Item));
+	UBLActionEntryWidget* Button = Cast<UBLActionEntryWidget>(ActionsList->GetEntryWidgetFromItem(Item));
 	if (Button)
 	{
 		ClickedButton = Button;

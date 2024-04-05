@@ -18,7 +18,7 @@ class BLADEOFLEGEND_API UBLAttackActionWidget : public UBLActionWidget
 
 public:
 
-	virtual void AddActions(const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, float AttackDMG) override;
+	virtual void AddActions(const TArray<TSoftClassPtr<UBLAction>>& InActions) override;
 
 protected:
 	virtual void OnActionClicked(UObject* Item) override;

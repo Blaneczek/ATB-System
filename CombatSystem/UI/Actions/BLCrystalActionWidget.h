@@ -68,7 +68,7 @@ private:
 
 	/** Clicked item in Crystals ListView */
 	UPROPERTY()
-	TObjectPtr<UBLButtonEntryWidget> ClickedColorButton;
+	TObjectPtr<UBLActionEntryWidget> ClickedColorButton;
 
 	
 };

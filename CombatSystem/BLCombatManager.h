@@ -11,7 +11,7 @@ class ABLCombatSlot;
 class UBLHeroDataAsset;
 class UBLEnemyDataAsset;
 class UBLCombatWidget;
-class UBLButtonEntryData;
+class UBLActionEntryData;
 
 USTRUCT(BlueprintType)
 struct FActionQueue

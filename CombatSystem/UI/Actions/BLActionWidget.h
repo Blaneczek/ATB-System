@@ -10,8 +10,8 @@
 class UTextBlock;
 class UBLAction;
 class UListView;
-class UBLButtonEntryWidget;
-class UBLButtonEntryData;
+class UBLActionEntryWidget;
+class UBLActionEntryData;
 
 DECLARE_DELEGATE_SixParams(FOnAction, ECombatActionType /*ActionType*/, int32 /*ActionIndex*/, ECrystalColor /*CrystalColor*/, float /*ActionMECost*/, int32 /*TargetsNum*/, UObject* /*ActionEntry*/);
 
@@ -29,11 +29,10 @@ protected:
 	UFUNCTION()
 	virtual void OnActionClicked(UObject* Item) {};
 
-public:
-	/** Adds Attack actions to Widget */
-	virtual void AddActions(const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, float AttackDMG) {};
+	void ChangeName(UBLActionEntryData* ActionEntry);
 
-	/** Adds Defend/Special actions to Widget */
+public:
+	/** Adds actions to Widget */
 	virtual void AddActions(const TArray<TSoftClassPtr<UBLAction>>& InActions) {};
 
 	/** Adds Crystal actions to Widget */
@@ -63,6 +62,6 @@ protected:
 
 	/** Clicked item in ListView */
 	UPROPERTY()
-	TObjectPtr<UBLButtonEntryWidget> ClickedButton;
+	TObjectPtr<UBLActionEntryWidget> ClickedButton;
 
 };

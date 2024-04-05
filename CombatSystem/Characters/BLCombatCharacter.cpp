@@ -14,7 +14,7 @@
 #include "Navigation/PathFollowingComponent.h"
 #include "Actions/BLAction.h"
 #include "Components/WidgetComponent.h"
-#include "UI/Entries/BLButtonEntryData.h"
+#include "UI/Entries/BLActionEntryData.h"
 
 ABLCombatCharacter::ABLCombatCharacter()
 {
@@ -40,12 +40,13 @@ void ABLCombatCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions, const TArray<TSoftClassPtr<UBLAction>>& InSpecialActions)
+void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions, const TArray<TSoftClassPtr<UBLAction>>& InSpecialActions, const FTransform& InSlotTransform)
 {
 	SetData(InBaseData, InAttackActions, InDefendActions);
 
 	CrystalActions = InCrystalActions;
 	SpecialActions = InSpecialActions;
+	SlotTransform = InSlotTransform;
 }
 
 void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions)
@@ -66,7 +67,7 @@ void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData, const TArray
 
 void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, ECombatActionType ActionType, int32 ActionIndex, const TArray<ABLCombatCharacter*>& Targets, ECrystalColor CrystalColor, UObject* InClickedActionEntry)
 {
-	ClickedActionEntry = Cast<UBLButtonEntryData>(InClickedActionEntry);
+	ClickedActionEntry = Cast<UBLActionEntryData>(InClickedActionEntry);
 
 	switch (ActionType)
 	{
@@ -170,7 +171,7 @@ void ABLCombatCharacter::DefaultMeleeAction()
 
 	AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLCombatCharacter::ReachedActionDestination);
 	UE_LOG(LogTemp, Warning, TEXT("STARTED"));
-	AIC->MoveToActor(TargetCharacters[0], 70.f);
+	AIC->MoveToActor(TargetCharacters[0], 30.f);
 }
 
 void ABLCombatCharacter::DefaultRangeAction(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite)
@@ -198,7 +199,7 @@ void ABLCombatCharacter::MultipleDefaultMeleeAction()
 
 	UE_LOG(LogTemp, Warning, TEXT("STARTED"));
 	AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLCombatCharacter::ReachedActionDestination, 0);
-	AIC->MoveToActor(TargetCharacters[0], 70.f);
+	AIC->MoveToActor(TargetCharacters[0], 30.f);
 }
 
 void ABLCombatCharacter::StartActionCooldown(int32 TurnsCost)
@@ -209,6 +210,26 @@ void ABLCombatCharacter::StartActionCooldown(int32 TurnsCost)
 		ActionsTurnsCooldown.Add(ClickedActionEntry, TurnsCost);
 	}
 }
+
+/* Do it maybe 
+void ABLCombatCharacter::StepForward()
+{
+	if (AIC)
+	{
+		AIC->MoveToLocation(GetActorLocation() + FVector(-50.f, 0.f, 0.f), 5.f);
+	}
+}
+
+void ABLCombatCharacter::BackInLine()
+{
+	if (AIC)
+	{
+		AIC->GetPathFollowingComponent()->OnRequestFinished.AddLambda([this](FAIRequestID RequestID, const FPathFollowingResult& Result) {SetActorTransform(SlotTransform); });
+		CurrentAction->OnEndExecution.BindLambda([this]() { AIC->MoveToLocation(SlotLocation, 5.f); });
+		AIC->GetPathFollowingComponent()->OnRequestFinished.RemoveAll(this);
+	}	
+}
+*/
 
 float ABLCombatCharacter::CalculateElementsMultipliers(ECombatElementType DamageElementType, ECombatElementType CharacterElementType, bool& OutIsHeal)
 { 
@@ -256,14 +277,21 @@ void ABLCombatCharacter::EndCooldown()
 	CurrentDefense = BaseData.BaseDefense;
 	bDefendIdle = false;
 
-	TArray<UBLButtonEntryData*> EntriesToDelete;
+	TArray<UBLActionEntryData*> EntriesToDelete;
 
 	for (auto& Item : ActionsTurnsCooldown)
 	{	
 		if (Item.Key->bCanBeUsed) continue;
 
-		if (--Item.Value <= 0)
+		--Item.Value;
+		FFormatNamedArguments Args;
+		Args.Add(TEXT("Name"), Item.Key->TempName);
+		Args.Add(TEXT("Turns"), Item.Value);
+		const FText NewName = FText::Format(FText::FromString("{Name} Cd:{Turns}t"), Args);
+		Item.Key->ChangeName(NewName);
+		if (Item.Value <= 0)
 		{
+			Item.Key->ChangeName(Item.Key->TempName);
 			Item.Key->bCanBeUsed = true;
 			EntriesToDelete.Add(Item.Key);
 		}
@@ -300,7 +328,7 @@ void ABLCombatCharacter::ReachedActionDestination(FAIRequestID RequestID, const 
 	AIC->GetPathFollowingComponent()->OnRequestFinished.RemoveAll(this);
 	AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLCombatCharacter::ReachedSlotLocation);
 
-	CurrentAction->OnEndExecution.BindLambda([this](){ AIC->MoveToLocation(SlotLocation, 10.f); });
+	CurrentAction->OnEndExecution.BindLambda([this](){ AIC->MoveToLocation(SlotLocation, 5.f); });
 	CurrentAction->ExecuteAction(this, TargetCharacters[0]);
 }
 
@@ -322,7 +350,7 @@ void ABLCombatCharacter::ReachedActionDestination(FAIRequestID RequestID, const 
 	else
 	{
 		AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLCombatCharacter::ReachedSlotLocation);
-		CurrentAction->OnEndExecution.BindLambda([this]() { AIC->MoveToLocation(SlotLocation, 10.f); });	
+		CurrentAction->OnEndExecution.BindLambda([this]() { AIC->MoveToLocation(SlotLocation, 5.f); });	
 	}
 
 	CurrentAction->ExecuteAction(this, TargetCharacters[TargetIndex]);
@@ -360,7 +388,7 @@ void ABLCombatCharacter::HandleHitByAction(float Damage, ECombatElementType Dama
 	{
 		const float HealValue = Damage * DMGMultiplier;
 		CurrentHP = FMath::Clamp((CurrentHP + HealValue), 0, BaseData.MaxHP);
-		DisplayTextDMG(HealValue, true);
+		DisplayTextDMG(HealValue, true, DamageElementType);
 		if (BaseData.HealAnim)
 		{
 			GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(BaseData.HealAnim);
@@ -371,7 +399,7 @@ void ABLCombatCharacter::HandleHitByAction(float Damage, ECombatElementType Dama
 		//TODO: change how Defense works	
 		const float DMGValue = DMGMultiplier > 0 ? (Damage * DMGMultiplier) - CurrentDefense : 0.f;
 		CurrentHP = FMath::Clamp((CurrentHP - DMGValue), 0, BaseData.MaxHP);
-		DisplayTextDMG(DMGValue, false);
+		DisplayTextDMG(DMGValue, false, DamageElementType);
 		if (BaseData.TakeDMGAnim)
 		{
 			GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(BaseData.TakeDMGAnim);

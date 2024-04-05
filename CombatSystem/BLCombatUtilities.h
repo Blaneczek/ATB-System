@@ -42,9 +42,9 @@ UENUM(BlueprintType)
 enum class ECrystalColor : uint8
 {
 	NONE	UMETA(DisplayName = "None"),
-	RED		UMETA(DisplayName = "Red"),
-	GREEN	UMETA(DisplayName = "Green"),
-	BLUE	UMETA(DisplayName = "Blue")
+	RED		UMETA(DisplayName = "RED"),
+	GREEN	UMETA(DisplayName = "GREEN"),
+	BLUE	UMETA(DisplayName = "BLUE")
 };
 
 USTRUCT(BlueprintType)

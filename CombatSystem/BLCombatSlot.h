@@ -12,7 +12,7 @@ class UBoxComponent;
 class UStaticMeshComponent;
 class UBLAction;
 class UWidgetComponent;
-class UBLButtonEntryData;
+class UBLActionEntryData;
 
 DECLARE_DELEGATE_OneParam(FOnSelectedSlot, ABLCombatSlot* /*Slot*/);
 DECLARE_DELEGATE_TwoParams(FOnCharActionEnded, ABLCombatSlot* /*Slot*/, bool /*bIsEnemy*/);

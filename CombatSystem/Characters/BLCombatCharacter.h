@@ -15,7 +15,7 @@ class UPaperZDAnimInstance;
 class UPaperFlipbook;
 class ABLRangeProjectile;
 class UBLAction;
-class UBLButtonEntryData;
+class UBLActionEntryData;
 
 DECLARE_DELEGATE(FOnEndCooldown);
 DECLARE_DELEGATE(FOnActionEnded);
@@ -38,7 +38,7 @@ public:
 public:
 	virtual void Tick(float DeltaTime);
 
-	void SetData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions, const TArray<TSoftClassPtr<UBLAction>>& InSpecialActions);
+	void SetData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions, const TArray<TSoftClassPtr<UBLAction>>& InSpecialActions, const FTransform& InSlotTransform);
 	void SetData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions);
 
 	UFUNCTION(BlueprintCallable)
@@ -93,7 +93,12 @@ public:
 	void StartActionCooldown(int32 TurnsCost);
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void DisplayTextDMG(float DMG, bool bHeal);
+	void DisplayTextDMG(float DMG, bool bHeal, ECombatElementType DMGElement);
+
+	/** Moves selected Hero forward */
+	//void StepForward();
+	/** Moves selected Hero back in line */
+	//void BackInLine();
 
 private:
 	float CalculateElementsMultipliers(ECombatElementType DamageElementType, ECombatElementType CharacterElementType, bool& OutIsHeal);
@@ -147,6 +152,8 @@ private:
 
 	UPROPERTY()
 	FVector SlotLocation;
+	UPROPERTY()
+	FTransform SlotTransform;
 
 	UPROPERTY()
 	TArray<TSoftClassPtr<UBLAction>> AttackActions;
@@ -158,7 +165,7 @@ private:
 	TArray<TSoftClassPtr<UBLAction>> SpecialActions;
 
 	UPROPERTY()
-	TMap<TObjectPtr<UBLButtonEntryData>, int32> ActionsTurnsCooldown;
+	TMap<TObjectPtr<UBLActionEntryData>, int32> ActionsTurnsCooldown;
 	UPROPERTY()
-	TObjectPtr<UBLButtonEntryData> ClickedActionEntry;
+	TObjectPtr<UBLActionEntryData> ClickedActionEntry;
 };

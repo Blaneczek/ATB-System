@@ -72,7 +72,7 @@ void ABLCombatSlot::SpawnCharacter(const FCombatCharData& BaseData, const TArray
 		Character = GetWorld()->SpawnActor<ABLCombatCharacter>(BaseData.Class, HelperScene->GetComponentTransform(), SpawnInfo);
 		if (Character)
 		{
-			Character->SetData(BaseData, AttackActions, DefendActions, CrystalActions, SpecialActions);
+			Character->SetData(BaseData, AttackActions, DefendActions, CrystalActions, SpecialActions, HelperScene->GetComponentTransform());
 			Character->OnEndCooldown.BindUObject(this, &ABLCombatSlot::EndCharCooldown);
 			Character->OnActionEnded.BindUObject(this, &ABLCombatSlot::ActionEnded);
 			Character->OnDeath.BindUObject(this, &ABLCombatSlot::HandleCharDeath);
@@ -158,11 +158,13 @@ void ABLCombatSlot::SelectHero(bool NewSelect)
 
 	if (NewSelect)
 	{
+		//GetCharacter()->StepForward();
 		TargetPointer->SetHiddenInGame(false);
 		bClicked = true;
 	}
 	else
 	{
+		//GetCharacter()->BackInLine();
 		TargetPointer->SetHiddenInGame(true);
 		bClicked = false;
 	}

@@ -23,7 +23,7 @@ void UBLActionsWidget::NativeConstruct()
 
 void UBLActionsWidget::SetActionsData(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions, const TArray<TSoftClassPtr<UBLAction>>& InSpecialActions)
 {	
-	AttackAction->AddActions(InAttackActions, BaseData.AttackDMG);
+	AttackAction->AddActions(InAttackActions);
 	DefendAction->AddActions(InDefendActions);
 	CrystalAction->AddActions(InCrystalActions);
 	SpecialAction->AddActions(InSpecialActions);

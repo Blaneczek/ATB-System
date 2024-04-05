@@ -4,8 +4,8 @@
 #include "BLCrystalActionWidget.h"
 #include "Components/TextBlock.h"
 #include "Actions/BLAction.h"
-#include "UI/Entries/BLButtonEntryWidget.h"
-#include "UI/Entries/BLButtonEntryData.h"
+#include "UI/Entries/BLActionEntryWidget.h"
+#include "UI/Entries/BLActionEntryData.h"
 #include "Components/ListView.h"
 #include "Components/Border.h"
 #include "Components/WidgetSwitcher.h"
@@ -13,59 +13,52 @@
 
 void UBLCrystalActionWidget::AddActions(const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions)
 {
-	if (InCrystalActions.Contains(ECrystalColor::BLUE))
+	for (auto& CrystalAction : InCrystalActions)
 	{
-		CrystalsDescriptions.Add(ECrystalColor::BLUE, FCrystalDescriptions());
-		const TArray<TSoftClassPtr<UBLAction>>& BlueActions = InCrystalActions.Find(ECrystalColor::BLUE)->Skills;
-		UBLButtonEntryData* Crystal = NewObject<UBLButtonEntryData>();
+		CrystalsDescriptions.Add(CrystalAction.Key, FCrystalDescriptions());
+		const TArray<TSoftClassPtr<UBLAction>>& Actions = CrystalAction.Value.Skills;
+		UBLActionEntryData* Crystal = NewObject<UBLActionEntryData>();
 		if (Crystal)
 		{
-			Crystal->Init(2, FText::FromString("BLUE"), ECrystalColor::BLUE);
+			Crystal->Init(0, UEnum::GetDisplayValueAsText(CrystalAction.Key), CrystalAction.Key);
 			CrystalsList->AddItem(Crystal);
 		}
-		for (int32 Index = 0; Index < BlueActions.Num(); ++Index)
+		for (int32 Index = 0; Index < Actions.Num(); ++Index)
 		{
-			UBLAction* Action = Cast<UBLAction>(BlueActions[Index].LoadSynchronous()->GetDefaultObject());
-			UBLButtonEntryData* EntryItem = NewObject<UBLButtonEntryData>();
+			UBLAction* Action = Cast<UBLAction>(Actions[Index].LoadSynchronous()->GetDefaultObject());
+			UBLActionEntryData* EntryItem = NewObject<UBLActionEntryData>();
 			if (Action && EntryItem)
 			{
-				EntryItem->Init(Index, Action->Name, ECrystalColor::BLUE, Action->MECost, Action->TargetsNumber);
-				BlueItems.Add(EntryItem);
-				if (CrystalsDescriptions.Contains(ECrystalColor::BLUE))
+				EntryItem->OnNameChange.BindUObject(this, &UBLCrystalActionWidget::ChangeName);
+				EntryItem->Init(Index, Action->Name, CrystalAction.Key, Action->MECost, Action->TargetsNumber);
+				switch (CrystalAction.Key)
 				{
-					CrystalsDescriptions.Find(ECrystalColor::BLUE)->Descriptions.Add(Action->Description);
-				}			
-			}
-		}		
-	}
-
-	if (InCrystalActions.Contains(ECrystalColor::RED))
-	{
-		CrystalsDescriptions.Add(ECrystalColor::RED, FCrystalDescriptions());
-		const TArray<TSoftClassPtr<UBLAction>>& RedActions = InCrystalActions.Find(ECrystalColor::RED)->Skills;
-		UBLButtonEntryData* Crystal = NewObject<UBLButtonEntryData>();
-		if (Crystal)
-		{
-			Crystal->Init(0, FText::FromString("RED"), ECrystalColor::RED);
-			CrystalsList->AddItem(Crystal);
-		}
-		for (int32 Index = 0; Index < RedActions.Num(); ++Index)
-		{
-			UBLAction* Action = Cast<UBLAction>(RedActions[Index].LoadSynchronous()->GetDefaultObject());
-			UBLButtonEntryData* EntryItem = NewObject<UBLButtonEntryData>();
-			if (Action && EntryItem)
-			{
-				EntryItem->Init(Index, Action->Name, ECrystalColor::RED, Action->MECost, Action->TargetsNumber);
-				RedItems.Add(EntryItem);
-				if (CrystalsDescriptions.Contains(ECrystalColor::RED))
+					case ECrystalColor::BLUE: 
+					{
+						BlueItems.Add(EntryItem);
+						break;
+					}
+					case ECrystalColor::RED:
+					{
+						RedItems.Add(EntryItem);
+						break;
+					}
+					// other colors
+					default: break;					
+				}
+				if (CrystalsDescriptions.Contains(CrystalAction.Key))
 				{
-					CrystalsDescriptions.Find(ECrystalColor::RED)->Descriptions.Add(Action->Description);
+					FFormatNamedArguments Args;
+					Args.Add(TEXT("Desc"), Action->Description);
+					Args.Add(TEXT("MECost"), Action->MECost);
+					Args.Add(TEXT("TurnsCost"), Action->TurnsCost);
+					Args.Add(TEXT("TargetsNum"), Action->TargetsNumber);
+					const FText Desc = FText::Format(FText::FromString("{Desc}\r\rME: {MECost}\rTurns cooldown: {TurnsCost}\rTargets: {TargetsNum}"), Args);
+					Descriptions.Add(Desc);
 				}
 			}
 		}
 	}
-	
-	// other colors
 }
 
 void UBLCrystalActionWidget::ResetAction()
@@ -98,14 +91,13 @@ void UBLCrystalActionWidget::OnActionClicked(UObject* Item)
 {
 	ResetColorsAction();
 
-	UBLButtonEntryData* Action = Cast<UBLButtonEntryData>(Item);
+	UBLActionEntryData* Action = Cast<UBLActionEntryData>(Item);
 	if (Action && !Action->bCanBeUsed)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("nie mozna uzyc"));
 		return;
 	}
 
-	UBLButtonEntryWidget* Button = Cast<UBLButtonEntryWidget>(ActionsList->GetEntryWidgetFromItem(Item));
+	UBLActionEntryWidget* Button = Cast<UBLActionEntryWidget>(ActionsList->GetEntryWidgetFromItem(Item));
 	if (Button)
 	{
 		ClickedButton = Button;
@@ -120,8 +112,8 @@ void UBLCrystalActionWidget::OnActionClicked(UObject* Item)
 
 void UBLCrystalActionWidget::OnColorClicked(UObject* Item)
 {
-	UBLButtonEntryWidget* Button = Cast<UBLButtonEntryWidget>(CrystalsList->GetEntryWidgetFromItem(Item));
-	UBLButtonEntryData* ButtonData = Cast<UBLButtonEntryData>(Item);
+	UBLActionEntryWidget* Button = Cast<UBLActionEntryWidget>(CrystalsList->GetEntryWidgetFromItem(Item));
+	UBLActionEntryData* ButtonData = Cast<UBLActionEntryData>(Item);
 	if (!Button || !ButtonData)
 	{
 		return;

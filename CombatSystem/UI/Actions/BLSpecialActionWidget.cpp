@@ -4,22 +4,27 @@
 #include "BLSpecialActionWidget.h"
 #include "Components/TextBlock.h"
 #include "Actions/BLAction.h"
-#include "UI/Entries/BLButtonEntryData.h"
+#include "UI/Entries/BLActionEntryData.h"
 #include "Components/ListView.h"
 #include "Components/Border.h"
-#include "UI/Entries/BLButtonEntryWidget.h"
+#include "UI/Entries/BLActionEntryWidget.h"
 
 void UBLSpecialActionWidget::AddActions(const TArray<TSoftClassPtr<UBLAction>>& InActions)
 {
 	for (int32 Index = 0; Index < InActions.Num(); ++Index)
 	{
 		UBLAction* Action = Cast<UBLAction>(InActions[Index].LoadSynchronous()->GetDefaultObject());
-		UBLButtonEntryData* EntryItem = NewObject<UBLButtonEntryData>();
+		UBLActionEntryData* EntryItem = NewObject<UBLActionEntryData>();
 		if (Action && EntryItem)
 		{
-			EntryItem->Init(Index, Action->Name, ECrystalColor::NONE, Action->MECost, Action->TurnsCost, Action->TargetsNumber);
-			ActionsList->AddItem(EntryItem);
-			Descriptions.Add(Action->Description);
+			EntryItem->Init(Index, Action->Name);
+			FFormatNamedArguments Args;
+			Args.Add(TEXT("Desc"), Action->Description);
+			Args.Add(TEXT("MECost"), Action->MECost);
+			Args.Add(TEXT("TurnsCost"), Action->TurnsCost);
+			Args.Add(TEXT("TargetsNum"), Action->TargetsNumber);
+			const FText Desc = FText::Format(FText::FromString("{Desc}\r\rME: {MECost}\rTurns cooldown: {TurnsCost}\rTargets: {TargetsNum}"), Args);
+			Descriptions.Add(Desc);
 		}
 	}
 }
@@ -28,14 +33,13 @@ void UBLSpecialActionWidget::OnActionClicked(UObject* Item)
 {
 	ResetAction();
 
-	UBLButtonEntryData* Action = Cast<UBLButtonEntryData>(Item);
+	UBLActionEntryData* Action = Cast<UBLActionEntryData>(Item);
 	if (Action && !Action->bCanBeUsed)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("nie mozna uzyc"));
 		return;
 	}
 
-	UBLButtonEntryWidget* Button = Cast<UBLButtonEntryWidget>(ActionsList->GetEntryWidgetFromItem(Item));
+	UBLActionEntryWidget* Button = Cast<UBLActionEntryWidget>(ActionsList->GetEntryWidgetFromItem(Item));
 	if (Button)
 	{
 		ClickedButton = Button; 
@@ -43,10 +47,6 @@ void UBLSpecialActionWidget::OnActionClicked(UObject* Item)
 		if (Descriptions.IsValidIndex(Button->Index))
 		{
 			DescDisplay->SetText(Descriptions[Button->Index]);
-		}
-		if (Item)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("special action jest"));
 		}
 		OnAction.ExecuteIfBound(ECombatActionType::SPECIAL_SKILL, Button->Index, ECrystalColor::NONE, Button->MECost, Button->TargetsNum, Item);
 	}

@@ -23,7 +23,4 @@ protected:
 public:
 	UPROPERTY()
 	int32 TurnsCost { 0 };
-
-	UPROPERTY()
-	bool bCanBeUsed { true };
 };

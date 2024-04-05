@@ -152,25 +152,19 @@ void ABLCombatManager::HandleSlotClicked(AActor* Slot)
 		}
 		case ECombatActionType::CRYSTAL_SKILL:
 		{
-			if (CurrentSlot != CurrentPlayerSlot)
+			ChooseTargetSlot(CurrentSlot);
+			if (CurrentTargetsSlots.Num() >= ActionTargetsNum)
 			{
-				ChooseTargetSlot(CurrentSlot);
-				if (CurrentTargetsSlots.Num() >= ActionTargetsNum)
-				{
-					PlayerCrystalAction();
-				}		
-			}		
+				PlayerCrystalAction();
+			}			
 			return;
 		}
 		case ECombatActionType::SPECIAL_SKILL:
 		{
-			if (CurrentSlot != CurrentPlayerSlot)
+			ChooseTargetSlot(CurrentSlot);
+			if (CurrentTargetsSlots.Num() >= ActionTargetsNum)
 			{
-				ChooseTargetSlot(CurrentSlot);
-				if (CurrentTargetsSlots.Num() >= ActionTargetsNum)
-				{
-					PlayerSpecialAction();
-				}
+				PlayerSpecialAction();
 			}
 			return;
 		}
@@ -235,7 +229,6 @@ void ABLCombatManager::ClearPlayerSlot()
 	{	
 		HideHeroActions(CurrentPlayerSlot);
 		CurrentPlayerSlot->SelectHero(false);
-		HideHeroActions(CurrentPlayerSlot);
 		CurrentPlayerSlot = nullptr;
 	}
 }
@@ -390,6 +383,7 @@ void ABLCombatManager::ResetAction(ABLCombatSlot* NewPlayerSlot)
 	ActionCrystalColor = ECrystalColor::NONE;
 	ActionMECost = 0.f;
 	ActionTargetsNum = 1;
+	ActionEntry = nullptr;
 	ClearPlayerSlot();
 	ClearTargetsSlots();
 	ChoosePlayerSlot(NewPlayerSlot);
