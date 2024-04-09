@@ -12,6 +12,8 @@ class UBLHeroDataAsset;
 class UBLEnemyDataAsset;
 class UBLCombatWidget;
 class UBLActionEntryData;
+class UBLWinCombatWidget;
+class UBLLostCombatWidget;
 
 USTRUCT(BlueprintType)
 struct FActionQueue
@@ -159,8 +161,12 @@ private:
 	/** Checks if there are still active slots in enemy and player teams */
 	bool CheckIfEndGame(bool& OutWonGame);
 
+	void HandleEndGame(bool bWonGame);
+
 	void BindPlayerDelegetes();
 	void BindEnemyDelegetes();
+
+	void ExitCombat();
 
 public:
 	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "BL|Combat")
@@ -186,11 +192,19 @@ private:
 	/** Timer for queue function*/
 	FTimerHandle ActionQueueTimer;
 
-	UPROPERTY(EditInstanceOnly, Category = "BL|Combat")
+	/** Main combat widget */
+	UPROPERTY(EditDefaultsOnly, Category = "BL|Combat")
 	TSubclassOf<UBLCombatWidget> WidgetClass;
 	UPROPERTY()
 	TObjectPtr<UBLCombatWidget> Widget;
 
+	/** Widget class when player won fight */
+	UPROPERTY(EditDefaultsOnly, Category = "BL|Combat")
+	TSubclassOf<UBLWinCombatWidget> WinWidgetClass;
+
+	/** Widget class when player lost fight */
+	UPROPERTY(EditDefaultsOnly, Category = "BL|Combat")
+	TSubclassOf<UBLLostCombatWidget> LostWidgetClass;
 
 	/** Current selected action type */
 	UPROPERTY()

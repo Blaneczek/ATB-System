@@ -10,6 +10,8 @@ class UPaperZDAnimSequence;
 class UPaperFlipbook;
 class ABLCombatCharacter;
 class UBLAction;
+class ULevelSequence;
+class UBLEnemyDataAsset;
 
 UENUM(BlueprintType)
 enum class ECombatActionType : uint8
@@ -139,25 +141,11 @@ struct FCombatCharData
 	TObjectPtr<UPaperZDAnimSequence> HealAnim;
 
 	FCombatCharData()
-	{
-		Name = "";
-		Class = nullptr;
-		MaxHP = 0.f;
-		MaxME = 0.f;
-		AttackDMG = 0.f;
-		BaseDefense = 0.f;
-		BaseDodge = 0.f;
-		Cooldown = 0.f;
-		Strength = 0;
-		Agility = 0;
-		Wisdom = 0;
-		Endurance = 0;
-		Element = ECombatElementType::NONE;
-		Sprite = nullptr;
-		AnimInstanceClass = nullptr;
-		TakeDMGAnim = nullptr;
-		HealAnim = nullptr;
-	}
+		:Name(""), Class(nullptr), MaxHP(0.f), MaxME(0.f), AttackDMG(0.f)
+		, BaseDefense(0.f), BaseDodge(0.f), Cooldown(0.f), Strength(0)
+		, Agility(0), Wisdom(0), Endurance(0), Element(ECombatElementType::NONE)
+		, Sprite(nullptr), AnimInstanceClass(nullptr), TakeDMGAnim(nullptr), HealAnim(nullptr)
+	{}
 
 	FCombatCharData(const FString& InName, TSubclassOf<ABLCombatCharacter> InClass, float InMaxHP
 		, float InMaxME, float InAttackDMG, float InBaseDefense, float InBaseDodge
@@ -167,8 +155,66 @@ struct FCombatCharData
 		, UPaperZDAnimSequence* InTakeDMGAnim, UPaperZDAnimSequence* InHealAnim)
 
 		:Name(InName), Class(InClass), MaxHP(InMaxHP), MaxME(InMaxME), AttackDMG(InAttackDMG)
-		 , BaseDefense(InBaseDefense), BaseDodge(InBaseDodge), Cooldown(InCooldown), Strength(InStrength)
-		 , Agility(InAgility), Wisdom(InWisdom), Endurance(InEndurance), Element(InElement)
-		 , Sprite(InSprite), AnimInstanceClass(InAnimClass), TakeDMGAnim(InTakeDMGAnim), HealAnim(InHealAnim)
+		, BaseDefense(InBaseDefense), BaseDodge(InBaseDodge), Cooldown(InCooldown), Strength(InStrength)
+		, Agility(InAgility), Wisdom(InWisdom), Endurance(InEndurance), Element(InElement)
+		, Sprite(InSprite), AnimInstanceClass(InAnimClass), TakeDMGAnim(InTakeDMGAnim), HealAnim(InHealAnim)
+	{}
+};
+
+
+USTRUCT(BlueprintType)
+struct FPostCombatData
+{
+	GENERATED_BODY()
+
+	/** Level to open after the fight */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName LevelName;
+
+	/** Experience gained after winning fight */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 Experience;
+
+	/** Money gained after winnging fight */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 Money;
+
+	/** Optional level sequence to play after the fight */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<ULevelSequence> LevelSequence;
+
+	/** Optional player's position if he was in Overworld before the fight */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector PlayerPosition;
+
+	/** Optional items gained after winning fight */
+	// TODO: items
+
+	FPostCombatData()
+		: LevelName(""), Experience(0), Money(0), LevelSequence(nullptr), PlayerPosition(FVector(0.f, 0.f, 0.f))
+	{}
+
+	FPostCombatData(const FName& InName, int32 InExperience, int32 InMoney, ULevelSequence* InLevelSequence = nullptr, const FVector& InPlayerPosition = FVector(0.f, 0.f, 0.f))
+		: LevelName(InName), Experience(InExperience), Money(InMoney), LevelSequence(InLevelSequence), PlayerPosition(InPlayerPosition)
+	{}
+};
+
+USTRUCT(BlueprintType)
+struct FCombatData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere)
+	TSoftObjectPtr<UBLEnemyDataAsset> EnemyData;
+
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UMaterialInstance> BackgroundMaterial;
+
+	FCombatData()
+		: EnemyData(nullptr), BackgroundMaterial(nullptr)
+	{}
+
+	FCombatData(TSoftObjectPtr<UBLEnemyDataAsset> InEnemyData, UMaterialInstance* InBackgroundMaterial)
+		: EnemyData(InEnemyData), BackgroundMaterial(InBackgroundMaterial)
 	{}
 };

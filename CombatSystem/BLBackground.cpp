@@ -16,9 +16,9 @@ void ABLBackground::BeginPlay()
 	Super::BeginPlay();
 	
 	UBLGameInstance* GI = Cast<UBLGameInstance>(GetGameInstance());
-	if (GI && GI->BackgroundMaterial)
+	if (GI && GI->CombatData.BackgroundMaterial)
 	{
-		Background->SetMaterial(0, GI->BackgroundMaterial);
+		Background->SetMaterial(0, GI->CombatData.BackgroundMaterial);
 	}
 
 }

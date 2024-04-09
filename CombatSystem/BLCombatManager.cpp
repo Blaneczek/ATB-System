@@ -13,6 +13,8 @@
 #include "UI/BLCombatWidget.h"
 #include "UI/BLActionsWidget.h"
 #include "BladeOfLegend/AREK/GameInstance/BLGameInstance.h"
+#include "UI/BLWinCombatWidget.h"
+#include "UI/BLLostCombatWidget.h"
 
 // Sets default values
 ABLCombatManager::ABLCombatManager()
@@ -83,11 +85,9 @@ void ABLCombatManager::SetPlayerTeam()
 					Widget->AddHero(PlayerTeam[Index]->GetIndex(), CharBaseData);
 					Widget->AddHeroActions(PlayerTeam[Index]->GetIndex(), CharBaseData, Data->Heroes[Index].AttackActions, Data->Heroes[Index].DefendActions, Data->Heroes[Index].CrystalActions, Data->Heroes[Index].SpecialActions);
 				}
-			}					
-		};
+			}
+		}
 	}
-
-	HeroesData.Reset();
 }
 
 void ABLCombatManager::SetEnemyTeam()
@@ -98,7 +98,7 @@ void ABLCombatManager::SetEnemyTeam()
 		return;
 	}
 
-	UBLEnemyDataAsset* Data = GI->EnemyData.LoadSynchronous();
+	UBLEnemyDataAsset* Data = GI->CombatData.EnemyData.LoadSynchronous();
 	if (Data)
 	{
 		for (int32 Index = 0; Index < Data->Enemies.Num(); ++Index)
@@ -113,8 +113,6 @@ void ABLCombatManager::SetEnemyTeam()
 			}
 		}
 	}
-
-	GI->EnemyData.Reset();
 }
 
 void ABLCombatManager::InitializeWidget()
@@ -565,7 +563,8 @@ void ABLCombatManager::CharacterDied(ABLCombatSlot* Slot, bool bIsEnemy)
 	bool bWonGame = false;
 	if (CheckIfEndGame(bWonGame))
 	{
-		//TODO: HandleEndGame(bWonGame);
+		UE_LOG(LogTemp, Warning, TEXT("END"));
+		HandleEndGame(bWonGame);
 	}
 }
 
@@ -623,6 +622,42 @@ bool ABLCombatManager::CheckIfEndGame(bool& OutWonGame)
 	return Checker == 2 ? false : true;
 }
 
+void ABLCombatManager::HandleEndGame(bool bWonGame)
+{
+	UBLGameInstance* GI = Cast<UBLGameInstance>(GetGameInstance());
+	if (!GI)
+	{
+		return;
+	}
+
+	if (bWonGame)
+	{		
+		UBLHeroDataAsset* HeroData = HeroesData.LoadSynchronous();
+		if (!HeroData)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("nie ma hero"));
+		}
+		if (WinWidgetClass)
+		{		
+			//TODO: set hero data
+			UBLWinCombatWidget* WinWidget = CreateWidget<UBLWinCombatWidget>(GetWorld(), WinWidgetClass);
+			WinWidget->SetData(GI->PostCombatData.Experience, GI->PostCombatData.Money);
+			WinWidget->OnEndGame.BindUObject(this, &ABLCombatManager::ExitCombat);
+			WinWidget->AddToViewport();
+		}		
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("lost"));
+		if (LostWidgetClass)
+		{
+			UBLLostCombatWidget* LostWidget = CreateWidget<UBLLostCombatWidget>(GetWorld(), LostWidgetClass);
+			//LostWidget->OnEndGame.BindUObject(this, &ABLCombatManager::ExitCombat);
+			LostWidget->AddToViewport();
+		}
+	}
+}
+
 void ABLCombatManager::BindPlayerDelegetes()
 {
 	for (ABLCombatSlot* Slot : PlayerTeam)
@@ -647,6 +682,15 @@ void ABLCombatManager::BindEnemyDelegetes()
 			Slot->OnCharActionEnded.BindUObject(this, &ABLCombatManager::ActionEnded);
 			Slot->OnCharDeath.BindUObject(this, &ABLCombatManager::CharacterDied);
 		}
+	}
+}
+
+void ABLCombatManager::ExitCombat()
+{
+	UBLGameInstance* GI = Cast<UBLGameInstance>(GetGameInstance());
+	if (GI)
+	{
+		UGameplayStatics::OpenLevel(GetWorld(), GI->PostCombatData.LevelName);
 	}
 }
 
