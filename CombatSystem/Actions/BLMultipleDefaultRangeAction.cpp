@@ -5,12 +5,14 @@
 #include "Characters/BLCombatCharacter.h"
 #include "PaperZDAnimInstance.h"
 #include "PaperZDAnimationComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 void UBLMultipleDefaultRangeAction::ActivateAction(ABLCombatCharacter* Owner)
 {
-	if (Owner && ActionAnim)
+	if (Owner && ActionAnim && ActionSound)
 	{
 		Owner->SetCurrentME(FMath::Clamp((Owner->GetCurrentME() - MECost), 0.f, Owner->GetMaxME()));
+		UGameplayStatics::PlaySound2D(GetWorld(), ActionSound);
 		FZDOnAnimationOverrideEndSignature EndAnimDel;
 		EndAnimDel.BindLambda([this, Owner](bool bResult) { Owner->MultipleDefaultRangeAction(ProjectileClass, ProjectileSprite); });
 		Owner->GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(ActionAnim, "DefaultSlot", 1.f, 0.0f, EndAnimDel);

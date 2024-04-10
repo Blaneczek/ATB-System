@@ -5,6 +5,7 @@
 #include "Characters/BLCombatCharacter.h"
 #include "PaperZDAnimInstance.h"
 #include "PaperZDAnimationComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 void UBLDefaultAction::ActivateAction(ABLCombatCharacter* Owner)
 {
@@ -24,8 +25,9 @@ void UBLDefaultAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharact
 
 	ActionCalculations(Owner, Target);
 
-	if (ActionAnim)
+	if (ActionAnim && ActionSound)
 	{
+		UGameplayStatics::PlaySound2D(GetWorld(), ActionSound);
 		FZDOnAnimationOverrideEndSignature EndAnimDel;
 		EndAnimDel.BindLambda([this](bool bResult) { OnEndExecution.ExecuteIfBound(); });
 		Owner->GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(ActionAnim, "DefaultSlot", 1.f, 0.0f, EndAnimDel);

@@ -58,11 +58,11 @@ public:
 	float GetMaxME() const { return BaseData.MaxME; };
 
 	UFUNCTION(BlueprintCallable)
-	float GetAttackDMG() const { return BaseData.AttackDMG; };
+	float GetAttackDMG() const { return BaseData.BaseAttackDMG; };
 	UFUNCTION(BlueprintCallable)
-	float GetBaseDefense() const { return BaseData.BaseDefense; };
+	int32 GetBaseDefense() const { return BaseData.BaseDefense; };
 	UFUNCTION(BlueprintCallable)
-	void SetDefense(float NewDefense) { CurrentDefense = NewDefense; };
+	void SetDefense(int32 NewDefense) { CurrentDefense = NewDefense; };
 	
 	/**
 	* Activates/deactivates Defend idle animation
@@ -96,7 +96,7 @@ public:
 
 	/** Shows taken dmg/healed value*/
 	UFUNCTION(BlueprintImplementableEvent)
-	void DisplayTextDMG(float DMG, bool bHeal, ECombatElementType DMGElement);
+	void DisplayTextDMG(float DMG, bool bHeal, ECombatElementType DMGElement, bool bDodge = false);
 
 	/** Moves selected Hero forward */
 	//void StepForward();
@@ -136,7 +136,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
 	float CurrentME;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
-	float CurrentDefense;
+	int32 CurrentDefense;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
 	TObjectPtr<UWidgetComponent> DMGDisplay;

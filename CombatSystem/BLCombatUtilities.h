@@ -83,6 +83,8 @@ struct FHeroAttributes
 	int32 Wisdom;
 	UPROPERTY(EditAnywhere)
 	int32 Endurance;
+	UPROPERTY(EditAnywhere)
+	int32 TotalCrystalsLevel;
 
 	FHeroAttributes()
 	{
@@ -90,13 +92,13 @@ struct FHeroAttributes
 		Level = 1;
 		Experience = 0;
 		ExperienceNextLevel = 100;
-		BaseHealth = 100;	
-		BaseMagicEnergy = 100;	
-		Strength = 5;
-		Agility = 5;
-		Wisdom = 5;
-		Endurance = 5;
-
+		BaseHealth = 20;	
+		BaseMagicEnergy = 10;	
+		Strength = 1;
+		Agility = 1;
+		Wisdom = 1;
+		Endurance = 1;
+		TotalCrystalsLevel = 0;
 	}
 };
 
@@ -114,11 +116,11 @@ struct FCombatCharData
 	UPROPERTY(EditAnywhere)
 	float MaxME;
 	UPROPERTY(EditAnywhere)
-	float AttackDMG;
+	float BaseAttackDMG;
 	UPROPERTY(EditAnywhere)
-	float BaseDefense;
+	int32 BaseDefense;
 	UPROPERTY(EditAnywhere)
-	float BaseDodge;
+	int32 BaseDodge;
 	UPROPERTY(EditAnywhere)
 	float Cooldown;
 	UPROPERTY(EditAnywhere)
@@ -130,6 +132,8 @@ struct FCombatCharData
 	UPROPERTY(EditAnywhere)
 	int32 Endurance;
 	UPROPERTY(EditAnywhere)
+	int32 Pierce;
+	UPROPERTY(EditAnywhere)
 	ECombatElementType Element;
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UPaperFlipbook> Sprite;
@@ -138,26 +142,33 @@ struct FCombatCharData
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UPaperZDAnimSequence> TakeDMGAnim;
 	UPROPERTY(EditAnywhere)
+	TObjectPtr<USoundBase> TakeDMGSound;
+	UPROPERTY(EditAnywhere)
 	TObjectPtr<UPaperZDAnimSequence> HealAnim;
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<USoundBase> HealSound;
 
 	FCombatCharData()
-		:Name(""), Class(nullptr), MaxHP(0.f), MaxME(0.f), AttackDMG(0.f)
-		, BaseDefense(0.f), BaseDodge(0.f), Cooldown(0.f), Strength(0)
-		, Agility(0), Wisdom(0), Endurance(0), Element(ECombatElementType::NONE)
-		, Sprite(nullptr), AnimInstanceClass(nullptr), TakeDMGAnim(nullptr), HealAnim(nullptr)
+		:Name(""), Class(nullptr), MaxHP(0.f), MaxME(0.f), BaseAttackDMG(0.f)
+		, BaseDefense(0), BaseDodge(0), Cooldown(0.f), Strength(0)
+		, Agility(0), Wisdom(0), Endurance(0), Pierce(0), Element(ECombatElementType::NONE)
+		, Sprite(nullptr), AnimInstanceClass(nullptr), TakeDMGAnim(nullptr)
+		, TakeDMGSound(nullptr), HealAnim(nullptr), HealSound(nullptr)
 	{}
 
 	FCombatCharData(const FString& InName, TSubclassOf<ABLCombatCharacter> InClass, float InMaxHP
-		, float InMaxME, float InAttackDMG, float InBaseDefense, float InBaseDodge
+		, float InMaxME, float InAttackDMG, int32 InBaseDefense, int32 InBaseDodge
 		, float InCooldown, int32 InStrength, int32 InAgility, int32 InWisdom, int32 InEndurance
-		, ECombatElementType InElement, UPaperFlipbook* InSprite
+		, int32 InPierce, ECombatElementType InElement, UPaperFlipbook* InSprite
 		, TSubclassOf<UPaperZDAnimInstance> InAnimClass
-		, UPaperZDAnimSequence* InTakeDMGAnim, UPaperZDAnimSequence* InHealAnim)
+		, UPaperZDAnimSequence* InTakeDMGAnim, USoundBase* InTakeDMGSound
+		, UPaperZDAnimSequence* InHealAnim, USoundBase* InHealSound)
 
-		:Name(InName), Class(InClass), MaxHP(InMaxHP), MaxME(InMaxME), AttackDMG(InAttackDMG)
+		:Name(InName), Class(InClass), MaxHP(InMaxHP), MaxME(InMaxME), BaseAttackDMG(InAttackDMG)
 		, BaseDefense(InBaseDefense), BaseDodge(InBaseDodge), Cooldown(InCooldown), Strength(InStrength)
-		, Agility(InAgility), Wisdom(InWisdom), Endurance(InEndurance), Element(InElement)
-		, Sprite(InSprite), AnimInstanceClass(InAnimClass), TakeDMGAnim(InTakeDMGAnim), HealAnim(InHealAnim)
+		, Agility(InAgility), Wisdom(InWisdom), Endurance(InEndurance), Pierce(InPierce), Element(InElement)
+		, Sprite(InSprite), AnimInstanceClass(InAnimClass), TakeDMGAnim(InTakeDMGAnim)
+		, TakeDMGSound(InTakeDMGSound), HealAnim(InHealAnim), HealSound(InHealSound)
 	{}
 };
 

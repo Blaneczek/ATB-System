@@ -273,7 +273,7 @@ float ABLCombatCharacter::CalculateElementsMultipliers(ECombatElementType Damage
 	const float Multiplier = ElementsTable[TargetElementIndex][AttackElementIndex];
 
 	// If Attack and Target Element is the same, heals target
-	if (AttackElementIndex == TargetElementIndex)
+	if (AttackElementIndex == TargetElementIndex && AttackElementIndex != ElementsTable.Num() - 1)
 	{
 		OutIsHeal = true;
 		return Multiplier;
@@ -442,20 +442,34 @@ void ABLCombatCharacter::HandleHitByAction(float Damage, ECombatElementType Dama
 		const float HealValue = Damage * DMGMultiplier;
 		CurrentHP = FMath::Clamp((CurrentHP + HealValue), 0, BaseData.MaxHP);
 		DisplayTextDMG(HealValue, true, DamageElementType);
-		if (BaseData.HealAnim)
+		if (BaseData.HealAnim && BaseData.HealSound)
 		{
 			GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(BaseData.HealAnim);
+			UGameplayStatics::PlaySound2D(GetWorld(), BaseData.HealSound);
 		}
 	}
 	else
-	{
-		//TODO: change how Defense works	
-		const float DMGValue = DMGMultiplier > 0 ? (Damage * DMGMultiplier) - CurrentDefense : 0.f;
+	{	
+		const int32 DodgeChange = FMath::RandRange(1, 100);
+		if (DodgeChange <= BaseData.BaseDodge)
+		{
+			DisplayTextDMG(0, false, DamageElementType, true);
+			// TODO: anim and sound
+			return;
+		}
+
+		// if it draws Pierce, Defense is reduced by half
+		const int32 PierceChange = FMath::RandRange(1, 100);
+		float NewDefense = PierceChange <= BaseData.Pierce ? CurrentDefense / 2 : CurrentDefense;
+
+		float DMGValue = DMGMultiplier > 0 ? ((Damage * DMGMultiplier) * (1.f - ((NewDefense / 1000) * 5))) : 0.f; // 10 def decreases dmg by 5%
+		DMGValue = FMath::Clamp(FMath::RoundHalfFromZero(DMGValue), 0, FMath::RoundHalfFromZero(DMGValue));
 		CurrentHP = FMath::Clamp((CurrentHP - DMGValue), 0, BaseData.MaxHP);
 		DisplayTextDMG(DMGValue, false, DamageElementType);
-		if (BaseData.TakeDMGAnim)
+		if (BaseData.TakeDMGAnim && BaseData.TakeDMGSound)
 		{
 			GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(BaseData.TakeDMGAnim);
+			UGameplayStatics::PlaySound2D(GetWorld(), BaseData.TakeDMGSound);
 		}
 	}
 

@@ -33,18 +33,27 @@ protected:
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
 	FText Name;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
 	FText Description;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
-	TObjectPtr<UPaperZDAnimSequence> ActionAnim;
+	TObjectPtr<UPaperZDAnimSequence> ActionAnim{ nullptr };
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
-	ECombatElementType Element { ECombatElementType::NONE };
+	ECombatElementType Element{ ECombatElementType::NONE };
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
-	float MECost { 0.f };
+	float MECost{ 0.f };
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
-	int32 TurnsCost { 0 };
+	int32 TurnsCost{ 0 };
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
-	int32 TargetsNumber { 1 };
+	int32 TargetsNumber{ 1 };
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
+	TObjectPtr<USoundBase> ActionSound{ nullptr };
 
 	FOnEndExecution OnEndExecution;
 };

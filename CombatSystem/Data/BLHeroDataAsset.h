@@ -39,7 +39,13 @@ struct FHeroAssetInfo
 	TObjectPtr<UPaperZDAnimSequence> TakeDMGAnim;
 
 	UPROPERTY(EditAnywhere)
+	TObjectPtr<USoundBase> TakeDMGSound;
+
+	UPROPERTY(EditAnywhere)
 	TObjectPtr<UPaperZDAnimSequence> HealAnim;
+
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<USoundBase> HealSound;
 
 	UPROPERTY(EditAnywhere)
 	TArray<TSoftClassPtr<UBLAction>> AttackActions;
