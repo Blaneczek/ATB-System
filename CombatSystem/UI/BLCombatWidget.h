@@ -16,8 +16,9 @@ class UBLAction;
 class UTextBlock;
 class UBLButtonEntryData;
 
-DECLARE_DELEGATE_SixParams(FOnActionTypeChosen, ECombatActionType /*ActionType*/, int32 /*ActionIndex*/, ECrystalColor /*CrystalColor*/, float /*ActionMECost*/, int32 /*TargetsNum*/, UObject* /*ActionEntry*/);
+DECLARE_DELEGATE_OneParam(FOnActionTypeChosen, const FCombatActionData& /*ActionData*/);
 DECLARE_DELEGATE_OneParam(FOnHeroSelected, int32 /*HeroIndex*/);
+DECLARE_DELEGATE(FOnResetCurrentActionType);
 
 /**
  * 
@@ -67,13 +68,14 @@ public:
 	void ActivateNotEnoughME();
 
 private:
-	void ChosenAction(ECombatActionType Action, int32 ActionIndex, ECrystalColor CrystalColor = ECrystalColor::NONE, float ActionMECost = 0.f, int32 TargetsNum = 1, UObject* ActionEntry = nullptr);
+	void ChosenAction(const FCombatActionData& ActionData);
 
 	void HeroClicked(int32 HeroIndex);
 
 public:
 	FOnActionTypeChosen OnActionChosen;
 	FOnHeroSelected OnHeroSelected;
+	FOnResetCurrentActionType OnResetCurrentActionType;
 
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))

@@ -78,7 +78,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FString GetName() const { return BaseData.Name; };
 
-	void CreateAction(const FVector& OwnerSlotLocation, ECombatActionType ActionType, int32 ActionIndex, const TArray<ABLCombatCharacter*>& Targets, ECrystalColor CrystalColor = ECrystalColor::NONE, UObject* InActionEntryData = nullptr);
+	void CreateAction(const FVector& OwnerSlotLocation, const TArray<ABLCombatCharacter*>& Targets, const FCombatActionData& ActionData);
 
 	/** Action is executing in place, no targets */
 	void DefaultAction();
@@ -90,6 +90,9 @@ public:
 	void MultipleDefaultMeleeAction();
 	/** Character creates multiple projectiles that flie to the target and execute action */
 	void MultipleDefaultRangeAction(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite);
+	/** Character runs up to the column and executes action for every target in column */
+	void ColumnMeleeAction();
+
 
 	/** Special actions turns cooldown */
 	void StartActionCooldown(int32 TurnsCost);

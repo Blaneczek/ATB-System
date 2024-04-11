@@ -19,7 +19,7 @@ class BLADEOFLEGEND_API UBLActionEntryData : public UObject
 	
 public:
 	/** Sets the data needed for UI */
-	void Init(int32 InIndex, const FText& InName, ECrystalColor InCrystalColor = ECrystalColor::NONE, float InMECost = 0.f, int32 InTurnsCost = 0, int32 InTargetsNum = 1);
+	void Init(int32 InIndex, const FText& InName, ECombatActionFlow InActionFlow, ECrystalColor InCrystalColor = ECrystalColor::NONE, float InMECost = 0.f, int32 InTurnsCost = 0, int32 InTargetsNum = 1);
 
 	void ChangeName(const FText& NewName);
 
@@ -36,6 +36,9 @@ public:
 	int32 TurnsCost;
 	UPROPERTY()
 	int32 TargetsNum;
+	UPROPERTY()
+	ECombatActionFlow ActionFlow;
+
 
 	UPROPERTY()
 	bool bCanBeUsed{ true };

@@ -3,7 +3,7 @@
 
 #include "BLActionEntryData.h"
 
-void UBLActionEntryData::Init(int32 InIndex, const FText& InName, ECrystalColor InCrystalColor, float InMECost, int32 InTurnsCost, int32 InTargetsNum)
+void UBLActionEntryData::Init(int32 InIndex, const FText& InName, ECombatActionFlow InActionFlow, ECrystalColor InCrystalColor, float InMECost, int32 InTurnsCost, int32 InTargetsNum)
 {
 	Index = InIndex;
 	Name = InName;
@@ -11,6 +11,7 @@ void UBLActionEntryData::Init(int32 InIndex, const FText& InName, ECrystalColor 
 	MECost = InMECost;
 	TurnsCost = InTurnsCost;
 	TargetsNum = InTargetsNum;
+	ActionFlow = InActionFlow;
 
 	TempName = InName;
 }

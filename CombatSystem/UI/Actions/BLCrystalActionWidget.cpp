@@ -20,7 +20,7 @@ void UBLCrystalActionWidget::AddActions(const TMap<ECrystalColor, FCrystalSkills
 		UBLActionEntryData* Crystal = NewObject<UBLActionEntryData>();
 		if (Crystal)
 		{
-			Crystal->Init(0, UEnum::GetDisplayValueAsText(CrystalAction.Key), CrystalAction.Key);
+			Crystal->Init(0, UEnum::GetDisplayValueAsText(CrystalAction.Key), ECombatActionFlow::NONE, CrystalAction.Key);
 			CrystalsList->AddItem(Crystal);
 		}
 		for (int32 Index = 0; Index < Actions.Num(); ++Index)
@@ -29,7 +29,7 @@ void UBLCrystalActionWidget::AddActions(const TMap<ECrystalColor, FCrystalSkills
 			UBLActionEntryData* EntryItem = NewObject<UBLActionEntryData>();
 			if (Action && EntryItem)
 			{				
-				EntryItem->Init(Index, Action->Name, CrystalAction.Key, Action->MECost, Action->TurnsCost, Action->TargetsNumber);
+				EntryItem->Init(Index, Action->Name, Action->Flow, CrystalAction.Key, Action->MECost, Action->TurnsCost, Action->TargetsNumber);
 				EntryItem->OnNameChange.BindUObject(this, &UBLCrystalActionWidget::ChangeName);
 				switch (CrystalAction.Key)
 				{
@@ -105,9 +105,10 @@ void UBLCrystalActionWidget::OnActionClicked(UObject* Item)
 		if (CrystalsDescriptions.Contains(ClickedColor) && CrystalsDescriptions.Find(ClickedColor)->Descriptions.IsValidIndex(Button->Index))
 		{
 			DescDisplay->SetText(CrystalsDescriptions.Find(ClickedColor)->Descriptions[Button->Index]);
-		}
-		OnAction.ExecuteIfBound(ECombatActionType::CRYSTAL_SKILL, Button->Index, ClickedColor, Button->MECost, Button->TargetsNum, Item);
+		}	
 	}
+
+	OnAction.ExecuteIfBound(FCombatActionData(ECombatActionType::CRYSTAL_SKILL, Action->ActionFlow, Action->Index, ClickedColor, Action->MECost, Action->TargetsNum, Action));
 }
 
 void UBLCrystalActionWidget::OnColorClicked(UObject* Item)

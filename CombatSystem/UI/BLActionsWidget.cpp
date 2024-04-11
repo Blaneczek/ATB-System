@@ -111,6 +111,7 @@ void UBLActionsWidget::ResetAction()
 {
 	if (ClickedAction)
 	{
+		OnResetActionType.ExecuteIfBound();
 		ClickedAction->ResetAction();
 		ClickedAction = nullptr;
 	}
@@ -123,11 +124,7 @@ void UBLActionsWidget::ResetWidget()
 	ActionTypeSwitcher->SetActiveWidget(NoneAction);
 }
 
-void UBLActionsWidget::ChosenAction(ECombatActionType Action, int32 ActionIndex, ECrystalColor CrystalColor, float ActionMECost, int32 TargetsNum, UObject* ActionEntry)
+void UBLActionsWidget::ChosenAction(const FCombatActionData& ActionData)
 {
-	if (ActionEntry)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("actions jest"));
-	}
-	OnChosenAction.ExecuteIfBound(Action, ActionIndex, CrystalColor, ActionMECost, TargetsNum, ActionEntry);
+	OnChosenAction.ExecuteIfBound(ActionData);
 }

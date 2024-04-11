@@ -17,7 +17,7 @@ void UBLSpecialActionWidget::AddActions(const TArray<TSoftClassPtr<UBLAction>>& 
 		UBLActionEntryData* EntryItem = NewObject<UBLActionEntryData>();
 		if (Action && EntryItem)
 		{
-			EntryItem->Init(Index, Action->Name, ECrystalColor::NONE, Action->MECost, Action->TurnsCost, Action->TargetsNumber);
+			EntryItem->Init(Index, Action->Name, Action->Flow, ECrystalColor::NONE, Action->MECost, Action->TurnsCost, Action->TargetsNumber);
 			EntryItem->OnNameChange.BindUObject(this, &UBLSpecialActionWidget::ChangeName);
 			ActionsList->AddItem(EntryItem);
 			FFormatNamedArguments Args;
@@ -50,6 +50,6 @@ void UBLSpecialActionWidget::OnActionClicked(UObject* Item)
 		{
 			DescDisplay->SetText(Descriptions[Button->Index]);
 		}
-		OnAction.ExecuteIfBound(ECombatActionType::SPECIAL_SKILL, Button->Index, ECrystalColor::NONE, Button->MECost, Button->TargetsNum, Item);
+		OnAction.ExecuteIfBound(FCombatActionData(ECombatActionType::SPECIAL_SKILL, Action->ActionFlow, Button->Index, ECrystalColor::NONE, Button->MECost, Button->TargetsNum, Action));
 	}
 }

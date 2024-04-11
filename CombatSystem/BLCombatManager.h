@@ -25,32 +25,17 @@ struct FActionQueue
 	UPROPERTY()
 	TArray<TObjectPtr<ABLCombatSlot>> TargetsSlots;
 	UPROPERTY()
-	ECombatActionType ActionType;
-	UPROPERTY()
-	int32 ActionIndex;
+	FCombatActionData ActionData;
 	UPROPERTY()
 	bool bEnemyAction;
-	UPROPERTY()
-	ECrystalColor CrystalColor;
-	UPROPERTY()
-	TObjectPtr<UObject> ActionEntry;
 
 	FActionQueue()
-	{
-		OwnerSlot = nullptr;
-		ActionType = ECombatActionType::NONE;	
-		ActionIndex = 0;
-		bEnemyAction = false;
-		CrystalColor = ECrystalColor::NONE;
-		ActionEntry = nullptr;
-	}
+		: OwnerSlot(nullptr), ActionData(FCombatActionData()), bEnemyAction(false)
+	{}
 
-	FActionQueue(ABLCombatSlot* InOwnerSlot, TArray<ABLCombatSlot*> InTargetsSlots, ECombatActionType InActionType
-				, int32 InIndex, bool InEnemyAction, ECrystalColor InCrystalColor = ECrystalColor::NONE, UObject* InActionEntry = nullptr)
+	FActionQueue(ABLCombatSlot* InOwnerSlot, const TArray<ABLCombatSlot*>& InTargetsSlots, const FCombatActionData& InActionData, bool InEnemyAction)
 
-		:OwnerSlot(InOwnerSlot), TargetsSlots(InTargetsSlots), ActionType(InActionType) 
-		, ActionIndex(InIndex), bEnemyAction(InEnemyAction), CrystalColor(InCrystalColor)
-		, ActionEntry(InActionEntry)
+		:OwnerSlot(InOwnerSlot), TargetsSlots(InTargetsSlots), ActionData(InActionData), bEnemyAction(InEnemyAction)
 	{}
 };
 
@@ -108,25 +93,25 @@ private:
 	/** Highlights and sets as current random available player slot */
 	void ChooseRandomPlayerSlot();
 
-	void AddActionToQueue(ABLCombatSlot* OwnerSlot, const TArray<ABLCombatSlot*>& TargetsSlots, ECombatActionType Action, int32 InActionIndex, bool bEnemyAction, ECrystalColor CrystalColor = ECrystalColor::NONE, UObject* InActionEntry = nullptr);
+	void AddActionToQueue(ABLCombatSlot* OwnerSlot, const TArray<ABLCombatSlot*>& TargetsSlots, const FCombatActionData& ActionData, bool bEnemyAction);
 
 	/** Executes if it can the first action from the queue, checks the ability at constant intervals */
 	void HandleActionsQueue();
 
 	/** Pauses all cooldowns and calls the appropriate OwnerSlot function */
-	void DoAction(ABLCombatSlot* OwnerSlot, TArray<ABLCombatSlot*> TargetsSlots, ECombatActionType Action, int32 InActionIndex, bool bEnemyAction, ECrystalColor CrystalColor = ECrystalColor::NONE, UObject* InActionEntry = nullptr);
+	void DoAction(ABLCombatSlot* OwnerSlot, const TArray<ABLCombatSlot*>& TargetsSlots, const FCombatActionData& ActionData, bool bEnemyAction);
 
 	/** Finds new active target slot */
 	ABLCombatSlot* FindNewTargetSlot(bool bEnemyAction);
 
 	/** Chooses target for enemy action */
-	void HandleEnemyAction(ABLCombatSlot* EnemySlot, ECombatActionType Action, int32 InActionIndex);
+	void HandleEnemyAction(ABLCombatSlot* EnemySlot, const FCombatActionData& ActionData);
 
 	/** Called after the completion of the currently executed action */
 	void ActionEnded(ABLCombatSlot* OwnerSlot, bool bWasEnemy);
 
 	/** Sets current ActionType and chosen action */
-	void ChooseAction(ECombatActionType InActionType, int32 InActionIndex, ECrystalColor CrystalColor = ECrystalColor::NONE, float MECost = 0.f, int32 TargetsNum = 1, UObject* InActionEntry = nullptr);
+	void ChooseAction(const FCombatActionData& ActionData);
 
 	/** Resets action and sets new CurrentPlayerSlot */
 	void ResetAction(ABLCombatSlot* NewPlayerSlot);
@@ -206,29 +191,13 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "BL|Combat")
 	TSubclassOf<UBLLostCombatWidget> LostWidgetClass;
 
-	/** Current selected action type */
-	UPROPERTY()
-	ECombatActionType ActionType;
-
-	/** Current selected action index */
-	UPROPERTY()
-	int32 ActionIndex;
-
-	/** Current selected crystal if Action is Crystal Skill */
-	UPROPERTY()
-	ECrystalColor ActionCrystalColor;
-
-	/** Magic energy cost of the clicked action */
-	UPROPERTY()
-	float ActionMECost;
-
 	/** If an action is currently being executed */
 	UPROPERTY()
 	bool bAction;
 
 	UPROPERTY()
-	int32 ActionTargetsNum;
+	FCombatActionData CurrentActionData;
 
 	UPROPERTY()
-	TObjectPtr<UObject> ActionEntry;
+	ECombatActionType CurrentActionType;
 };

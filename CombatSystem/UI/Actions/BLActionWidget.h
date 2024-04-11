@@ -13,7 +13,7 @@ class UListView;
 class UBLActionEntryWidget;
 class UBLActionEntryData;
 
-DECLARE_DELEGATE_SixParams(FOnAction, ECombatActionType /*ActionType*/, int32 /*ActionIndex*/, ECrystalColor /*CrystalColor*/, float /*ActionMECost*/, int32 /*TargetsNum*/, UObject* /*ActionEntry*/);
+DECLARE_DELEGATE_OneParam(FOnAction, const FCombatActionData& /*ActionData*/);
 
 /**
  * 

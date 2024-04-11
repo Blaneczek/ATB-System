@@ -17,7 +17,7 @@ void UBLDefendActionWidget::AddActions(const TArray<TSoftClassPtr<UBLAction>>& I
 		UBLActionEntryData* EntryItem = NewObject<UBLActionEntryData>();
 		if (Action && EntryItem)
 		{
-			EntryItem->Init(Index, Action->Name);
+			EntryItem->Init(Index, Action->Name, Action->Flow);
 			ActionsList->AddItem(EntryItem);
 			Descriptions.Add(Action->Description);
 		}
@@ -37,7 +37,7 @@ void UBLDefendActionWidget::OnActionClicked(UObject* Item)
 		{
 			DescDisplay->SetText(Descriptions[Button->Index]);
 		}
-		OnAction.ExecuteIfBound(ECombatActionType::DEFEND, Button->Index, ECrystalColor::NONE, 0.f, 1, nullptr);
+		OnAction.ExecuteIfBound(FCombatActionData(ECombatActionType::DEFEND, ECombatActionFlow::DEFAULT, Button->Index));
 	}
 }
 

@@ -125,7 +125,7 @@ void ABLCombatSlot::UnPauseCharCooldown()
 	}
 }
 
-void ABLCombatSlot::DoAction(ECombatActionType ActionType, int32 ActionIndex, const TArray<ABLCombatSlot*>& TargetsSlots, ECrystalColor CrystalColor, UObject* ActionEntry)
+void ABLCombatSlot::DoAction(const TArray<ABLCombatSlot*>& TargetsSlots, const FCombatActionData& ActionData)
 {
 	TArray<ABLCombatCharacter*> Targets;
 	for (auto* Slot : TargetsSlots)
@@ -133,7 +133,7 @@ void ABLCombatSlot::DoAction(ECombatActionType ActionType, int32 ActionIndex, co
 		Targets.Add(Slot->GetCharacter());
 	}
 
-	Character->CreateAction(HelperScene->GetComponentLocation(), ActionType, ActionIndex, Targets, CrystalColor, ActionEntry);	
+	Character->CreateAction(HelperScene->GetComponentLocation(), Targets, ActionData);
 }
 
 void ABLCombatSlot::SelectTarget(bool NewSelect)
@@ -192,7 +192,7 @@ void ABLCombatSlot::EndCharCooldown()
 	if (bIsEnemy)
 	{
 		// TODO: something more advanced
-		OnEnemyAction.ExecuteIfBound(this, ECombatActionType::ATTACK, 0);
+		OnEnemyAction.ExecuteIfBound(this, FCombatActionData(ECombatActionType::ATTACK, ECombatActionFlow::DEFAULT_MELEE, 0));
 	}
 	else
 	{

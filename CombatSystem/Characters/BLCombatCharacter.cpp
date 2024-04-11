@@ -67,15 +67,15 @@ void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData, const TArray
 }
 
 
-void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, ECombatActionType ActionType, int32 ActionIndex, const TArray<ABLCombatCharacter*>& Targets, ECrystalColor CrystalColor, UObject* InClickedActionEntry)
+void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, const TArray<ABLCombatCharacter*>& Targets, const FCombatActionData& ActionData)
 {
-	ClickedActionEntry = Cast<UBLActionEntryData>(InClickedActionEntry);
+	ClickedActionEntry = Cast<UBLActionEntryData>(ActionData.ActionEntry);
 
-	switch (ActionType)
+	switch (ActionData.Type)
 	{
 		case ECombatActionType::ATTACK:
 		{
-			if (!AttackActions.IsValidIndex(ActionIndex))
+			if (!AttackActions.IsValidIndex(ActionData.Index))
 			{							
 				EndAction(true);
 				return;
@@ -84,22 +84,23 @@ void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, ECombatA
 			SlotLocation = OwnerSlotLocation;
 			TargetCharacters = Targets;
 
-			CurrentAction = NewObject<UBLAction>(this, AttackActions[ActionIndex].LoadSynchronous());
+			CurrentAction = NewObject<UBLAction>(this, AttackActions[ActionData.Index].LoadSynchronous());
 			if (CurrentAction)
 			{
+				UE_LOG(LogTemp, Warning, TEXT("3. %f"), CurrentAction->MECost);
 				CurrentAction->OnCreateAction(this);
 			}
 			return;
 		}
 		case ECombatActionType::DEFEND:
 		{
-			if (!DefendActions.IsValidIndex(ActionIndex))
+			if (!DefendActions.IsValidIndex(ActionData.Index))
 			{
 				EndAction(true);
 				return;
 			}
 
-			CurrentAction = NewObject<UBLAction>(this, DefendActions[ActionIndex].LoadSynchronous());
+			CurrentAction = NewObject<UBLAction>(this, DefendActions[ActionData.Index].LoadSynchronous());
 			if (CurrentAction)
 			{
 				CurrentAction->OnCreateAction(this);
@@ -108,7 +109,7 @@ void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, ECombatA
 		}
 		case ECombatActionType::CRYSTAL_SKILL:
 		{
-			if (CrystalColor != ECrystalColor::NONE && !CrystalActions.Find(CrystalColor)->Skills.IsValidIndex(ActionIndex))
+			if (ActionData.CrystalColor != ECrystalColor::NONE && !CrystalActions.Find(ActionData.CrystalColor)->Skills.IsValidIndex(ActionData.Index))
 			{
 				EndAction(true);
 				return;
@@ -117,7 +118,7 @@ void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, ECombatA
 			SlotLocation = OwnerSlotLocation;
 			TargetCharacters = Targets;
 
-			CurrentAction = NewObject<UBLAction>(this, CrystalActions.Find(CrystalColor)->Skills[ActionIndex].LoadSynchronous());
+			CurrentAction = NewObject<UBLAction>(this, CrystalActions.Find(ActionData.CrystalColor)->Skills[ActionData.Index].LoadSynchronous());
 			if (CurrentAction)
 			{
 				CurrentAction->OnCreateAction(this);
@@ -126,7 +127,7 @@ void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, ECombatA
 		}
 		case ECombatActionType::SPECIAL_SKILL:
 		{
-			if (!SpecialActions.IsValidIndex(ActionIndex))
+			if (!SpecialActions.IsValidIndex(ActionData.Index))
 			{
 				EndAction(true);
 				return;
@@ -135,7 +136,7 @@ void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, ECombatA
 			SlotLocation = OwnerSlotLocation;
 			TargetCharacters = Targets;
 
-			CurrentAction = NewObject<UBLAction>(this, SpecialActions[ActionIndex].LoadSynchronous());
+			CurrentAction = NewObject<UBLAction>(this, SpecialActions[ActionData.Index].LoadSynchronous());
 			if (CurrentAction)
 			{
 				CurrentAction->OnCreateAction(this);
@@ -217,6 +218,18 @@ void ABLCombatCharacter::MultipleDefaultRangeAction(TSubclassOf<ABLRangeProjecti
 		SpawnDel.BindUObject(this, &ABLCombatCharacter::SpawnProjectile, ProjectileClass, ProjectileSprite);
 		GetWorld()->GetTimerManager().SetTimer(ProjectileSpawnTimer, SpawnDel, 0.3f, true);
 	}		
+}
+
+void ABLCombatCharacter::ColumnMeleeAction()
+{
+	if (!IsValid(AIC) || !TargetCharacters.IsValidIndex(0) || !TargetCharacters[0])
+	{
+		return;
+	}
+
+	AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLCombatCharacter::ReachedActionDestination);
+	UE_LOG(LogTemp, Warning, TEXT("STARTED"));
+	AIC->MoveToActor(TargetCharacters[0], 30.f);
 }
 
 void ABLCombatCharacter::StartActionCooldown(int32 TurnsCost)
@@ -343,7 +356,10 @@ void ABLCombatCharacter::ReachedActionDestination(FAIRequestID RequestID, const 
 	AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLCombatCharacter::ReachedSlotLocation);
 
 	CurrentAction->OnEndExecution.BindLambda([this](){ AIC->MoveToLocation(SlotLocation, 5.f); });
-	CurrentAction->ExecuteAction(this, TargetCharacters[0]);
+	for (ABLCombatCharacter* Target : TargetCharacters)
+	{
+		CurrentAction->ExecuteAction(this, Target);
+	}	
 }
 
 void ABLCombatCharacter::ReachedActionDestination(FAIRequestID RequestID, const FPathFollowingResult& Result, int32 TargetIndex)

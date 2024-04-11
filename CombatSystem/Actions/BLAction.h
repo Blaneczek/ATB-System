@@ -41,6 +41,9 @@ public:
 	TObjectPtr<UPaperZDAnimSequence> ActionAnim{ nullptr };
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
+	ECombatActionFlow Flow{ ECombatActionFlow::NONE };
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
 	ECombatElementType Element{ ECombatElementType::NONE };
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")

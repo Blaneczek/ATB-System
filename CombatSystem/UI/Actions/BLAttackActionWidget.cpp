@@ -17,7 +17,7 @@ void UBLAttackActionWidget::AddActions(const TArray<TSoftClassPtr<UBLAction>>& I
 		UBLActionEntryData* EntryItem = NewObject<UBLActionEntryData>();
 		if (Action && EntryItem)
 		{
-			EntryItem->Init(Index, Action->Name);
+			EntryItem->Init(Index, Action->Name, Action->Flow);
 			ActionsList->AddItem(EntryItem);
 			FFormatNamedArguments Args;
 			Args.Add(TEXT("Desc"), Action->Description);
@@ -43,7 +43,7 @@ void UBLAttackActionWidget::OnActionClicked(UObject* Item)
 		{
 			DescDisplay->SetText(Descriptions[Button->Index]);
 		}
-		OnAction.ExecuteIfBound(ECombatActionType::ATTACK, Button->Index, ECrystalColor::NONE, 0.f, 1, nullptr);
+		OnAction.ExecuteIfBound(FCombatActionData(ECombatActionType::ATTACK, ECombatActionFlow::DEFAULT_MELEE, Button->Index));
 	}
 }
 

@@ -18,7 +18,7 @@ DECLARE_DELEGATE_OneParam(FOnSelectedSlot, ABLCombatSlot* /*Slot*/);
 DECLARE_DELEGATE_TwoParams(FOnCharActionEnded, ABLCombatSlot* /*Slot*/, bool /*bIsEnemy*/);
 DECLARE_DELEGATE_OneParam(FOnCharHealthUpdate, ABLCombatSlot* /*Slot*/);
 DECLARE_DELEGATE_TwoParams(FOnCharDeath, ABLCombatSlot* /*Slot*/, bool /*bIsEnemy*/);
-DECLARE_DELEGATE_ThreeParams(FOnEnemyAction, ABLCombatSlot* /*Slot*/, ECombatActionType /*ActionType*/, int32 /*ActionIndex*/);
+DECLARE_DELEGATE_TwoParams(FOnEnemyAction, ABLCombatSlot* /*Slot*/, const FCombatActionData& /*ActionData*/);
 
 UCLASS()
 class BLADEOFLEGEND_API ABLCombatSlot : public AActor
@@ -48,7 +48,7 @@ public:
 	void PauseCharCooldown();
 	void UnPauseCharCooldown();
 
-	void DoAction(ECombatActionType ActionType, int32 ActionIndex, const TArray<ABLCombatSlot*>& TargetsSlots, ECrystalColor CrystalColor = ECrystalColor::NONE, UObject* ActionEntry = nullptr);
+	void DoAction(const TArray<ABLCombatSlot*>& TargetsSlots, const FCombatActionData& ActionData);
 
 	void SelectTarget(bool NewSelect);
 	void SelectHero(bool NewSelect);

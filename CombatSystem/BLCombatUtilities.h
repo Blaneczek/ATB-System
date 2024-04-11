@@ -26,6 +26,18 @@ enum class ECombatActionType : uint8
 };
 
 UENUM(BlueprintType)
+enum class ECombatActionFlow : uint8
+{
+	NONE			UMETA(DisplayName = "None"),
+	DEFAULT			UMETA(DisplayName = "Default"),
+	DEFAULT_MELEE	UMETA(DisplayName = "Default melee"),
+	DEFAULT_RANGE	UMETA(DisplayName = "Default range"),
+	MULTIPLE_MELEE	UMETA(DisplayName = "Multiple melee"),
+	MULTIPLE_RANGE	UMETA(DisplayName = "Multiple range"),
+	COLUMN_MELEE	UMETA(DisplayName = "Column melee")
+};
+
+UENUM(BlueprintType)
 enum class ECombatElementType : uint8
 {
 	FIRE	UMETA(DisplayName = "Fire"),
@@ -172,6 +184,44 @@ struct FCombatCharData
 	{}
 };
 
+USTRUCT(BlueprintType)
+struct FCombatActionData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere)
+	ECombatActionType Type;
+
+	UPROPERTY(EditAnywhere)
+	ECombatActionFlow Flow;
+
+	UPROPERTY(EditAnywhere)
+	int32 Index;
+
+	UPROPERTY(EditAnywhere)
+	ECrystalColor CrystalColor;
+
+	UPROPERTY(EditAnywhere)
+	float MECost;
+
+	UPROPERTY(EditAnywhere)
+	int32 TargetsNum;
+
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UObject> ActionEntry;
+
+	FCombatActionData()
+		: Type(ECombatActionType::NONE), Flow(ECombatActionFlow::NONE), Index(0), CrystalColor(ECrystalColor::NONE)
+		, MECost(0.f), TargetsNum(1), ActionEntry(nullptr)
+	{}
+
+	FCombatActionData(ECombatActionType InType, ECombatActionFlow InFlow, int32 InIndex
+		, ECrystalColor InCrystalColor = ECrystalColor::NONE, float InMECost = 0.f, int32 InTargetsNum = 1.f, UObject* InActionEntry = nullptr)
+
+		: Type(InType), Flow(InFlow), Index(InIndex), CrystalColor(InCrystalColor)
+		, MECost(InMECost), TargetsNum(InTargetsNum), ActionEntry(InActionEntry)
+	{}
+};
 
 USTRUCT(BlueprintType)
 struct FPostCombatData
