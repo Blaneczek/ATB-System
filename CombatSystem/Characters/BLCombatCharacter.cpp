@@ -50,12 +50,12 @@ void ABLCombatCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions, const TArray<TSoftClassPtr<UBLAction>>& InSpecialActions, const FTransform& InSlotTransform)
+void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData, const FCombatActions& InCombatActions, const FTransform& InSlotTransform)
 {
-	SetData(InBaseData, InAttackActions, InDefendActions);
+	SetData(InBaseData, InCombatActions.AttackActions, InCombatActions.DefendActions);
 
-	CrystalActions = InCrystalActions;
-	SpecialActions = InSpecialActions;
+	CrystalActions = InCombatActions.CrystalActions;
+	SpecialActions = InCombatActions.SpecialActions;
 	SlotTransform = InSlotTransform;
 }
 
@@ -88,14 +88,12 @@ void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, const TA
 				EndAction(true);
 				return;
 			}
-
 			SlotLocation = OwnerSlotLocation;
 			TargetCharacters = Targets;
 
 			CurrentAction = NewObject<UBLAction>(this, AttackActions[ActionData.Index].LoadSynchronous());
 			if (CurrentAction)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("3. %f"), CurrentAction->MECost);
 				CurrentAction->OnCreateAction(this);
 			}
 			return;
@@ -166,7 +164,7 @@ void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, const TA
 
 void ABLCombatCharacter::DefaultAction()
 {
-	if (CurrentAction)
+	if (IsValid(CurrentAction))
 	{
 		CurrentAction->OnEndExecution.BindLambda([this](){ EndAction(true); });
 		CurrentAction->ExecuteAction(this, nullptr);		
@@ -249,7 +247,8 @@ void ABLCombatCharacter::StartActionCooldown(int32 TurnsCost)
 	}
 }
 
-/* Do it maybe 
+//Do it maybe 
+/* 
 void ABLCombatCharacter::StepForward()
 {
 	if (AIC)
@@ -317,6 +316,8 @@ void ABLCombatCharacter::EndCooldown()
 	CurrentDefense = BaseData.BaseDefense;
 	bDefendIdle = false;
 
+	TargetCharacters.Empty();
+
 	TArray<UBLActionEntryData*> EntriesToDelete;
 
 	for (auto& Item : ActionsTurnsCooldown)
@@ -357,8 +358,9 @@ void ABLCombatCharacter::EndAction(bool bResult)
 
 void ABLCombatCharacter::ReachedActionDestination(FAIRequestID RequestID, const FPathFollowingResult& Result)
 {
-	if (!IsValid(AIC) || !IsValid(CurrentAction) || !TargetCharacters.IsValidIndex(0) || !TargetCharacters[0])
+	if (!IsValid(AIC) || !IsValid(CurrentAction))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("ABLCombatCharacter::ReachedActionDestination | early return"));
 		return;
 	}
 	

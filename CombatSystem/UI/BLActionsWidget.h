@@ -31,7 +31,7 @@ protected:
 	virtual void NativeConstruct() override;
 
 public:
-	void SetActionsData(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions, const TArray<TSoftClassPtr<UBLAction>>& InSpecialActions);
+	void SetActionsData(const FCombatCharData& BaseData, const FCombatActions& CombatActions);
 
 	/** Returns widget to default state */
 	void ResetWidget();

@@ -48,16 +48,7 @@ struct FHeroAssetInfo
 	TObjectPtr<USoundBase> HealSound;
 
 	UPROPERTY(EditAnywhere)
-	TArray<TSoftClassPtr<UBLAction>> AttackActions;
-
-	UPROPERTY(EditAnywhere)
-	TArray<TSoftClassPtr<UBLAction>> DefendActions;
-
-	UPROPERTY(EditAnywhere)
-	TMap<ECrystalColor, FCrystalSkills> CrystalActions;
-
-	UPROPERTY(EditAnywhere)
-	TArray<TSoftClassPtr<UBLAction>> SpecialActions;
+	FCombatActions CombatActions;
 
 	//eq info
 };

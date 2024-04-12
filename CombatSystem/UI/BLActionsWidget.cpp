@@ -21,28 +21,14 @@ void UBLActionsWidget::NativeConstruct()
 	BindActions();
 }
 
-void UBLActionsWidget::SetActionsData(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions, const TArray<TSoftClassPtr<UBLAction>>& InSpecialActions)
+void UBLActionsWidget::SetActionsData(const FCombatCharData& BaseData, const FCombatActions& CombatActions)
 {	
-	AttackAction->AddActions(InAttackActions);
-	DefendAction->AddActions(InDefendActions);
+	AttackAction->AddActions(CombatActions.AttackActions);
+	DefendAction->AddActions(CombatActions.DefendActions);
 
-	if (!InCrystalActions.IsEmpty())
-	{
-		CrystalAction->AddActions(InCrystalActions);
-	}
-	else
-	{
-		BTCrystal->bIsEnabled = false;
-	}
+	!CombatActions.CrystalActions.IsEmpty() ? CrystalAction->AddActions(CombatActions.CrystalActions) : BTCrystal->SetIsEnabled(false);
 
-	if (!InSpecialActions.IsEmpty())
-	{
-		SpecialAction->AddActions(InSpecialActions);
-	}
-	else
-	{
-		BTSpecial->bIsEnabled = false;
-	}
+	!CombatActions.SpecialActions.IsEmpty() ? SpecialAction->AddActions(CombatActions.SpecialActions) : BTSpecial->SetIsEnabled(false);
 }
 
 void UBLActionsWidget::BindButtons()

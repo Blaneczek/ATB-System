@@ -223,6 +223,34 @@ struct FCombatActionData
 };
 
 USTRUCT(BlueprintType)
+struct FCombatActions
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere)
+	TArray<TSoftClassPtr<UBLAction>> AttackActions;
+
+	UPROPERTY(EditAnywhere)
+	TArray<TSoftClassPtr<UBLAction>> DefendActions;
+
+	UPROPERTY(EditAnywhere)
+	TMap<ECrystalColor, FCrystalSkills> CrystalActions;
+
+	UPROPERTY(EditAnywhere)
+	TArray<TSoftClassPtr<UBLAction>> SpecialActions;
+
+	FCombatActions()
+	{}
+
+	FCombatActions(const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions
+		, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions, const TArray<TSoftClassPtr<UBLAction>>& InSpecialActions)
+
+		: AttackActions(InAttackActions), DefendActions(InDefendActions), CrystalActions(InCrystalActions)
+		, SpecialActions(InSpecialActions)
+	{}
+};
+
+USTRUCT(BlueprintType)
 struct FPostCombatData
 {
 	GENERATED_BODY()

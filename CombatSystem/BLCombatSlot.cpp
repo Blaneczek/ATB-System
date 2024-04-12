@@ -53,15 +53,10 @@ void ABLCombatSlot::Tick(float DeltaTime)
 
 float ABLCombatSlot::GetCooldown() const
 {
-	if (GetCharacter())
-	{
-		return GetCharacter()->GetCooldown();
-	}
-	
-	return 0.f;
+	return GetCharacter() ? GetCharacter()->GetCooldown() : 0.f;
 }
 
-void ABLCombatSlot::SpawnCharacter(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& AttackActions, const TArray<TSoftClassPtr<UBLAction>>& DefendActions, const TMap<ECrystalColor, FCrystalSkills>& CrystalActions, const TArray<TSoftClassPtr<UBLAction>>& SpecialActions)
+void ABLCombatSlot::SpawnCharacter(const FCombatCharData& BaseData, const FCombatActions& CombatActions)
 {
 	if (BaseData.Class)
 	{
@@ -72,7 +67,7 @@ void ABLCombatSlot::SpawnCharacter(const FCombatCharData& BaseData, const TArray
 		Character = GetWorld()->SpawnActor<ABLCombatCharacter>(BaseData.Class, HelperScene->GetComponentTransform(), SpawnInfo);
 		if (Character)
 		{
-			Character->SetData(BaseData, AttackActions, DefendActions, CrystalActions, SpecialActions, HelperScene->GetComponentTransform());
+			Character->SetData(BaseData, CombatActions, HelperScene->GetComponentTransform());
 			Character->OnEndCooldown.BindUObject(this, &ABLCombatSlot::EndCharCooldown);
 			Character->OnActionEnded.BindUObject(this, &ABLCombatSlot::ActionEnded);
 			Character->OnDeath.BindUObject(this, &ABLCombatSlot::HandleCharDeath);
@@ -128,11 +123,10 @@ void ABLCombatSlot::UnPauseCharCooldown()
 void ABLCombatSlot::DoAction(const TArray<ABLCombatSlot*>& TargetsSlots, const FCombatActionData& ActionData)
 {
 	TArray<ABLCombatCharacter*> Targets;
-	for (auto* Slot : TargetsSlots)
+	for (const auto* Slot : TargetsSlots)
 	{
 		Targets.Add(Slot->GetCharacter());
 	}
-
 	Character->CreateAction(HelperScene->GetComponentLocation(), Targets, ActionData);
 }
 

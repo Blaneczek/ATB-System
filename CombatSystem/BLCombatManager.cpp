@@ -68,23 +68,25 @@ void ABLCombatManager::Tick(float DeltaTime)
 void ABLCombatManager::SetPlayerTeam()
 {
 	UBLHeroDataAsset* Data = HeroesData.LoadSynchronous();
-
-	if (Data)
+	if (!Data)
 	{
-		for (int32 Index = 0; Index < FMath::Clamp(Data->Heroes.Num(), 1, 5); ++Index)
+		return;
+	}
+
+	for (int32 Index = 0; Index < FMath::Clamp(Data->Heroes.Num(), 1, 5); ++Index)
+	{
+		const FCombatCharData CharBaseData = Data->CalculateBaseCombatData(Index);
+		if (PlayerTeam[Index])
 		{
-			const FCombatCharData CharBaseData = Data->CalculateBaseCombatData(Index);
-			if (PlayerTeam[Index])
+			PlayerTeam[Index]->SpawnCharacter(CharBaseData, Data->Heroes[Index].CombatActions);
+			if (Widget)
 			{
-				PlayerTeam[Index]->SpawnCharacter(CharBaseData, Data->Heroes[Index].AttackActions, Data->Heroes[Index].DefendActions, Data->Heroes[Index].CrystalActions, Data->Heroes[Index].SpecialActions);
-				if (Widget)
-				{
-					Widget->AddHero(PlayerTeam[Index]->GetIndex(), CharBaseData);
-					Widget->AddHeroActions(PlayerTeam[Index]->GetIndex(), CharBaseData, Data->Heroes[Index].AttackActions, Data->Heroes[Index].DefendActions, Data->Heroes[Index].CrystalActions, Data->Heroes[Index].SpecialActions);
-				}
+				Widget->AddHero(PlayerTeam[Index]->GetIndex(), CharBaseData);
+				Widget->AddHeroActions(PlayerTeam[Index]->GetIndex(), CharBaseData, Data->Heroes[Index].CombatActions);
 			}
 		}
 	}
+	
 }
 
 void ABLCombatManager::SetEnemyTeam()
@@ -180,7 +182,6 @@ void ABLCombatManager::HandleSlotClicked(AActor* Slot)
 					{
 						int32 IndexStart = 0;
 						int32 IndexEnd = 0;
-						ChooseTargetSlot(CurrentSlot);
 						if (CurrentSlot->GetIndex() <= 3)
 						{
 							IndexStart = 0;
@@ -196,11 +197,11 @@ void ABLCombatManager::HandleSlotClicked(AActor* Slot)
 							IndexStart = 8;
 							IndexEnd = 11;
 						}
-
 						for (IndexStart; IndexStart <= IndexEnd; ++IndexStart)
 						{
 							if (EnemyTeam[IndexStart] && EnemyTeam[IndexStart]->IsActive())
 							{
+								UE_LOG(LogTemp, Warning, TEXT("dodany"));
 								ChooseTargetSlot(EnemyTeam[IndexStart]);
 							}
 						}
@@ -235,8 +236,12 @@ void ABLCombatManager::DeselectClickedSlot()
 
 void ABLCombatManager::ChooseTargetSlot(ABLCombatSlot* Slot)
 {
-	CurrentTargetsSlots.Add(Slot);
-	Slot->SelectTarget(true);
+	if (Slot)
+	{		
+		CurrentTargetsSlots.Add(Slot);
+		Slot->SelectTarget(true);
+	}
+	UE_LOG(LogTemp, Warning, TEXT("ChooseTargetSlot targetow: %s"), *FString::FromInt(CurrentTargetsSlots.Num()));
 }
 
 void ABLCombatManager::ChoosePlayerSlot(ABLCombatSlot* Slot)
@@ -259,10 +264,7 @@ void ABLCombatManager::ClearTargetsSlots()
 {
 	for (ABLCombatSlot* Slot : CurrentTargetsSlots)
 	{		
-		if (Slot)
-		{		
-			Slot->SelectTarget(false);
-		}
+		ClearTargetSlot(Slot);
 	}
 
 	CurrentTargetsSlots.Empty();
@@ -338,7 +340,10 @@ void ABLCombatManager::HandleActionsQueue()
 
 void ABLCombatManager::DoAction(ABLCombatSlot* OwnerSlot, const TArray<ABLCombatSlot*>& TargetsSlots, const FCombatActionData& ActionData, bool bEnemyAction)
 {	
-	if (!OwnerSlot) return;
+	if (!OwnerSlot)
+	{
+		return;
+	}
 
 	bAction = true;
 	PauseCooldowns();
@@ -428,7 +433,6 @@ void ABLCombatManager::ChooseAction(const FCombatActionData& ActionData)
 void ABLCombatManager::ResetAction(ABLCombatSlot* NewPlayerSlot)
 {
 	CurrentActionType = ECombatActionType::NONE;
-	CurrentTargetsSlots.Empty();
 	ClearPlayerSlot();
 	ClearTargetsSlots();
 	ChoosePlayerSlot(NewPlayerSlot);
@@ -453,7 +457,6 @@ void ABLCombatManager::PlayerAttackAction()
 
 void ABLCombatManager::PlayerDefendAction()
 {
-	CurrentTargetsSlots.Add(CurrentPlayerSlot);
 	AddActionToQueue(CurrentPlayerSlot, CurrentTargetsSlots, CurrentActionData, false);
 	CurrentPlayerSlot->bCanDoAction = false;
 	CurrentActionType = ECombatActionType::NONE;
@@ -461,6 +464,7 @@ void ABLCombatManager::PlayerDefendAction()
 	{
 		Widget->ResetHeroCooldownBar(CurrentPlayerSlot->GetIndex());
 	}
+	ClearTargetsSlots();
 	ClearPlayerSlot();
 	ChooseRandomPlayerSlot();
 }
@@ -505,7 +509,6 @@ void ABLCombatManager::PlayerSpecialAction()
 		Widget->ActivateNotEnoughME();
 		return;
 	}
-
 	AddActionToQueue(CurrentPlayerSlot, CurrentTargetsSlots, CurrentActionData, false);
 	CurrentPlayerSlot->bCanDoAction = false;
 	CurrentActionType = ECombatActionType::NONE;

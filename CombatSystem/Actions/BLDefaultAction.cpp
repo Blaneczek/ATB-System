@@ -23,7 +23,7 @@ void UBLDefaultAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharact
 		OnEndExecution.ExecuteIfBound();
 	}
 
-	ActionCalculations(Owner, Target);
+	ActionCalculations(Owner, nullptr);
 
 	if (ActionAnim && ActionSound)
 	{
@@ -31,9 +31,5 @@ void UBLDefaultAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharact
 		FZDOnAnimationOverrideEndSignature EndAnimDel;
 		EndAnimDel.BindLambda([this](bool bResult) { OnEndExecution.ExecuteIfBound(); });
 		Owner->GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(ActionAnim, "DefaultSlot", 1.f, 0.0f, EndAnimDel);
-	}
-	else
-	{
-		OnEndExecution.ExecuteIfBound();
 	}
 }

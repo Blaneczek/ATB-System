@@ -45,12 +45,12 @@ void UBLCombatWidget::AddEnemy(int32 SlotIndex, const FString& EnemyName)
 	Enemies->AddEnemy(SlotIndex, EnemyName);
 }
 
-void UBLCombatWidget::AddHeroActions(int32 SlotIndex, const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions, const TArray<TSoftClassPtr<UBLAction>>& InSpecialActions)
+void UBLCombatWidget::AddHeroActions(int32 SlotIndex, const FCombatCharData& BaseData, const FCombatActions& CombatActions)
 {
 	if (Actions.IsValidIndex(SlotIndex) && Actions[SlotIndex])
 	{
 		Actions[SlotIndex]->OnResetActionType.BindLambda([this]() { OnResetCurrentActionType.ExecuteIfBound(); });
-		Actions[SlotIndex]->SetActionsData(BaseData, InAttackActions, InDefendActions, InCrystalActions, InSpecialActions);
+		Actions[SlotIndex]->SetActionsData(BaseData, CombatActions);
 		Actions[SlotIndex]->OnChosenAction.BindUObject(this, &UBLCombatWidget::ChosenAction);
 	}
 }

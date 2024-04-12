@@ -38,8 +38,9 @@ public:
 	void AddHero(int32 SlotIndex, const FCombatCharData& BaseData);
 	/** Adds cell with enemy to widget */
 	void AddEnemy(int32 SlotIndex, const FString& EnemyName);
+
 	/** Populate actions */
-	void AddHeroActions(int32 SlotIndex, const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions, const TArray<TSoftClassPtr<UBLAction>>& InSpecialActions);
+	void AddHeroActions(int32 SlotIndex, const FCombatCharData& BaseData, const FCombatActions& CombatActions);
 
 	/** Highlights chosen hero and shows his actions */
 	void SetCurrentHero(int32 SlotIndex);
@@ -58,6 +59,7 @@ public:
 	/** Resets hero's cooldown bar to zero */
 	void ResetHeroCooldownBar(int32 SlotIndex);
 
+	/** Handle "ACTION" text widget visibility. It is displayed when the action is executed */
 	void SetIsActionVisibility(ESlateVisibility InVisibility);
 
 	void UpdateHeroHealth(int32 SlotIndex, float MaxHP, float CurrentHP);
@@ -65,6 +67,7 @@ public:
 
 	void HideActions();
 
+	/** It shows a text widget for a while when the hero does not have enough magic energy to execute an Action */
 	void ActivateNotEnoughME();
 
 private:

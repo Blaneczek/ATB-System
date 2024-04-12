@@ -43,15 +43,22 @@ public:
 	bool IsActive() const { return bIsActive; };
 	float GetCooldown() const;
 
-	void SpawnCharacter(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& AttackActions, const TArray<TSoftClassPtr<UBLAction>>& DefendActions, const TMap<ECrystalColor, FCrystalSkills>& CrystalActions, const TArray<TSoftClassPtr<UBLAction>>& SpecialActions);
+	/** Spawn Hero */
+	void SpawnCharacter(const FCombatCharData& BaseData, const FCombatActions& CombatActions);
+
+	/** Spawn Enemy */
 	void SpawnCharacter(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& AttackActions, const TArray<TSoftClassPtr<UBLAction>>& DefendActions);
+
 	void PauseCharCooldown();
 	void UnPauseCharCooldown();
 
 	void DoAction(const TArray<ABLCombatSlot*>& TargetsSlots, const FCombatActionData& ActionData);
 
+	/** Selected Target effect */
 	void SelectTarget(bool NewSelect);
+	/** Selected Hero effect */
 	void SelectHero(bool NewSelect);
+
 	void HoverMouse(bool NewHover);
 
 private:
@@ -67,7 +74,7 @@ private:
 	UFUNCTION()
 	void UpdateCharHealth();
 
-	/** Temporary solution for clicked and hovered effect */
+	/** Mouse hovered effect */
 	UFUNCTION()
 	void OnBeginMouseOver(UPrimitiveComponent* TouchedComponent);
 	UFUNCTION()
