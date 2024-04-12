@@ -21,6 +21,14 @@ ABLCombatCharacter::ABLCombatCharacter()
 	DMGDisplay = CreateDefaultSubobject<UWidgetComponent>(TEXT("DMG Display"));
 	DMGDisplay->SetupAttachment(PaperFlipbook);
 
+	BleedingDisplay = CreateDefaultSubobject<UWidgetComponent>(TEXT("Bleeding Display"));
+	BleedingDisplay->SetupAttachment(PaperFlipbook);
+	BleedingDisplay->SetVisibility(false);
+
+	PoisoningDisplay = CreateDefaultSubobject<UWidgetComponent>(TEXT("Poisoning Display"));
+	PoisoningDisplay->SetupAttachment(PaperFlipbook);
+	PoisoningDisplay->SetVisibility(false);
+
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
 	AIC = nullptr;
@@ -299,6 +307,8 @@ float ABLCombatCharacter::CalculateElementsMultipliers(ECombatElementType Damage
 
 void ABLCombatCharacter::StartCooldown()
 {
+	HandleStatuses();
+
 	GetWorld()->GetTimerManager().SetTimer(CooldownTimer, this, &ABLCombatCharacter::EndCooldown, BaseData.Cooldown, false);
 }
 
@@ -327,13 +337,14 @@ void ABLCombatCharacter::EndCooldown()
 		}
 	}
 
-	for (auto* Item : EntriesToDelete)
+	for (const auto* Item : EntriesToDelete)
 	{
 		if (ActionsTurnsCooldown.Contains(Item))
 		{
 			ActionsTurnsCooldown.Remove(Item);
 		}
 	}
+
 	OnEndCooldown.ExecuteIfBound();
 }
 
@@ -342,7 +353,6 @@ void ABLCombatCharacter::EndAction(bool bResult)
 	CurrentAction->ConditionalBeginDestroy();
 	CurrentAction = nullptr;
 	OnActionEnded.ExecuteIfBound();
-	StartCooldown();
 }
 
 void ABLCombatCharacter::ReachedActionDestination(FAIRequestID RequestID, const FPathFollowingResult& Result)
@@ -406,7 +416,6 @@ void ABLCombatCharacter::ReachedActionDestination(int32 Index, bool bLastProject
 
 	if (bLastProjectile)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Last"));
 		CurrentAction->OnEndExecution.BindLambda([this]() { EndAction(true); });
 	}
 
@@ -447,8 +456,112 @@ void ABLCombatCharacter::SpawnProjectile(TSubclassOf<ABLRangeProjectile> Project
 	}
 }
 
+void ABLCombatCharacter::GiveStatus(ECombatStatus Status)
+{
+	Statuses.Add(Status, 3); //TODO: change back to 5 turns or not
+	switch (Status)
+	{
+		case ECombatStatus::BLEEDING:
+		{
+			BleedingDisplay->SetVisibility(true);
+			return;
+		}
+		case ECombatStatus::POISONING:
+		{
+			PoisoningDisplay->SetVisibility(true);
+			return;
+		}
+		default: return;
+	}
+}
 
-void ABLCombatCharacter::HandleHitByAction(float Damage, ECombatElementType DamageElementType)
+void ABLCombatCharacter::RemoveStatus(ECombatStatus Status)
+{
+	Statuses.Remove(Status);
+	switch (Status)
+	{
+		case ECombatStatus::BLEEDING:
+		{
+			BleedingDisplay->SetVisibility(false);
+			return;
+		}
+		case ECombatStatus::POISONING:
+		{
+			PoisoningDisplay->SetVisibility(false);
+			return;
+		}
+		default: return;
+	}
+}
+
+void ABLCombatCharacter::HandleStatuses()
+{
+	TArray<ECombatStatus> StatusesToDelete;
+
+	float SimpleDMG = 0.f;
+
+	for (auto& Status : Statuses)
+	{
+		switch (Status.Key)
+		{
+			case ECombatStatus::BLEEDING:
+			case ECombatStatus::POISONING:
+			{
+				SimpleDMG += 1.f;
+				break;
+			}
+			default: break;
+		}
+
+		Status.Value--;	
+
+		if (Status.Value == 0)
+		{
+			StatusesToDelete.Add(Status.Key);
+		}
+	}
+
+	TakeSimpleDamage(SimpleDMG);
+
+	FTimerHandle RemoveDelay;
+	FTimerDelegate RemoveDel;
+	RemoveDel.BindLambda([this, StatusesToDelete]()
+	{
+		for (const auto& Status : StatusesToDelete)
+		{
+			RemoveStatus(Status);
+		}
+	});
+	GetWorld()->GetTimerManager().SetTimer(RemoveDelay, RemoveDel, 1.5f, false);
+}
+
+void ABLCombatCharacter::TakeSimpleDamage(float Damage)
+{
+	if (Damage <= 0.f)
+	{
+		return;
+	}
+
+	const float NewHP = FMath::RoundHalfFromZero((CurrentHP - Damage));
+	CurrentHP = FMath::Clamp(NewHP, 0, BaseData.MaxHP);
+	DisplayTextDMG(Damage, false, ECombatElementType::NONE);
+
+	if (BaseData.TakeDMGAnim)
+	{
+		GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(BaseData.TakeDMGAnim);
+	}
+
+	OnHealthUpdate.ExecuteIfBound();
+	if (CurrentHP <= 0.f)
+	{
+		//TODO: add death animation
+		//TODO: change idle anim to death
+		OnDeath.ExecuteIfBound();
+	}
+}
+
+
+void ABLCombatCharacter::HandleHitByAction(ABLCombatCharacter* Attacker, float Damage, ECombatElementType DamageElementType, bool bMagical, const TArray<ECombatStatus>& InStatuses)
 {
 	bool bIsHeal = false;
 	const float DMGMultiplier = CalculateElementsMultipliers(DamageElementType, BaseData.Element, bIsHeal);
@@ -470,7 +583,6 @@ void ABLCombatCharacter::HandleHitByAction(float Damage, ECombatElementType Dama
 		if (DodgeChange <= BaseData.BaseDodge)
 		{
 			DisplayTextDMG(0, false, DamageElementType, true);
-			// TODO: anim and sound
 			return;
 		}
 
@@ -478,8 +590,20 @@ void ABLCombatCharacter::HandleHitByAction(float Damage, ECombatElementType Dama
 		const int32 PierceChange = FMath::RandRange(1, 100);
 		float NewDefense = PierceChange <= BaseData.Pierce ? CurrentDefense / 2 : CurrentDefense;
 
-		float DMGValue = DMGMultiplier > 0 ? ((Damage * DMGMultiplier) * (1.f - ((NewDefense / 1000) * 5))) : 0.f; // 10 def decreases dmg by 5%
-		DMGValue = FMath::Clamp(FMath::RoundHalfFromZero(DMGValue), 0, FMath::RoundHalfFromZero(DMGValue));
+		// 10 def decreases dmg by 5%
+		float DMGValue = DMGMultiplier > 0 ? ((Damage * DMGMultiplier) * (1.f - ((NewDefense / 1000) * 5))) : 0.f; 
+
+		// if attack is physical and Attacker has Poisoning status, dmg is decreased by 20%
+		if (!bMagical && Attacker && Attacker->Statuses.Contains(ECombatStatus::POISONING))
+		{
+			// Clamp because Defense can be higher than Damage, so that Damage is not negative
+			DMGValue = FMath::Clamp(FMath::RoundHalfFromZero(DMGValue * 0.8f), 0, FMath::RoundHalfFromZero(DMGValue));
+		}
+		else
+		{
+			DMGValue = FMath::Clamp(FMath::RoundHalfFromZero(DMGValue), 0, FMath::RoundHalfFromZero(DMGValue));
+		}
+
 		CurrentHP = FMath::Clamp((CurrentHP - DMGValue), 0, BaseData.MaxHP);
 		DisplayTextDMG(DMGValue, false, DamageElementType);
 		if (BaseData.TakeDMGAnim && BaseData.TakeDMGSound)
@@ -487,6 +611,12 @@ void ABLCombatCharacter::HandleHitByAction(float Damage, ECombatElementType Dama
 			GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(BaseData.TakeDMGAnim);
 			UGameplayStatics::PlaySound2D(GetWorld(), BaseData.TakeDMGSound);
 		}
+	}
+
+	// adding statuses
+	for (const auto& Status : InStatuses)
+	{
+		GiveStatus(Status);
 	}
 
 	OnHealthUpdate.ExecuteIfBound();

@@ -212,7 +212,6 @@ void ABLCombatManager::HandleSlotClicked(AActor* Slot)
 				}
 				default:
 				{
-					UE_LOG(LogTemp, Warning, TEXT("sadsad"));
 					ChooseTargetSlot(CurrentSlot);
 					if (CurrentTargetsSlots.Num() >= CurrentActionData.TargetsNum)
 					{

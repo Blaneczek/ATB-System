@@ -61,6 +61,15 @@ enum class ECrystalColor : uint8
 	BLUE	UMETA(DisplayName = "BLUE")
 };
 
+UENUM(BlueprintType)
+enum class ECombatStatus : uint8
+{
+	NONE		UMETA(DisplayName = "None"),
+	BLEEDING	UMETA(DisplayName = "Bleeding"),
+	POISONING	UMETA(DisplayName = "Poisoning"),
+	BLOODLUST	UMETA(DisplayName = "Bloodlust")
+};
+
 USTRUCT(BlueprintType)
 struct FCrystalSkills
 {
@@ -78,15 +87,15 @@ struct FHeroAttributes
 	UPROPERTY(EditAnywhere)
 	FString Name;
 	UPROPERTY(EditAnywhere)
-	uint32 Level;
+	int32 Level;
 	UPROPERTY(EditAnywhere)
-	uint32 Experience;
+	int32 Experience;
 	UPROPERTY(EditAnywhere)
-	uint32 ExperienceNextLevel;
+	int32 ExperienceNextLevel;
 	UPROPERTY(EditAnywhere)
-	int32 BaseHealth;	
+	float BaseHealth;	
 	UPROPERTY(EditAnywhere)
-	int32 BaseMagicEnergy;
+	float BaseMagicEnergy;
 	UPROPERTY(EditAnywhere)
 	int32 Strength;
 	UPROPERTY(EditAnywhere)
@@ -99,19 +108,9 @@ struct FHeroAttributes
 	int32 TotalCrystalsLevel;
 
 	FHeroAttributes()
-	{
-		Name = "";
-		Level = 1;
-		Experience = 0;
-		ExperienceNextLevel = 100;
-		BaseHealth = 20;	
-		BaseMagicEnergy = 10;	
-		Strength = 1;
-		Agility = 1;
-		Wisdom = 1;
-		Endurance = 1;
-		TotalCrystalsLevel = 0;
-	}
+		: Name(""), Level(1), Experience(0), ExperienceNextLevel(100), BaseHealth(20.f)
+		, BaseMagicEnergy(10.f), Strength(1), Agility(1), Wisdom(1), Endurance(1), TotalCrystalsLevel(0)
+	{}
 };
 
 USTRUCT(BlueprintType)

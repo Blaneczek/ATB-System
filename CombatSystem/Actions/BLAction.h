@@ -47,6 +47,9 @@ public:
 	ECombatElementType Element{ ECombatElementType::NONE };
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
+	bool bMagical{ false };
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
 	float MECost{ 0.f };
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")

@@ -41,8 +41,8 @@ public:
 	void SetData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions, const TArray<TSoftClassPtr<UBLAction>>& InSpecialActions, const FTransform& InSlotTransform);
 	void SetData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions);
 
-	UFUNCTION(BlueprintCallable)
-	virtual void HandleHitByAction(float Damage, ECombatElementType DamageElementType);
+	UFUNCTION(BlueprintCallable, meta = (AutoCreateRefTerm = "InStatuses"))
+	virtual void HandleHitByAction(ABLCombatCharacter* Attacker, float Damage, ECombatElementType DamageElementType, bool bMagical, const TArray<ECombatStatus>& InStatuses);
 
 	UFUNCTION()
 	void StartCooldown();
@@ -122,6 +122,12 @@ private:
 
 	void SpawnProjectile(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite);
 
+	void GiveStatus(ECombatStatus Status);
+	void RemoveStatus(ECombatStatus Status);
+	void HandleStatuses();
+
+	void TakeSimpleDamage(float Damage);
+
 public:
 	FOnEndCooldown OnEndCooldown;
 	FOnActionEnded OnActionEnded;
@@ -144,8 +150,17 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
 	TObjectPtr<UWidgetComponent> DMGDisplay;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
+	TObjectPtr<UWidgetComponent> BleedingDisplay;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
+	TObjectPtr<UWidgetComponent> PoisoningDisplay;
+
 	UPROPERTY()
 	FTimerHandle CooldownTimer;
+
+	UPROPERTY()
+	TMap<ECombatStatus, int32> Statuses;
 
 private:
 	UPROPERTY()

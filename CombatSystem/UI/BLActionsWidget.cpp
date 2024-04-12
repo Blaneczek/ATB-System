@@ -25,8 +25,24 @@ void UBLActionsWidget::SetActionsData(const FCombatCharData& BaseData, const TAr
 {	
 	AttackAction->AddActions(InAttackActions);
 	DefendAction->AddActions(InDefendActions);
-	CrystalAction->AddActions(InCrystalActions);
-	SpecialAction->AddActions(InSpecialActions);
+
+	if (!InCrystalActions.IsEmpty())
+	{
+		CrystalAction->AddActions(InCrystalActions);
+	}
+	else
+	{
+		BTCrystal->bIsEnabled = false;
+	}
+
+	if (!InSpecialActions.IsEmpty())
+	{
+		SpecialAction->AddActions(InSpecialActions);
+	}
+	else
+	{
+		BTSpecial->bIsEnabled = false;
+	}
 }
 
 void UBLActionsWidget::BindButtons()
