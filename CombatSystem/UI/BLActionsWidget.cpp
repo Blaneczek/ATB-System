@@ -29,6 +29,8 @@ void UBLActionsWidget::SetActionsData(const FCombatCharData& BaseData, const FCo
 	!CombatActions.CrystalActions.IsEmpty() ? CrystalAction->AddActions(CombatActions.CrystalActions) : BTCrystal->SetIsEnabled(false);
 
 	!CombatActions.SpecialActions.IsEmpty() ? SpecialAction->AddActions(CombatActions.SpecialActions) : BTSpecial->SetIsEnabled(false);
+
+	ItemAction->AddActions(CombatActions.ItemActions);
 }
 
 void UBLActionsWidget::BindButtons()
@@ -47,7 +49,7 @@ void UBLActionsWidget::BindActions()
 	DefendAction->OnAction.BindUObject(this, &UBLActionsWidget::ChosenAction);
 	CrystalAction->OnAction.BindUObject(this, &UBLActionsWidget::ChosenAction);
 	SpecialAction->OnAction.BindUObject(this, &UBLActionsWidget::ChosenAction);
-	//other actions
+	ItemAction->OnAction.BindUObject(this, &UBLActionsWidget::ChosenAction);
 }
 
 void UBLActionsWidget::OnBTAttackClicked()
@@ -92,7 +94,12 @@ void UBLActionsWidget::OnBTSpecialSkillClicked()
 
 void UBLActionsWidget::OnBTItemClicked()
 {
-
+	ResetButton();
+	ResetAction();
+	ClickedButton = BTItem;
+	ClickedAction = ItemAction;
+	ClickedButton->SetBackgroundColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.f));
+	ActionTypeSwitcher->SetActiveWidget(ItemAction);
 }
 
 void UBLActionsWidget::OnBTRunClicked()

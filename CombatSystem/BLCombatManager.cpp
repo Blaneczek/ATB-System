@@ -76,17 +76,13 @@ void ABLCombatManager::SetPlayerTeam()
 	for (int32 Index = 0; Index < FMath::Clamp(Data->Heroes.Num(), 1, 5); ++Index)
 	{
 		const FCombatCharData CharBaseData = Data->CalculateBaseCombatData(Index);
-		if (PlayerTeam[Index])
+		if (PlayerTeam[Index] && Widget)
 		{
 			PlayerTeam[Index]->SpawnCharacter(CharBaseData, Data->Heroes[Index].CombatActions);
-			if (Widget)
-			{
-				Widget->AddHero(PlayerTeam[Index]->GetIndex(), CharBaseData);
-				Widget->AddHeroActions(PlayerTeam[Index]->GetIndex(), CharBaseData, Data->Heroes[Index].CombatActions);
-			}
+			Widget->AddHero(PlayerTeam[Index]->GetIndex(), CharBaseData);
+			Widget->AddHeroActions(PlayerTeam[Index]->GetIndex(), CharBaseData, Data->Heroes[Index].CombatActions);
 		}
 	}
-	
 }
 
 void ABLCombatManager::SetEnemyTeam()
@@ -98,20 +94,19 @@ void ABLCombatManager::SetEnemyTeam()
 	}
 
 	UBLEnemyDataAsset* Data = GI->CombatData.EnemyData.LoadSynchronous();
-	if (Data)
+	if (!Data)
 	{
-		for (int32 Index = 0; Index < Data->Enemies.Num(); ++Index)
-		{
-			if (EnemyTeam[Index])
-			{
-				EnemyTeam[Index]->SpawnCharacter(Data->Enemies[Index].BaseData, Data->Enemies[Index].AttackActions, Data->Enemies[Index].DefendActions);
-				if (Widget)
-				{
-					Widget->AddEnemy(EnemyTeam[Index]->GetIndex(), Data->Enemies[Index].BaseData.Name);
-				}
-			}
-		}
+		return;
 	}
+
+	for (int32 Index = 0; Index < Data->Enemies.Num(); ++Index)
+	{
+		if (EnemyTeam[Index] && Widget)
+		{
+			EnemyTeam[Index]->SpawnCharacter(Data->Enemies[Index].BaseData, Data->Enemies[Index].AttackActions, Data->Enemies[Index].DefendActions);
+			Widget->AddEnemy(EnemyTeam[Index]->GetIndex(), Data->Enemies[Index].BaseData.Name);
+		}
+	}	
 }
 
 void ABLCombatManager::InitializeWidget()
@@ -137,11 +132,10 @@ void ABLCombatManager::HandleSlotClicked(AActor* Slot)
 	{
 		case ECombatActionType::ATTACK:
 		{
-			// If clicked on the enemy
 			if (CurrentSlot->IsEnemy())
 			{
 				ChooseTargetSlot(CurrentSlot);
-				PlayerAttackAction();
+				break;
 			}
 			return;
 		}
@@ -151,20 +145,13 @@ void ABLCombatManager::HandleSlotClicked(AActor* Slot)
 			if (CurrentSlot == CurrentPlayerSlot)
 			{
 				ChooseTargetSlot(CurrentSlot);
-				PlayerDefendAction();
+				break;
 			}
 			return;
 		}
 		case ECombatActionType::CRYSTAL_SKILL:
-		{
-			ChooseTargetSlot(CurrentSlot);
-			if (CurrentTargetsSlots.Num() >= CurrentActionData.TargetsNum)
-			{
-				PlayerCrystalAction();
-			}			
-			return;
-		}
 		case ECombatActionType::SPECIAL_SKILL:
+		case ECombatActionType::ITEM:
 		{
 			switch (CurrentActionData.Flow) 
 			{
@@ -172,7 +159,8 @@ void ABLCombatManager::HandleSlotClicked(AActor* Slot)
 				{
 					if (CurrentSlot == CurrentPlayerSlot)
 					{
-						PlayerSpecialAction();
+						ChooseTargetSlot(CurrentSlot);
+						break;
 					}
 					return;
 				}
@@ -201,29 +189,29 @@ void ABLCombatManager::HandleSlotClicked(AActor* Slot)
 						{
 							if (EnemyTeam[IndexStart] && EnemyTeam[IndexStart]->IsActive())
 							{
-								UE_LOG(LogTemp, Warning, TEXT("dodany"));
 								ChooseTargetSlot(EnemyTeam[IndexStart]);
 							}
 						}
-
-						PlayerSpecialAction();
-						return;
+						break;
 					}
-					return;
+					return;				
 				}
 				default:
 				{
 					ChooseTargetSlot(CurrentSlot);
 					if (CurrentTargetsSlots.Num() >= CurrentActionData.TargetsNum)
 					{
-						PlayerSpecialAction();
+						break;
 					}
 					return;
 				}
-			}		
+			}
+			break;
 		}
 		default: return;
-	}	
+	}
+
+	PlayerAction();
 }
 
 void ABLCombatManager::DeselectClickedSlot()
@@ -241,7 +229,6 @@ void ABLCombatManager::ChooseTargetSlot(ABLCombatSlot* Slot)
 		CurrentTargetsSlots.Add(Slot);
 		Slot->SelectTarget(true);
 	}
-	UE_LOG(LogTemp, Warning, TEXT("ChooseTargetSlot targetow: %s"), *FString::FromInt(CurrentTargetsSlots.Num()));
 }
 
 void ABLCombatManager::ChoosePlayerSlot(ABLCombatSlot* Slot)
@@ -438,66 +425,7 @@ void ABLCombatManager::ResetAction(ABLCombatSlot* NewPlayerSlot)
 	ChoosePlayerSlot(NewPlayerSlot);
 }
 
-void ABLCombatManager::PlayerAttackAction()
-{
-	AddActionToQueue(CurrentPlayerSlot, CurrentTargetsSlots, CurrentActionData, false);
-	CurrentPlayerSlot->bCanDoAction = false;
-	CurrentActionType = ECombatActionType::NONE;
-	if (Widget)
-	{
-		Widget->ResetHeroCooldownBar(CurrentPlayerSlot->GetIndex());
-	}
-	ClearPlayerSlot();
-	ChooseRandomPlayerSlot();
-	FTimerHandle ClearTargetDelay;
-	FTimerDelegate ClearTargetDel;
-	ClearTargetDel.BindUObject(this, &ABLCombatManager::ClearTargetsSlots);
-	GetWorld()->GetTimerManager().SetTimer(ClearTargetDelay, ClearTargetDel, 1.f, false);
-}
-
-void ABLCombatManager::PlayerDefendAction()
-{
-	AddActionToQueue(CurrentPlayerSlot, CurrentTargetsSlots, CurrentActionData, false);
-	CurrentPlayerSlot->bCanDoAction = false;
-	CurrentActionType = ECombatActionType::NONE;
-	if (Widget)
-	{
-		Widget->ResetHeroCooldownBar(CurrentPlayerSlot->GetIndex());
-	}
-	ClearTargetsSlots();
-	ClearPlayerSlot();
-	ChooseRandomPlayerSlot();
-}
-
-void ABLCombatManager::PlayerCrystalAction()
-{
-	if (!Widget)
-	{
-		return;
-	}
-
-	if (CurrentActionData.MECost > CurrentPlayerSlot->GetCharacter()->GetCurrentME())
-	{
-		Widget->ActivateNotEnoughME();
-		return;
-	}
-
-	AddActionToQueue(CurrentPlayerSlot, CurrentTargetsSlots, CurrentActionData, false);
-	CurrentPlayerSlot->bCanDoAction = false;
-	CurrentActionType = ECombatActionType::NONE;
-
-	Widget->ResetHeroCooldownBar(CurrentPlayerSlot->GetIndex());
-
-	ClearPlayerSlot();
-	ChooseRandomPlayerSlot();
-
-	FTimerHandle ClearTargetDelay;
-	FTimerDelegate ClearTargetDel;
-	ClearTargetDel.BindUObject(this, &ABLCombatManager::ClearTargetsSlots);
-	GetWorld()->GetTimerManager().SetTimer(ClearTargetDelay, ClearTargetDel, 1.f, false);
-}
-
-void ABLCombatManager::PlayerSpecialAction()
+void ABLCombatManager::PlayerAction()
 {
 	if (!Widget)
 	{
@@ -678,11 +606,11 @@ void ABLCombatManager::HandleEndGame(bool bWonGame)
 		UBLHeroDataAsset* HeroData = HeroesData.LoadSynchronous();
 		if (!HeroData)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("nie ma hero"));
+			//TODO: save post combat data
 		}
+
 		if (WinWidgetClass)
 		{		
-			//TODO: set hero data
 			UBLWinCombatWidget* WinWidget = CreateWidget<UBLWinCombatWidget>(GetWorld(), WinWidgetClass);
 			WinWidget->SetData(GI->PostCombatData.Experience, GI->PostCombatData.Money);
 			WinWidget->OnEndGame.BindUObject(this, &ABLCombatManager::ExitCombat);
@@ -691,7 +619,6 @@ void ABLCombatManager::HandleEndGame(bool bWonGame)
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("lost"));
 		if (LostWidgetClass)
 		{
 			UBLLostCombatWidget* LostWidget = CreateWidget<UBLLostCombatWidget>(GetWorld(), LostWidgetClass);

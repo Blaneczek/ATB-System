@@ -38,6 +38,9 @@ public:
 	/** Adds Crystal actions to Widget */
 	virtual void AddActions(const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions) {};
 
+	/** Adds Item actions to Widget */
+	virtual void AddActions(const TArray<FCombatItems>& InItemsActions) {};
+
 	/** Resets action to default state (no description and normal button) */
 	virtual void ResetAction();
 

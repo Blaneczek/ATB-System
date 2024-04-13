@@ -80,6 +80,18 @@ struct FCrystalSkills
 };
 
 USTRUCT(BlueprintType)
+struct FCombatItems
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere)
+	TSoftClassPtr<UBLAction> Action;
+
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UTexture2D> Thumbnail;
+};
+
+USTRUCT(BlueprintType)
 struct FHeroAttributes
 {
 	GENERATED_BODY()
@@ -239,14 +251,18 @@ struct FCombatActions
 	UPROPERTY(EditAnywhere)
 	TArray<TSoftClassPtr<UBLAction>> SpecialActions;
 
+	UPROPERTY(EditAnywhere)
+	TArray<FCombatItems> ItemActions;
+
 	FCombatActions()
 	{}
 
 	FCombatActions(const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions
-		, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions, const TArray<TSoftClassPtr<UBLAction>>& InSpecialActions)
+		, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions, const TArray<TSoftClassPtr<UBLAction>>& InSpecialActions
+		, const TArray<FCombatItems>& InItemActions)
 
 		: AttackActions(InAttackActions), DefendActions(InDefendActions), CrystalActions(InCrystalActions)
-		, SpecialActions(InSpecialActions)
+		, SpecialActions(InSpecialActions), ItemActions(InItemActions)
 	{}
 };
 

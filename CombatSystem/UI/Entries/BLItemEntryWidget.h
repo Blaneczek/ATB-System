@@ -8,6 +8,7 @@
 #include "BLItemEntryWidget.generated.h"
 
 class UImage;
+class UBorder;
 
 /**
  * 
@@ -22,12 +23,15 @@ protected:
 	virtual void NativeOnListItemObjectSet(UObject* ListItemObject) override;
 
 public:
-	void SetData(const FText& InName, UTexture2D* Texture);
+	void SetData(int32 InIndex, UTexture2D* InThumbnail);
 
 public:
 	UPROPERTY()
-	FText Name;
+	int32 Index;
 
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
-	TObjectPtr<UImage> Image;
+	TObjectPtr<UImage> Thumbnail;
+
+	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
+	TObjectPtr<UBorder> Border;
 };

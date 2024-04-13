@@ -10,12 +10,16 @@ void UBLItemEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 	UBLItemEntryData* Item = Cast<UBLItemEntryData>(ListItemObject);
 	if (Item)
 	{
-		SetData(Item->Name, Item->Texture);
+		SetData(Item->Index, Item->Thumbnail);
 	}
 }
 
-void UBLItemEntryWidget::SetData(const FText& InName, UTexture2D* Texture)
+void UBLItemEntryWidget::SetData(int32 InIndex, UTexture2D* InThumbnail)
 {
-	Name = InName;
-	Image->SetBrushFromTexture(Texture, true);
+	Index = InIndex;
+	if (InThumbnail)
+	{
+		Thumbnail->SetBrushFromTexture(InThumbnail, true);
+	}
 }
+

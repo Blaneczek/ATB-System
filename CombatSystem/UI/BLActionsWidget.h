@@ -87,15 +87,21 @@ protected:
 	/** Actions to display*/
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
 	TObjectPtr<UBorder> NoneAction;
+
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
 	TObjectPtr<UBLActionWidget> AttackAction;
+
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
 	TObjectPtr<UBLActionWidget> DefendAction;
+
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
 	TObjectPtr<UBLActionWidget> CrystalAction;
+
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
 	TObjectPtr<UBLActionWidget> SpecialAction;
-	//TODO: Other actions
+
+	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
+	TObjectPtr<UBLActionWidget> ItemAction;
 
 private:
 	UPROPERTY()

@@ -15,6 +15,7 @@
 #include "Actions/BLAction.h"
 #include "Components/WidgetComponent.h"
 #include "UI/Entries/BLActionEntryData.h"
+#include "UI/Entries/BLItemEntryData.h"
 
 ABLCombatCharacter::ABLCombatCharacter()
 {
@@ -56,6 +57,8 @@ void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData, const FComba
 
 	CrystalActions = InCombatActions.CrystalActions;
 	SpecialActions = InCombatActions.SpecialActions;
+	ItemActions = InCombatActions.ItemActions;
+
 	SlotTransform = InSlotTransform;
 }
 
@@ -151,7 +154,27 @@ void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, const TA
 		}
 		case ECombatActionType::ITEM:
 		{
-			//TODO
+			if (!ItemActions.IsValidIndex(ActionData.Index))
+			{
+				EndAction(true);
+				return;
+			}
+
+			SlotLocation = OwnerSlotLocation;
+			TargetCharacters = Targets;
+
+			// Deleting used item
+			UBLItemEntryData* Item = Cast<UBLItemEntryData>(ActionData.ActionEntry);
+			if (Item)
+			{
+				Item->OnDeleteFromList.ExecuteIfBound(Item->Index);
+			}
+
+			CurrentAction = NewObject<UBLAction>(this, ItemActions[ActionData.Index].Action.LoadSynchronous());
+			if (CurrentAction)
+			{
+				CurrentAction->OnCreateAction(this);
+			}
 			return;
 		}
 		case ECombatActionType::RUN_AWAY:

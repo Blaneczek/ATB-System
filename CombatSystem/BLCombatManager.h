@@ -116,11 +116,7 @@ private:
 	/** Resets action and sets new CurrentPlayerSlot */
 	void ResetAction(ABLCombatSlot* NewPlayerSlot);
 
-	/** Player's actions */
-	void PlayerAttackAction();
-	void PlayerDefendAction();
-	void PlayerCrystalAction();
-	void PlayerSpecialAction();
+	void PlayerAction();
 
 	/** Pauses the cooldowns of enemies and heroes */
 	void PauseCooldowns();

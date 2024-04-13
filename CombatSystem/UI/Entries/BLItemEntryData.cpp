@@ -3,8 +3,10 @@
 
 #include "BLItemEntryData.h"
 
-void UBLItemEntryData::Init(const FText& InName, UTexture2D* InTexture)
+void UBLItemEntryData::Init(int32 InIndex, const FText& InName, ECombatActionFlow InActionFlow, UTexture2D* InThumbnail)
 {
+	Index = InIndex;
 	Name = InName;
-	Texture = InTexture;
+	ActionFlow = InActionFlow;
+	Thumbnail = InThumbnail;
 }

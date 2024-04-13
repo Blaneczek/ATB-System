@@ -186,6 +186,8 @@ private:
 	TMap<ECrystalColor, FCrystalSkills> CrystalActions;
 	UPROPERTY()
 	TArray<TSoftClassPtr<UBLAction>> SpecialActions;
+	UPROPERTY()
+	TArray<FCombatItems> ItemActions;
 
 	UPROPERTY()
 	TMap<TObjectPtr<UBLActionEntryData>, int32> ActionsTurnsCooldown;
