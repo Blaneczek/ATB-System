@@ -20,7 +20,7 @@ class BLADEOFLEGEND_API UBLItemEntryData : public UObject
 	GENERATED_BODY()
 
 public:
-	void Init(int32 InIndex, const FText& InName, ECombatActionFlow InActionFlow, UTexture2D* InThumbnail);
+	void Init(int32 InIndex, const FText& InName, ECombatActionFlow InActionFlow, UTexture2D* InThumbnail, bool ContainItem);
 
 public:
 	FOnDeleteFromList OnDeleteFromList;
@@ -34,6 +34,9 @@ public:
 	UPROPERTY()
 	ECombatActionFlow ActionFlow;
 
-	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
+	UPROPERTY()
 	TObjectPtr<UTexture2D> Thumbnail;
+
+	UPROPERTY()
+	bool bContainItem;
 };

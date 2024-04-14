@@ -17,9 +17,16 @@ void UBLItemEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 void UBLItemEntryWidget::SetData(int32 InIndex, UTexture2D* InThumbnail)
 {
 	Index = InIndex;
+
 	if (InThumbnail)
 	{
 		Thumbnail->SetBrushFromTexture(InThumbnail, true);
 	}
+	else
+	{
+		Thumbnail->SetColorAndOpacity(FLinearColor(1.f, 1.f, 1.f, 0.f));
+		SetVisibility(ESlateVisibility::HitTestInvisible);
+	}
+	
 }
 

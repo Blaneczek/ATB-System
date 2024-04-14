@@ -8,19 +8,32 @@
 #include "Actions/BLAction.h"
 #include "UI/Entries/BLItemEntryWidget.h"
 #include "UI/Entries/BLItemEntryData.h"
+#include "Components/Image.h"
 
 void UBLItemActionWidget::AddActions(const TArray<FCombatItems>& InItemsActions)
 {
-	for (int32 Index = 0; Index < InItemsActions.Num(); ++Index)
+	for (int32 Index = 0; Index < 12; ++Index)
 	{
-		UBLAction* Action = Cast<UBLAction>(InItemsActions[Index].Action.LoadSynchronous()->GetDefaultObject());
-		UBLItemEntryData* EntryItem = NewObject<UBLItemEntryData>();
-		if (Action && EntryItem)
+		if (InItemsActions.IsValidIndex(Index))
 		{
-			EntryItem->Init(Index, Action->Name, Action->Flow, InItemsActions[Index].Thumbnail);
-			EntryItem->OnDeleteFromList.BindUObject(this, &UBLItemActionWidget::DeleteItem);
-			ItemsList->AddItem(EntryItem);
-			Descriptions.Add(Action->Description);
+			UBLAction* Action = Cast<UBLAction>(InItemsActions[Index].Action.LoadSynchronous()->GetDefaultObject());
+			UBLItemEntryData* EntryItem = NewObject<UBLItemEntryData>();
+			if (Action && EntryItem)
+			{
+				EntryItem->Init(Index, Action->Name, Action->Flow, InItemsActions[Index].Thumbnail, true);
+				EntryItem->OnDeleteFromList.BindUObject(this, &UBLItemActionWidget::DeleteItem);
+				ItemsList->AddItem(EntryItem);
+				Descriptions.Add(Action->Description);
+			}
+		}
+		else
+		{
+			UBLItemEntryData* EntryItem = NewObject<UBLItemEntryData>();
+			if (EntryItem)
+			{
+				EntryItem->Init(Index, FText::FromString(""), ECombatActionFlow::NONE, nullptr, false);
+				ItemsList->AddItem(EntryItem);
+			}
 		}
 	}
 }
@@ -70,6 +83,11 @@ void UBLItemActionWidget::DeleteItem(int32 Index)
 {
 	if (ItemsList->GetItemAt(Index))
 	{
-		ItemsList->RemoveItem(ItemsList->GetItemAt(Index));
+		UBLItemEntryWidget* ItemWidget = Cast<UBLItemEntryWidget>(ItemsList->GetEntryWidgetFromItem(ItemsList->GetItemAt(Index)));
+		if (ItemWidget)
+		{
+			ItemWidget->Thumbnail->SetColorAndOpacity(FLinearColor(1.f, 1.f, 1.f, 0.f));
+			ItemWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
+		}
 	}
 }
