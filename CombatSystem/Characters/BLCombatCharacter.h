@@ -42,14 +42,14 @@ public:
 	void SetData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions);
 
 	UFUNCTION(BlueprintCallable, meta = (AutoCreateRefTerm = "InStatuses"))
-	virtual void HandleHitByAction(ABLCombatCharacter* Attacker, float Damage, ECombatElementType DamageElementType, bool bMagical, const TArray<ECombatStatus>& InStatuses);
+	virtual void HandleHitByAction(ABLCombatCharacter* Attacker, float Damage, ECombatElementType DamageElementType, bool bMagical, const TArray<FCombatStatus>& InStatuses);
 
 	UFUNCTION()
 	void StartCooldown();
 
 	FTimerHandle GetCooldownTimer() { return CooldownTimer; };
 
-	float GetCooldown() const { return BaseData.Cooldown; };
+	float GetCooldown() const { return CurrentCooldown; };
 	float GetCurrentHP() const { return CurrentHP; };
 	void SetCurrentHP(float NewHP) { CurrentHP = NewHP; };
 	float GetMaxHP() const { return BaseData.MaxHP; };
@@ -106,6 +106,15 @@ public:
 	/** Moves selected Hero back in line */
 	//void BackInLine();
 
+	UFUNCTION(BlueprintCallable)
+	void GiveStatus(ECombatStatus Status, int32 Turns);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void SetStatusDisplayVisibility(ECombatStatus Status, bool bNewVisibility);
+
+	UFUNCTION()
+	void RemoveStatus(ECombatStatus Status);
+
 private:
 	float CalculateElementsMultipliers(ECombatElementType DamageElementType, ECombatElementType CharacterElementType, bool& OutIsHeal);
 
@@ -122,11 +131,11 @@ private:
 
 	void SpawnProjectile(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite);
 
-	void GiveStatus(ECombatStatus Status);
-	void RemoveStatus(ECombatStatus Status);
 	void HandleStatuses();
 
 	void TakeSimpleDamage(float Damage);
+
+	void HandleTurnsCooldown();
 
 public:
 	FOnEndCooldown OnEndCooldown;
@@ -140,21 +149,24 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
 	FCombatCharData BaseData;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
 	float CurrentHP;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
 	float CurrentME;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
 	int32 CurrentDefense;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
+	float CurrentCooldown;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
 	TObjectPtr<UWidgetComponent> DMGDisplay;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
-	TObjectPtr<UWidgetComponent> BleedingDisplay;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
-	TObjectPtr<UWidgetComponent> PoisoningDisplay;
+	TObjectPtr<UWidgetComponent> StatusDisplay;
 
 	UPROPERTY()
 	FTimerHandle CooldownTimer;

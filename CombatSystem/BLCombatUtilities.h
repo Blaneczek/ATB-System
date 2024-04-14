@@ -67,7 +67,12 @@ enum class ECombatStatus : uint8
 	NONE		UMETA(DisplayName = "None"),
 	BLEEDING	UMETA(DisplayName = "Bleeding"),
 	POISONING	UMETA(DisplayName = "Poisoning"),
-	BLOODLUST	UMETA(DisplayName = "Bloodlust")
+	BLOODLUST	UMETA(DisplayName = "Bloodlust"),
+	STUN		UMETA(DisplayName = "Stun"),
+	BLINDING	UMETA(DisplayName = "Blinding"),
+	SPEEDUP		UMETA(DisplayName = "Speedup"),
+	INSPIRATION	UMETA(DisplayName = "Inspiration"),
+	FLAMING		UMETA(DisplayName = "Flaming")
 };
 
 USTRUCT(BlueprintType)
@@ -321,4 +326,21 @@ struct FCombatData
 	FCombatData(TSoftObjectPtr<UBLEnemyDataAsset> InEnemyData, UMaterialInstance* InBackgroundMaterial)
 		: EnemyData(InEnemyData), BackgroundMaterial(InBackgroundMaterial)
 	{}
+};
+
+USTRUCT(BlueprintType)
+struct FCombatStatus
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	ECombatStatus Status{ ECombatStatus::NONE };
+
+	/** Number of cooldowns for which the status will be active */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 Turns{ 0 };
+
+	/** Percentage chance of status application. 0 - 0%, 100 - 100% */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ApplicationChance{ 0 };
 };

@@ -22,13 +22,8 @@ ABLCombatCharacter::ABLCombatCharacter()
 	DMGDisplay = CreateDefaultSubobject<UWidgetComponent>(TEXT("DMG Display"));
 	DMGDisplay->SetupAttachment(PaperFlipbook);
 
-	BleedingDisplay = CreateDefaultSubobject<UWidgetComponent>(TEXT("Bleeding Display"));
-	BleedingDisplay->SetupAttachment(PaperFlipbook);
-	BleedingDisplay->SetVisibility(false);
-
-	PoisoningDisplay = CreateDefaultSubobject<UWidgetComponent>(TEXT("Poisoning Display"));
-	PoisoningDisplay->SetupAttachment(PaperFlipbook);
-	PoisoningDisplay->SetVisibility(false);
+	StatusDisplay = CreateDefaultSubobject<UWidgetComponent>(TEXT("Bleeding Display"));
+	StatusDisplay->SetupAttachment(PaperFlipbook);
 
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
@@ -69,6 +64,7 @@ void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData, const TArray
 	CurrentHP = BaseData.MaxHP;
 	CurrentME = BaseData.MaxME;
 	CurrentDefense = BaseData.BaseDefense;
+	CurrentCooldown = BaseData.Cooldown;
 
 	AttackActions = InAttackActions;
 	DefendActions = InDefendActions;	
@@ -331,7 +327,7 @@ void ABLCombatCharacter::StartCooldown()
 {
 	HandleStatuses();
 
-	GetWorld()->GetTimerManager().SetTimer(CooldownTimer, this, &ABLCombatCharacter::EndCooldown, BaseData.Cooldown, false);
+	GetWorld()->GetTimerManager().SetTimer(CooldownTimer, this, &ABLCombatCharacter::EndCooldown, CurrentCooldown, false);
 }
 
 void ABLCombatCharacter::EndCooldown()
@@ -341,33 +337,7 @@ void ABLCombatCharacter::EndCooldown()
 
 	TargetCharacters.Empty();
 
-	TArray<UBLActionEntryData*> EntriesToDelete;
-
-	for (auto& Item : ActionsTurnsCooldown)
-	{	
-		if (Item.Key->bCanBeUsed) continue;
-
-		--Item.Value;
-		FFormatNamedArguments Args;
-		Args.Add(TEXT("Name"), Item.Key->TempName);
-		Args.Add(TEXT("Turns"), Item.Value);
-		const FText NewName = FText::Format(FText::FromString("{Name} Cd:{Turns}t"), Args);
-		Item.Key->ChangeName(NewName);
-		if (Item.Value <= 0)
-		{
-			Item.Key->ChangeName(Item.Key->TempName);
-			Item.Key->bCanBeUsed = true;
-			EntriesToDelete.Add(Item.Key);
-		}
-	}
-
-	for (const auto* Item : EntriesToDelete)
-	{
-		if (ActionsTurnsCooldown.Contains(Item))
-		{
-			ActionsTurnsCooldown.Remove(Item);
-		}
-	}
+	HandleTurnsCooldown();
 
 	OnEndCooldown.ExecuteIfBound();
 }
@@ -481,23 +451,41 @@ void ABLCombatCharacter::SpawnProjectile(TSubclassOf<ABLRangeProjectile> Project
 	}
 }
 
-void ABLCombatCharacter::GiveStatus(ECombatStatus Status)
+void ABLCombatCharacter::GiveStatus(ECombatStatus Status, int32 Turns)
 {
-	Statuses.Add(Status, 3); //TODO: change back to 5 turns or not
+	if (Statuses.Contains(Status))
+	{
+		Statuses[Status] = Turns;
+		return;
+	}
+
+	Statuses.Add(Status, Turns); //TODO: change back to 5 turns or not
 	switch (Status)
 	{
-		case ECombatStatus::BLEEDING:
+		case ECombatStatus::STUN:
 		{
-			BleedingDisplay->SetVisibility(true);
-			return;
+			CurrentCooldown += BaseData.Cooldown;
+			break;
 		}
-		case ECombatStatus::POISONING:
+		case ECombatStatus::BLINDING:
 		{
-			PoisoningDisplay->SetVisibility(true);
-			return;
+			CurrentCooldown += BaseData.Cooldown * 0.5f;
+			break;
 		}
-		default: return;
+		case ECombatStatus::SPEEDUP:
+		{
+			CurrentCooldown -= BaseData.Cooldown * 0.7f;
+			break;
+		}
+		case ECombatStatus::INSPIRATION:
+		{
+			CurrentCooldown -= BaseData.Cooldown * 0.3;
+			break;
+		}
+		default: break;
 	}
+
+	SetStatusDisplayVisibility(Status, true);
 }
 
 void ABLCombatCharacter::RemoveStatus(ECombatStatus Status)
@@ -505,18 +493,30 @@ void ABLCombatCharacter::RemoveStatus(ECombatStatus Status)
 	Statuses.Remove(Status);
 	switch (Status)
 	{
-		case ECombatStatus::BLEEDING:
+		case ECombatStatus::STUN:
 		{
-			BleedingDisplay->SetVisibility(false);
-			return;
+			CurrentCooldown -= BaseData.Cooldown;
+			break;
 		}
-		case ECombatStatus::POISONING:
+		case ECombatStatus::BLINDING:
 		{
-			PoisoningDisplay->SetVisibility(false);
-			return;
+			CurrentCooldown -= BaseData.Cooldown * 0.5f;
+			break;
 		}
-		default: return;
+		case ECombatStatus::SPEEDUP:
+		{
+			CurrentCooldown += BaseData.Cooldown * 0.7f;
+			break;
+		}
+		case ECombatStatus::INSPIRATION:
+		{
+			CurrentCooldown += BaseData.Cooldown * 0.3f;
+			break;
+		}
+		default: break;
 	}
+
+	SetStatusDisplayVisibility(Status, false);
 }
 
 void ABLCombatCharacter::HandleStatuses()
@@ -533,6 +533,11 @@ void ABLCombatCharacter::HandleStatuses()
 			case ECombatStatus::POISONING:
 			{
 				SimpleDMG += 1.f;
+				break;
+			}
+			case ECombatStatus::FLAMING:
+			{
+				SimpleDMG += 2.f;
 				break;
 			}
 			default: break;
@@ -585,8 +590,39 @@ void ABLCombatCharacter::TakeSimpleDamage(float Damage)
 	}
 }
 
+void ABLCombatCharacter::HandleTurnsCooldown()
+{
+	TArray<UBLActionEntryData*> EntriesToDelete;
 
-void ABLCombatCharacter::HandleHitByAction(ABLCombatCharacter* Attacker, float Damage, ECombatElementType DamageElementType, bool bMagical, const TArray<ECombatStatus>& InStatuses)
+	for (auto& Item : ActionsTurnsCooldown)
+	{
+		if (Item.Key->bCanBeUsed) continue;
+
+		--Item.Value;
+		FFormatNamedArguments Args;
+		Args.Add(TEXT("Name"), Item.Key->TempName);
+		Args.Add(TEXT("Turns"), Item.Value);
+		const FText NewName = FText::Format(FText::FromString("{Name} Cd:{Turns}t"), Args);
+		Item.Key->ChangeName(NewName);
+		if (Item.Value <= 0)
+		{
+			Item.Key->ChangeName(Item.Key->TempName);
+			Item.Key->bCanBeUsed = true;
+			EntriesToDelete.Add(Item.Key);
+		}
+	}
+
+	for (const auto* Item : EntriesToDelete)
+	{
+		if (ActionsTurnsCooldown.Contains(Item))
+		{
+			ActionsTurnsCooldown.Remove(Item);
+		}
+	}
+}
+
+
+void ABLCombatCharacter::HandleHitByAction(ABLCombatCharacter* Attacker, float Damage, ECombatElementType DamageElementType, bool bMagical, const TArray<FCombatStatus>& InStatuses)
 {
 	bool bIsHeal = false;
 	const float DMGMultiplier = CalculateElementsMultipliers(DamageElementType, BaseData.Element, bIsHeal);
@@ -604,16 +640,16 @@ void ABLCombatCharacter::HandleHitByAction(ABLCombatCharacter* Attacker, float D
 	}
 	else
 	{	
-		const int32 DodgeChange = FMath::RandRange(1, 100);
-		if (DodgeChange <= BaseData.BaseDodge)
+		const int32 DodgeChance = FMath::RandRange(1, 100);
+		if (DodgeChance <= BaseData.BaseDodge)
 		{
 			DisplayTextDMG(0, false, DamageElementType, true);
 			return;
 		}
 
 		// if it draws Pierce, Defense is reduced by half
-		const int32 PierceChange = FMath::RandRange(1, 100);
-		float NewDefense = PierceChange <= BaseData.Pierce ? CurrentDefense / 2 : CurrentDefense;
+		const int32 PierceChance = FMath::RandRange(1, 100);
+		float NewDefense = PierceChance <= BaseData.Pierce ? CurrentDefense / 2 : CurrentDefense;
 
 		// 10 def decreases dmg by 5%
 		float DMGValue = DMGMultiplier > 0 ? ((Damage * DMGMultiplier) * (1.f - ((NewDefense / 1000) * 5))) : 0.f; 
@@ -641,7 +677,11 @@ void ABLCombatCharacter::HandleHitByAction(ABLCombatCharacter* Attacker, float D
 	// adding statuses
 	for (const auto& Status : InStatuses)
 	{
-		GiveStatus(Status);
+		const int32 ApplicationChance = FMath::RandRange(1, 100);
+		if (ApplicationChance <= Status.ApplicationChance)
+		{
+			GiveStatus(Status.Status, Status.Turns);
+		}	
 	}
 
 	OnHealthUpdate.ExecuteIfBound();
