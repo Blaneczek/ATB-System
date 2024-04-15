@@ -74,7 +74,7 @@ void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData, const TArray
 }
 
 
-void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, const TArray<ABLCombatCharacter*>& Targets, const FCombatActionData& ActionData)
+void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, const TArray<ABLCombatCharacter*>& Targets, const FCombatActionData& ActionData, AActor* CombatManager)
 {
 	ClickedActionEntry = Cast<UBLActionEntryData>(ActionData.ActionEntry);
 
@@ -93,7 +93,7 @@ void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, const TA
 			CurrentAction = NewObject<UBLAction>(this, AttackActions[ActionData.Index].LoadSynchronous());
 			if (CurrentAction)
 			{
-				CurrentAction->OnCreateAction(this);
+				CurrentAction->OnCreateAction(this, CombatManager);
 			}
 			return;
 		}
@@ -108,7 +108,7 @@ void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, const TA
 			CurrentAction = NewObject<UBLAction>(this, DefendActions[ActionData.Index].LoadSynchronous());
 			if (CurrentAction)
 			{
-				CurrentAction->OnCreateAction(this);
+				CurrentAction->OnCreateAction(this, CombatManager);
 			}
 			return;
 		}
@@ -126,7 +126,7 @@ void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, const TA
 			CurrentAction = NewObject<UBLAction>(this, CrystalActions.Find(ActionData.CrystalColor)->Skills[ActionData.Index].LoadSynchronous());
 			if (CurrentAction)
 			{
-				CurrentAction->OnCreateAction(this);
+				CurrentAction->OnCreateAction(this, CombatManager);
 			}
 			return;
 		}
@@ -144,7 +144,7 @@ void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, const TA
 			CurrentAction = NewObject<UBLAction>(this, SpecialActions[ActionData.Index].LoadSynchronous());
 			if (CurrentAction)
 			{
-				CurrentAction->OnCreateAction(this);
+				CurrentAction->OnCreateAction(this, CombatManager);
 			}
 			return;
 		}
@@ -169,7 +169,7 @@ void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, const TA
 			CurrentAction = NewObject<UBLAction>(this, ItemActions[ActionData.Index].Action.LoadSynchronous());
 			if (CurrentAction)
 			{
-				CurrentAction->OnCreateAction(this);
+				CurrentAction->OnCreateAction(this, CombatManager);
 			}
 			return;
 		}
@@ -265,27 +265,6 @@ void ABLCombatCharacter::StartActionCooldown(int32 TurnsCost)
 		ActionsTurnsCooldown.Add(ClickedActionEntry, TurnsCost);
 	}
 }
-
-//Do it maybe 
-/* 
-void ABLCombatCharacter::StepForward()
-{
-	if (AIC)
-	{
-		AIC->MoveToLocation(GetActorLocation() + FVector(-50.f, 0.f, 0.f), 5.f);
-	}
-}
-
-void ABLCombatCharacter::BackInLine()
-{
-	if (AIC)
-	{
-		AIC->GetPathFollowingComponent()->OnRequestFinished.AddLambda([this](FAIRequestID RequestID, const FPathFollowingResult& Result) {SetActorTransform(SlotTransform); });
-		CurrentAction->OnEndExecution.BindLambda([this]() { AIC->MoveToLocation(SlotLocation, 5.f); });
-		AIC->GetPathFollowingComponent()->OnRequestFinished.RemoveAll(this);
-	}	
-}
-*/
 
 float ABLCombatCharacter::CalculateElementsMultipliers(ECombatElementType DamageElementType, ECombatElementType CharacterElementType, bool& OutIsHeal)
 { 

@@ -120,14 +120,14 @@ void ABLCombatSlot::UnPauseCharCooldown()
 	}
 }
 
-void ABLCombatSlot::DoAction(const TArray<ABLCombatSlot*>& TargetsSlots, const FCombatActionData& ActionData)
+void ABLCombatSlot::DoAction(const TArray<ABLCombatSlot*>& TargetsSlots, const FCombatActionData& ActionData, AActor* CombatManager)
 {
 	TArray<ABLCombatCharacter*> Targets;
 	for (const auto* Slot : TargetsSlots)
 	{
 		Targets.Add(Slot->GetCharacter());
 	}
-	Character->CreateAction(HelperScene->GetComponentLocation(), Targets, ActionData);
+	Character->CreateAction(HelperScene->GetComponentLocation(), Targets, ActionData, CombatManager);
 }
 
 void ABLCombatSlot::SelectTarget(bool NewSelect)
@@ -152,13 +152,11 @@ void ABLCombatSlot::SelectHero(bool NewSelect)
 
 	if (NewSelect)
 	{
-		//GetCharacter()->StepForward();
 		TargetPointer->SetHiddenInGame(false);
 		bClicked = true;
 	}
 	else
 	{
-		//GetCharacter()->BackInLine();
 		TargetPointer->SetHiddenInGame(true);
 		bClicked = false;
 	}
@@ -186,7 +184,10 @@ void ABLCombatSlot::EndCharCooldown()
 	if (bIsEnemy)
 	{
 		// TODO: something more advanced
-		OnEnemyAction.ExecuteIfBound(this, FCombatActionData(ECombatActionType::ATTACK, ECombatActionFlow::DEFAULT_MELEE, 0));
+		if (GetCharacter()->AttackActions.IsValidIndex(0))
+		{
+			OnEnemyAction.ExecuteIfBound(this, FCombatActionData(ECombatActionType::ATTACK, ECombatActionFlow::DEFAULT_MELEE, 0));
+		}	
 	}
 	else
 	{

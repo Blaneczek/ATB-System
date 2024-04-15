@@ -10,6 +10,7 @@
 
 class ABLCombatCharacter;
 class UPaperZDAnimSequence;
+class ABLCombatManager;
 
 DECLARE_DELEGATE(FOnEndExecution);
 
@@ -22,13 +23,13 @@ class BLADEOFLEGEND_API UBLAction : public UObject
 	GENERATED_BODY()
 	
 public:
-	virtual void OnCreateAction(ABLCombatCharacter* Owner);
+	virtual void OnCreateAction(ABLCombatCharacter* Owner, AActor* InCombatManager);
 	virtual void ActivateAction(ABLCombatCharacter* Owner) {};
 	virtual void ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharacter* Target) {};
 
 protected:
 	UFUNCTION(BlueprintImplementableEvent)
-	void ActionCalculations(ABLCombatCharacter* Owner, ABLCombatCharacter* Target);
+	void ActionCalculations(ABLCombatCharacter* Owner, ABLCombatCharacter* Target, AActor* InCombatManager);
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
@@ -62,4 +63,7 @@ public:
 	TObjectPtr<USoundBase> ActionSound{ nullptr };
 
 	FOnEndExecution OnEndExecution;
+
+	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat")
+	TObjectPtr<AActor> CombatManager;
 };

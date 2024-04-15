@@ -16,6 +16,7 @@ void UBLCombatWidget::NativeConstruct()
 
 	ActionsSwitcher->SetActiveWidget(NoneActions);
 	NotEnoughME->SetVisibility(ESlateVisibility::Hidden);
+	DisplayWindow->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void UBLCombatWidget::NativeOnInitialized()
@@ -134,6 +135,23 @@ void UBLCombatWidget::ActivateNotEnoughME()
 		FTimerHandle DelayTimer;
 		GetWorld()->GetTimerManager().SetTimer(DelayTimer, DelayDel, 1.5f, false);
 	}
+}
+
+void UBLCombatWidget::ShowWindowText(const FText& InText, float Time)
+{
+	WindowText->SetText(InText);
+	if (Time > 0.f)
+	{
+		FTimerHandle DelayTimer;
+		GetWorld()->GetTimerManager().SetTimer(DelayTimer, this, &UBLCombatWidget::HideWindowText, Time, false);
+	}
+
+	DisplayWindow->SetVisibility(ESlateVisibility::Visible);
+}
+
+void UBLCombatWidget::HideWindowText()
+{
+	DisplayWindow->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void UBLCombatWidget::ChosenAction(const FCombatActionData& ActionData)

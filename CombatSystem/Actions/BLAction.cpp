@@ -4,10 +4,12 @@
 #include "BLAction.h"
 #include "Characters/BLCombatCharacter.h"
 
-void UBLAction::OnCreateAction(ABLCombatCharacter* Owner)
+void UBLAction::OnCreateAction(ABLCombatCharacter* Owner, AActor* InCombatManager)
 {
 	if (Owner)
 	{
+		CombatManager = InCombatManager;
+
 		ActivateAction(Owner);
 
 		if (TurnsCost > 0)

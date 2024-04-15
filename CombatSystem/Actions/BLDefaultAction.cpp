@@ -23,7 +23,7 @@ void UBLDefaultAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharact
 		OnEndExecution.ExecuteIfBound();
 	}
 
-	ActionCalculations(Owner, nullptr);
+	ActionCalculations(Owner, Owner, CombatManager);
 
 	if (ActionAnim && ActionSound)
 	{

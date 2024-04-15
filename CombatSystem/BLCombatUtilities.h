@@ -319,12 +319,16 @@ struct FCombatData
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UMaterialInstance> BackgroundMaterial;
 
+	/** Optional */
+	UPROPERTY(EditAnywhere)
+	TArray<FText> QuestDisplayTexts;
+
 	FCombatData()
 		: EnemyData(nullptr), BackgroundMaterial(nullptr)
 	{}
 
-	FCombatData(TSoftObjectPtr<UBLEnemyDataAsset> InEnemyData, UMaterialInstance* InBackgroundMaterial)
-		: EnemyData(InEnemyData), BackgroundMaterial(InBackgroundMaterial)
+	FCombatData(TSoftObjectPtr<UBLEnemyDataAsset> InEnemyData, UMaterialInstance* InBackgroundMaterial, const TArray<FText>& InQuestDisplayTexts)
+		: EnemyData(InEnemyData), BackgroundMaterial(InBackgroundMaterial), QuestDisplayTexts(InQuestDisplayTexts)
 	{}
 };
 

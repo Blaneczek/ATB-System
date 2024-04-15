@@ -78,21 +78,29 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FString GetName() const { return BaseData.Name; };
 
-	void CreateAction(const FVector& OwnerSlotLocation, const TArray<ABLCombatCharacter*>& Targets, const FCombatActionData& ActionData);
+	void CreateAction(const FVector& OwnerSlotLocation, const TArray<ABLCombatCharacter*>& Targets, const FCombatActionData& ActionData, AActor* CombatManager);
+
+	/** ACTION FLOW TYPES */
 
 	/** Action is executing in place, no targets */
 	void DefaultAction();
+
 	/** Character runs up to the target and executes action */
 	void DefaultMeleeAction();
+
 	/** Character creates a projectile that flies to the target and executes action */
 	void DefaultRangeAction(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite);
+
 	/** Character runs up to the targets one by one and executes action for every target */
 	void MultipleDefaultMeleeAction();
-	/** Character creates multiple projectiles that flie to the target and execute action */
+
+	/** Character creates multiple projectiles that fly to the targets and execute action */
 	void MultipleDefaultRangeAction(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite);
+
 	/** Character runs up to the column and executes action for every target in column */
 	void ColumnMeleeAction();
 
+	/***/
 
 	/** Special actions turns cooldown */
 	void StartActionCooldown(int32 TurnsCost);
@@ -101,17 +109,17 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void DisplayTextDMG(float DMG, bool bHeal, ECombatElementType DMGElement, bool bDodge = false);
 
-	/** Moves selected Hero forward */
-	//void StepForward();
-	/** Moves selected Hero back in line */
-	//void BackInLine();
-
 	UFUNCTION(BlueprintCallable)
 	void GiveStatus(ECombatStatus Status, int32 Turns);
 
+	/**
+	* Adds/Removes given status icon
+	* @param bNewVisibility: true - add, false - remove
+	*/
 	UFUNCTION(BlueprintImplementableEvent)
 	void SetStatusDisplayVisibility(ECombatStatus Status, bool bNewVisibility);
 
+	/** Removes given status from Statuses */
 	UFUNCTION()
 	void RemoveStatus(ECombatStatus Status);
 
@@ -142,6 +150,17 @@ public:
 	FOnActionEnded OnActionEnded;
 	FOnHealthUpdate OnHealthUpdate;
 	FOnDeath OnDeath;
+
+	UPROPERTY()
+	TArray<TSoftClassPtr<UBLAction>> AttackActions;
+	UPROPERTY()
+	TArray<TSoftClassPtr<UBLAction>> DefendActions;
+	UPROPERTY()
+	TMap<ECrystalColor, FCrystalSkills> CrystalActions;
+	UPROPERTY()
+	TArray<TSoftClassPtr<UBLAction>> SpecialActions;
+	UPROPERTY()
+	TArray<FCombatItems> ItemActions;
 
 protected:
 	UPROPERTY()
@@ -189,17 +208,6 @@ private:
 	FVector SlotLocation;
 	UPROPERTY()
 	FTransform SlotTransform;
-
-	UPROPERTY()
-	TArray<TSoftClassPtr<UBLAction>> AttackActions;
-	UPROPERTY()
-	TArray<TSoftClassPtr<UBLAction>> DefendActions;
-	UPROPERTY()
-	TMap<ECrystalColor, FCrystalSkills> CrystalActions;
-	UPROPERTY()
-	TArray<TSoftClassPtr<UBLAction>> SpecialActions;
-	UPROPERTY()
-	TArray<FCombatItems> ItemActions;
 
 	UPROPERTY()
 	TMap<TObjectPtr<UBLActionEntryData>, int32> ActionsTurnsCooldown;

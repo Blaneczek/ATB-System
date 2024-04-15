@@ -27,6 +27,7 @@ ABLCombatManager::ABLCombatManager()
 	CurrentActionData = FCombatActionData();
 	CurrentPlayerSlot = nullptr;
 	CurrentTargetSlot = nullptr;
+	QuestTextIndex = 0;
 
 	PlayerTeam.Init(nullptr, 5);
 	EnemyTeam.Init(nullptr, 12);
@@ -56,6 +57,7 @@ void ABLCombatManager::BeginPlay()
 
 	GetWorld()->GetTimerManager().SetTimer(ActionQueueTimer, this, &ABLCombatManager::HandleActionsQueue, 0.5f, true);
 
+	ShowQuestText_Implementation();
 }
 
 // Called every frame
@@ -345,7 +347,7 @@ void ABLCombatManager::DoAction(ABLCombatSlot* OwnerSlot, const TArray<ABLCombat
 		}
 	}
 
-	OwnerSlot->DoAction(TargetsSlots, ActionData);
+	OwnerSlot->DoAction(TargetsSlots, ActionData, this);
 }
 
 ABLCombatSlot* ABLCombatManager::FindNewTargetSlot(bool bEnemyAction)
@@ -412,7 +414,6 @@ void ABLCombatManager::ActionEnded(ABLCombatSlot* OwnerSlot, bool bWasEnemy)
 
 void ABLCombatManager::ChooseAction(const FCombatActionData& ActionData)
 {
-	UE_LOG(LogTemp, Warning, TEXT("choosen action"));
 	CurrentActionType = ActionData.Type;
 	CurrentActionData = ActionData;
 }
@@ -534,7 +535,6 @@ void ABLCombatManager::CharacterDied(ABLCombatSlot* Slot, bool bIsEnemy)
 	bool bWonGame = false;
 	if (CheckIfEndGame(bWonGame))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("END"));
 		HandleEndGame(bWonGame);
 	}
 }
@@ -655,12 +655,34 @@ void ABLCombatManager::BindEnemyDelegetes()
 	}
 }
 
+void ABLCombatManager::ShowDisplayWindow(const FText& InText, float ShowTime)
+{
+	if (Widget)
+	{
+		Widget->ShowWindowText(InText, ShowTime);
+	}
+}
+
 void ABLCombatManager::ExitCombat()
 {
 	UBLGameInstance* GI = Cast<UBLGameInstance>(GetGameInstance());
 	if (GI)
 	{
 		UGameplayStatics::OpenLevel(GetWorld(), GI->PostCombatData.LevelName);
+	}
+}
+
+void ABLCombatManager::ShowQuestText_Implementation()
+{
+	UBLGameInstance* GI = Cast<UBLGameInstance>(GetGameInstance());
+	if (GI && GI->CombatData.QuestDisplayTexts.IsValidIndex(QuestTextIndex))
+	{
+		ShowDisplayWindow(GI->CombatData.QuestDisplayTexts[QuestTextIndex], 3);
+		QuestTextIndex++;
+		if (QuestTextIndex == GI->CombatData.QuestDisplayTexts.Num())
+		{
+			HandleEndGame(true);
+		}
 	}
 }
 

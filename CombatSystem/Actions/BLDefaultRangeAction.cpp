@@ -26,7 +26,7 @@ void UBLDefaultRangeAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCh
 		OnEndExecution.ExecuteIfBound();
 	}
 
-	ActionCalculations(Owner, Target);
+	ActionCalculations(Owner, Target, CombatManager);
 	FTimerHandle Delay;
 	FTimerDelegate DelayDel;
 	DelayDel.BindLambda([this]() { OnEndExecution.ExecuteIfBound(); });

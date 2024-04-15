@@ -52,7 +52,7 @@ public:
 	void PauseCharCooldown();
 	void UnPauseCharCooldown();
 
-	void DoAction(const TArray<ABLCombatSlot*>& TargetsSlots, const FCombatActionData& ActionData);
+	void DoAction(const TArray<ABLCombatSlot*>& TargetsSlots, const FCombatActionData& ActionData, AActor* CombatManager);
 
 	/** Selected Target effect */
 	void SelectTarget(bool NewSelect);

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "BLCombatUtilities.h"
+#include "BLWindowDisplayInterface.h"
 #include "BLCombatManager.generated.h"
 
 class ABLCombatSlot;
@@ -40,7 +41,7 @@ struct FActionQueue
 };
 
 UCLASS()
-class BLADEOFLEGEND_API ABLCombatManager : public AActor
+class BLADEOFLEGEND_API ABLCombatManager : public AActor, public IBLWindowDisplayInterface
 {
 	GENERATED_BODY()
 	
@@ -55,6 +56,10 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	/** IBLWindowDisplay interface implementation 
+	* Used when a combat is related to a quest, and the player must perform certain actions, after which the fight will end */	
+	virtual void ShowQuestText_Implementation() override;
 
 private:
 	/** Creates heroes and sets data for gameplay and UI depending on Heroes DataAsset */
@@ -149,6 +154,8 @@ private:
 
 	void ExitCombat();
 
+	void ShowDisplayWindow(const FText& InText, float Time);
+
 public:
 	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "BL|Combat")
 	TArray<TObjectPtr<ABLCombatSlot>> PlayerTeam;
@@ -196,4 +203,7 @@ private:
 
 	UPROPERTY()
 	ECombatActionType CurrentActionType;
+
+	UPROPERTY()
+	int32 QuestTextIndex;
 };

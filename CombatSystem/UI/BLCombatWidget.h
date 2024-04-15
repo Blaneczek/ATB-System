@@ -70,6 +70,10 @@ public:
 	/** It shows a text widget for a while when the hero does not have enough magic energy to execute an Action */
 	void ActivateNotEnoughME();
 
+	void ShowWindowText(const FText& InText, float Time);
+
+	void HideWindowText();
+
 private:
 	void ChosenAction(const FCombatActionData& ActionData);
 
@@ -106,6 +110,10 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
 	TObjectPtr<UTextBlock> NotEnoughME;
 
+	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
+	TObjectPtr<UBorder> DisplayWindow;
+	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
+	TObjectPtr<UTextBlock> WindowText;
 private:
 	UPROPERTY()
 	TArray<TObjectPtr<UBLActionsWidget>> Actions;
