@@ -16,6 +16,7 @@
 #include "Components/WidgetComponent.h"
 #include "UI/Entries/BLActionEntryData.h"
 #include "UI/Entries/BLItemEntryData.h"
+#include "BladeOfLegend/DAWID/Items/BLCombatItem.h"
 
 ABLCombatCharacter::ABLCombatCharacter()
 {
@@ -160,13 +161,16 @@ void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, const TA
 			TargetCharacters = Targets;
 
 			// Deleting used item
-			UBLItemEntryData* Item = Cast<UBLItemEntryData>(ActionData.ActionEntry);
-			if (Item)
+			UBLItemEntryData* ItemEntry = Cast<UBLItemEntryData>(ActionData.ActionEntry);
+			if (ItemEntry)
 			{
-				Item->OnDeleteFromList.ExecuteIfBound(Item->Index);
+				ItemEntry->OnDeleteFromList.ExecuteIfBound(ItemEntry->Index);
 			}
 
-			CurrentAction = NewObject<UBLAction>(this, ItemActions[ActionData.Index].Action.LoadSynchronous());
+			UBLCombatItem* Item = Cast<UBLCombatItem>(ItemActions[ActionData.Index].LoadSynchronous()->GetDefaultObject());
+			if (!Item) return;
+
+			CurrentAction = NewObject<UBLAction>(this, Item->Action);
 			if (CurrentAction)
 			{
 				CurrentAction->OnCreateAction(this, CombatManager);
@@ -603,14 +607,21 @@ void ABLCombatCharacter::HandleTurnsCooldown()
 
 void ABLCombatCharacter::HandleHitByAction(ABLCombatCharacter* Attacker, float Damage, ECombatElementType DamageElementType, bool bMagical, const TArray<FCombatStatus>& InStatuses)
 {
+	if (!Attacker)
+	{
+		return;
+	}
+
 	bool bIsHeal = false;
-	const float DMGMultiplier = CalculateElementsMultipliers(DamageElementType, BaseData.Element, bIsHeal);
+
+	const ECombatElementType DamageElement = bMagical ? DamageElementType : Attacker->GetWeaponElement();
+	const float DMGMultiplier = CalculateElementsMultipliers(DamageElement, BaseData.Element, bIsHeal);
 
 	if (bIsHeal)
 	{
 		const float HealValue = Damage * DMGMultiplier;
 		CurrentHP = FMath::Clamp((CurrentHP + HealValue), 0, BaseData.MaxHP);
-		DisplayTextDMG(HealValue, true, DamageElementType);
+		DisplayTextDMG(HealValue, true, DamageElement);
 		if (BaseData.HealAnim && BaseData.HealSound)
 		{
 			GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(BaseData.HealAnim);
@@ -622,7 +633,7 @@ void ABLCombatCharacter::HandleHitByAction(ABLCombatCharacter* Attacker, float D
 		const int32 DodgeChance = FMath::RandRange(1, 100);
 		if (DodgeChance <= BaseData.BaseDodge)
 		{
-			DisplayTextDMG(0, false, DamageElementType, true);
+			DisplayTextDMG(0, false, DamageElement, true);
 			return;
 		}
 
@@ -634,7 +645,7 @@ void ABLCombatCharacter::HandleHitByAction(ABLCombatCharacter* Attacker, float D
 		float DMGValue = DMGMultiplier > 0 ? ((Damage * DMGMultiplier) * (1.f - ((NewDefense / 1000) * 5))) : 0.f; 
 
 		// if attack is physical and Attacker has Poisoning status, dmg is decreased by 20%
-		if (!bMagical && Attacker && Attacker->Statuses.Contains(ECombatStatus::POISONING))
+		if (!bMagical && Attacker->Statuses.Contains(ECombatStatus::POISONING))
 		{
 			// Clamp because Defense can be higher than Damage, so that Damage is not negative
 			DMGValue = FMath::Clamp(FMath::RoundHalfFromZero(DMGValue * 0.8f), 0, FMath::RoundHalfFromZero(DMGValue));
@@ -645,17 +656,32 @@ void ABLCombatCharacter::HandleHitByAction(ABLCombatCharacter* Attacker, float D
 		}
 
 		CurrentHP = FMath::Clamp((CurrentHP - DMGValue), 0, BaseData.MaxHP);
-		DisplayTextDMG(DMGValue, false, DamageElementType);
-		if (BaseData.TakeDMGAnim && BaseData.TakeDMGSound)
+
+		DisplayTextDMG(DMGValue, false, DamageElement);
+		if (BaseData.TakeDMGAnim)
 		{
 			GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(BaseData.TakeDMGAnim);
+		}
+		if (BaseData.TakeDMGSound)
+		{
 			UGameplayStatics::PlaySound2D(GetWorld(), BaseData.TakeDMGSound);
 		}
 	}
 
+
 	// adding statuses
-	for (const auto& Status : InStatuses)
+	TArray<FCombatStatus> AllStatuses = InStatuses;
+	if (!bMagical)
 	{
+		AllStatuses.Add(Attacker->GetWeaponStatus());
+	}
+	
+	for (const auto& Status : AllStatuses)
+	{
+		if (BaseData.StatusesImmunity.Contains(Status.Status))
+		{
+			continue;
+		}
 		const int32 ApplicationChance = FMath::RandRange(1, 100);
 		if (ApplicationChance <= Status.ApplicationChance)
 		{

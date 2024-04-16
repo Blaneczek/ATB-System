@@ -9,18 +9,22 @@
 #include "UI/Entries/BLItemEntryWidget.h"
 #include "UI/Entries/BLItemEntryData.h"
 #include "Components/Image.h"
+#include "BladeOfLegend/DAWID/Items/BLCombatItem.h"
 
-void UBLItemActionWidget::AddActions(const TArray<FCombatItems>& InItemsActions)
+void UBLItemActionWidget::AddActions(const TArray<TSoftClassPtr<UBLCombatItem>>& InItemsActions)
 {
 	for (int32 Index = 0; Index < 12; ++Index)
 	{
 		if (InItemsActions.IsValidIndex(Index))
 		{
-			UBLAction* Action = Cast<UBLAction>(InItemsActions[Index].Action.LoadSynchronous()->GetDefaultObject());
+			UBLCombatItem* Item = Cast<UBLCombatItem>(InItemsActions[Index].LoadSynchronous()->GetDefaultObject());
+			if (!Item) return;
+
+			UBLAction* Action = Cast<UBLAction>(Item->Action->GetDefaultObject());
 			UBLItemEntryData* EntryItem = NewObject<UBLItemEntryData>();
 			if (Action && EntryItem)
 			{
-				EntryItem->Init(Index, Action->Name, Action->Flow, InItemsActions[Index].Thumbnail, true);
+				EntryItem->Init(Index, Action->Name, Action->Flow, Item->Icon, true);
 				EntryItem->OnDeleteFromList.BindUObject(this, &UBLItemActionWidget::DeleteItem);
 				ItemsList->AddItem(EntryItem);
 				Descriptions.Add(Action->Description);

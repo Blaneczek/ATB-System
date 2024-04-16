@@ -25,11 +25,14 @@ void ABLCombatPlayerController::BeginPlay()
 	bEnableClickEvents = true;
 	bEnableMouseOverEvents = true;
 
+	SetInputMode(FInputModeGameAndUI());
+
 	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
 	{
 		Subsystem->ClearAllMappings();
 		Subsystem->AddMappingContext(MappingContext, 0);
 	}
+
 }
 
 void ABLCombatPlayerController::SetupInputComponent()

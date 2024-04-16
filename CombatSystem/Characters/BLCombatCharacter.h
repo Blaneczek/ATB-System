@@ -49,13 +49,32 @@ public:
 
 	FTimerHandle GetCooldownTimer() { return CooldownTimer; };
 
+	UFUNCTION(BlueprintCallable)
 	float GetCooldown() const { return CurrentCooldown; };
+
+	UFUNCTION(BlueprintCallable)
 	float GetCurrentHP() const { return CurrentHP; };
+
+	UFUNCTION(BlueprintCallable)
 	void SetCurrentHP(float NewHP) { CurrentHP = NewHP; };
+
+	UFUNCTION(BlueprintCallable)
 	float GetMaxHP() const { return BaseData.MaxHP; };
+
+	UFUNCTION(BlueprintCallable)
 	float GetCurrentME() const { return CurrentME; };
+
+	UFUNCTION(BlueprintCallable)
 	void SetCurrentME(float NewME) { CurrentME = NewME; };
+
+	UFUNCTION(BlueprintCallable)
 	float GetMaxME() const { return BaseData.MaxME; };
+
+	UFUNCTION(BlueprintCallable)
+	ECombatElementType GetWeaponElement() const { return BaseData.WeaponElement; };
+
+	UFUNCTION(BlueprintCallable)
+	FCombatStatus GetWeaponStatus() const { return BaseData.WeaponStatus; };
 
 	UFUNCTION(BlueprintCallable)
 	float GetAttackDMG() const { return BaseData.BaseAttackDMG; };
@@ -160,25 +179,25 @@ public:
 	UPROPERTY()
 	TArray<TSoftClassPtr<UBLAction>> SpecialActions;
 	UPROPERTY()
-	TArray<FCombatItems> ItemActions;
+	TArray<TSoftClassPtr<UBLCombatItem>> ItemActions;
 
 protected:
 	UPROPERTY()
 	bool bDefendIdle;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
+	UPROPERTY()
 	FCombatCharData BaseData;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
+	UPROPERTY()
 	float CurrentHP;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
+	UPROPERTY()
 	float CurrentME;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
+	UPROPERTY()
 	int32 CurrentDefense;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
+	UPROPERTY()
 	float CurrentCooldown;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")

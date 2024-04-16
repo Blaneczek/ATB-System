@@ -12,6 +12,8 @@ class ABLCombatCharacter;
 class UBLAction;
 class ULevelSequence;
 class UBLEnemyDataAsset;
+class UBLItem;
+class UBLCombatItem;
 
 UENUM(BlueprintType)
 enum class ECombatActionType : uint8
@@ -75,6 +77,16 @@ enum class ECombatStatus : uint8
 	FLAMING		UMETA(DisplayName = "Flaming")
 };
 
+
+UENUM(BlueprintType)
+enum class EItemType: uint8
+{
+	NONE		UMETA(DisplayName = "None"),
+	WEAPON		UMETA(DisplayName = "Weapon"),
+	ARMOR		UMETA(DisplayName = "Armor"),
+	HELMET		UMETA(DisplayName = "Helmet")
+};
+
 USTRUCT(BlueprintType)
 struct FCrystalSkills
 {
@@ -85,15 +97,28 @@ struct FCrystalSkills
 };
 
 USTRUCT(BlueprintType)
-struct FCombatItems
+struct FCombatStatus
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere)
-	TSoftClassPtr<UBLAction> Action;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	ECombatStatus Status;
 
-	UPROPERTY(EditAnywhere)
-	TObjectPtr<UTexture2D> Thumbnail;
+	/** Number of cooldowns for which the status will be active */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 Turns;
+
+	/** Percentage chance of status application. 0 - 0%, 100 - 100% */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ApplicationChance;
+
+	FCombatStatus()
+		: Status(ECombatStatus::NONE), Turns(0), ApplicationChance(0)
+	{}
+
+	FCombatStatus(ECombatStatus InStatus, int32 InTurns, int32 InApplicationChance)
+		: Status(InStatus), Turns(InTurns), ApplicationChance(InApplicationChance)
+	{}
 };
 
 USTRUCT(BlueprintType)
@@ -137,64 +162,94 @@ struct FCombatCharData
 
 	UPROPERTY(EditAnywhere)
 	FString Name;
+
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<ABLCombatCharacter> Class;
+
 	UPROPERTY(EditAnywhere)
 	float MaxHP;
+
 	UPROPERTY(EditAnywhere)
 	float MaxME;
+
 	UPROPERTY(EditAnywhere)
 	float BaseAttackDMG;
+
 	UPROPERTY(EditAnywhere)
-	int32 BaseDefense;
+	float BaseDefense;
+
 	UPROPERTY(EditAnywhere)
-	int32 BaseDodge;
+	float BaseDodge;
+
 	UPROPERTY(EditAnywhere)
 	float Cooldown;
+
 	UPROPERTY(EditAnywhere)
 	int32 Strength;
+
 	UPROPERTY(EditAnywhere)
 	int32 Agility;
+
 	UPROPERTY(EditAnywhere)
 	int32 Wisdom;
+
 	UPROPERTY(EditAnywhere)
 	int32 Endurance;
+
 	UPROPERTY(EditAnywhere)
-	int32 Pierce;
+	float Pierce;
+
 	UPROPERTY(EditAnywhere)
 	ECombatElementType Element;
+
+	UPROPERTY(EditAnywhere)
+	ECombatElementType WeaponElement;
+
+	UPROPERTY(EditAnywhere)
+	TSet<ECombatStatus> StatusesImmunity;
+
+	UPROPERTY(EditAnywhere)
+	FCombatStatus WeaponStatus;
+
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UPaperFlipbook> Sprite;
+
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UPaperZDAnimInstance> AnimInstanceClass;
+
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UPaperZDAnimSequence> TakeDMGAnim;
+
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<USoundBase> TakeDMGSound;
+
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UPaperZDAnimSequence> HealAnim;
+
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<USoundBase> HealSound;
 
 	FCombatCharData()
 		:Name(""), Class(nullptr), MaxHP(0.f), MaxME(0.f), BaseAttackDMG(0.f)
-		, BaseDefense(0), BaseDodge(0), Cooldown(0.f), Strength(0)
-		, Agility(0), Wisdom(0), Endurance(0), Pierce(0), Element(ECombatElementType::NONE)
+		, BaseDefense(0.f), BaseDodge(0.f), Cooldown(0.f), Strength(0)
+		, Agility(0), Wisdom(0), Endurance(0), Pierce(0.f), Element(ECombatElementType::NONE)
+		, WeaponElement(ECombatElementType::NONE), WeaponStatus(FCombatStatus())
 		, Sprite(nullptr), AnimInstanceClass(nullptr), TakeDMGAnim(nullptr)
 		, TakeDMGSound(nullptr), HealAnim(nullptr), HealSound(nullptr)
 	{}
 
 	FCombatCharData(const FString& InName, TSubclassOf<ABLCombatCharacter> InClass, float InMaxHP
-		, float InMaxME, float InAttackDMG, int32 InBaseDefense, int32 InBaseDodge
+		, float InMaxME, float InAttackDMG, float InBaseDefense, float InBaseDodge
 		, float InCooldown, int32 InStrength, int32 InAgility, int32 InWisdom, int32 InEndurance
-		, int32 InPierce, ECombatElementType InElement, UPaperFlipbook* InSprite
-		, TSubclassOf<UPaperZDAnimInstance> InAnimClass
-		, UPaperZDAnimSequence* InTakeDMGAnim, USoundBase* InTakeDMGSound
-		, UPaperZDAnimSequence* InHealAnim, USoundBase* InHealSound)
+		, float InPierce, ECombatElementType InElement, ECombatElementType InWeaponElement 
+		, const TSet<ECombatStatus>& InStatusesImmunity, const FCombatStatus& InWeaponStatus
+		, UPaperFlipbook* InSprite, TSubclassOf<UPaperZDAnimInstance> InAnimClass, UPaperZDAnimSequence* InTakeDMGAnim
+		, USoundBase* InTakeDMGSound, UPaperZDAnimSequence* InHealAnim, USoundBase* InHealSound)
 
 		:Name(InName), Class(InClass), MaxHP(InMaxHP), MaxME(InMaxME), BaseAttackDMG(InAttackDMG)
 		, BaseDefense(InBaseDefense), BaseDodge(InBaseDodge), Cooldown(InCooldown), Strength(InStrength)
 		, Agility(InAgility), Wisdom(InWisdom), Endurance(InEndurance), Pierce(InPierce), Element(InElement)
+		, WeaponElement(InWeaponElement), StatusesImmunity(InStatusesImmunity), WeaponStatus(InWeaponStatus)
 		, Sprite(InSprite), AnimInstanceClass(InAnimClass), TakeDMGAnim(InTakeDMGAnim)
 		, TakeDMGSound(InTakeDMGSound), HealAnim(InHealAnim), HealSound(InHealSound)
 	{}
@@ -257,14 +312,14 @@ struct FCombatActions
 	TArray<TSoftClassPtr<UBLAction>> SpecialActions;
 
 	UPROPERTY(EditAnywhere)
-	TArray<FCombatItems> ItemActions;
+	TArray<TSoftClassPtr<UBLCombatItem>> ItemActions;
 
 	FCombatActions()
 	{}
 
 	FCombatActions(const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions
 		, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions, const TArray<TSoftClassPtr<UBLAction>>& InSpecialActions
-		, const TArray<FCombatItems>& InItemActions)
+		, const TArray<TSoftClassPtr<UBLCombatItem>>& InItemActions)
 
 		: AttackActions(InAttackActions), DefendActions(InDefendActions), CrystalActions(InCrystalActions)
 		, SpecialActions(InSpecialActions), ItemActions(InItemActions)
@@ -297,14 +352,18 @@ struct FPostCombatData
 	FVector PlayerPosition;
 
 	/** Optional items gained after winning fight */
-	// TODO: items
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<TSoftClassPtr<UBLItem>> Items;
 
 	FPostCombatData()
 		: LevelName(""), Experience(0), Money(0), LevelSequence(nullptr), PlayerPosition(FVector(0.f, 0.f, 0.f))
 	{}
 
-	FPostCombatData(const FName& InName, int32 InExperience, int32 InMoney, ULevelSequence* InLevelSequence = nullptr, const FVector& InPlayerPosition = FVector(0.f, 0.f, 0.f))
-		: LevelName(InName), Experience(InExperience), Money(InMoney), LevelSequence(InLevelSequence), PlayerPosition(InPlayerPosition)
+	FPostCombatData(const FName& InName, int32 InExperience, int32 InMoney, const TArray<TSoftClassPtr<UBLItem>>& InItems
+		, ULevelSequence* InLevelSequence = nullptr, const FVector& InPlayerPosition = FVector(0.f, 0.f, 0.f))
+
+		: LevelName(InName), Experience(InExperience), Money(InMoney), Items(InItems), LevelSequence(InLevelSequence)
+		, PlayerPosition(InPlayerPosition)
 	{}
 };
 
@@ -330,21 +389,4 @@ struct FCombatData
 	FCombatData(TSoftObjectPtr<UBLEnemyDataAsset> InEnemyData, UMaterialInstance* InBackgroundMaterial, const TArray<FText>& InQuestDisplayTexts)
 		: EnemyData(InEnemyData), BackgroundMaterial(InBackgroundMaterial), QuestDisplayTexts(InQuestDisplayTexts)
 	{}
-};
-
-USTRUCT(BlueprintType)
-struct FCombatStatus
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	ECombatStatus Status{ ECombatStatus::NONE };
-
-	/** Number of cooldowns for which the status will be active */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 Turns{ 0 };
-
-	/** Percentage chance of status application. 0 - 0%, 100 - 100% */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 ApplicationChance{ 0 };
 };

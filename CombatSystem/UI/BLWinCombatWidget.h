@@ -8,8 +8,10 @@
 
 class UButton;
 class UTextBlock;
+class UGridPanel;
+class UBLItem;
 
-DECLARE_DELEGATE(FOnEndGame);
+DECLARE_DELEGATE(FOnWinGame);
 
 /**
  * 
@@ -26,10 +28,10 @@ public:
 	UFUNCTION()
 	void OnBTNextClicked();
 
-	void SetData(int32 InExp, int32 InMoney);
+	void SetData(int32 InExp, int32 InMoney, const TArray<TSoftClassPtr<UBLItem>>& InItems);
 
 public:
-	FOnEndGame OnEndGame;
+	FOnWinGame OnWinGame;
 
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
@@ -37,7 +39,10 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
 	TObjectPtr<UTextBlock> Exp;
+
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
 	TObjectPtr<UTextBlock> Money;
 
+	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
+	TObjectPtr<UGridPanel> Items;
 };

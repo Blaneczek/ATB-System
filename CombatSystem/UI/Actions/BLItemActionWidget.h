@@ -8,6 +8,7 @@
 
 class UTileView;
 class UBLItemEntryWidget;
+class UBLCombatItem;
 
 /**
  * 
@@ -18,7 +19,7 @@ class BLADEOFLEGEND_API UBLItemActionWidget : public UBLActionWidget
 	GENERATED_BODY()
 
 public:
-	virtual void AddActions(const TArray<FCombatItems>& InItemsActions) override;
+	virtual void AddActions(const TArray<TSoftClassPtr<UBLCombatItem>>& InItemsActions) override;
 
 	virtual void ResetAction() override;
 

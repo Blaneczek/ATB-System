@@ -612,8 +612,8 @@ void ABLCombatManager::HandleEndGame(bool bWonGame)
 		if (WinWidgetClass)
 		{		
 			UBLWinCombatWidget* WinWidget = CreateWidget<UBLWinCombatWidget>(GetWorld(), WinWidgetClass);
-			WinWidget->SetData(GI->PostCombatData.Experience, GI->PostCombatData.Money);
-			WinWidget->OnEndGame.BindUObject(this, &ABLCombatManager::ExitCombat);
+			WinWidget->SetData(GI->PostCombatData.Experience, GI->PostCombatData.Money, GI->PostCombatData.Items);
+			WinWidget->OnWinGame.BindUObject(this, &ABLCombatManager::ExitCombat);
 			WinWidget->AddToViewport();
 		}		
 	}
@@ -622,7 +622,7 @@ void ABLCombatManager::HandleEndGame(bool bWonGame)
 		if (LostWidgetClass)
 		{
 			UBLLostCombatWidget* LostWidget = CreateWidget<UBLLostCombatWidget>(GetWorld(), LostWidgetClass);
-			//LostWidget->OnEndGame.BindUObject(this, &ABLCombatManager::ExitCombat);
+			LostWidget->OnLostGame.BindUObject(this, &ABLCombatManager::ExitCombat); // TODO: load last save
 			LostWidget->AddToViewport();
 		}
 	}

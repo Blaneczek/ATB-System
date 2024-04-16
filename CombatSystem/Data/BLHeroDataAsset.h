@@ -8,49 +8,59 @@
 #include "BLHeroDataAsset.generated.h"
 
 class UBLAction;
+class UBLWeaponItem;
+class UBLArmorItem;
+class UBLHelmetItem;
 
 USTRUCT(BlueprintType)
 struct FHeroAssetInfo
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FHeroAttributes HeroAttributes;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<ABLCombatCharacter> Class;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Cooldown{0};
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	ECombatElementType Element{ECombatElementType::NONE};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UPaperFlipbook> Sprite;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<UPaperZDAnimInstance> AnimInstanceClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<UPaperZDAnimInstance> OutOfCombatAnimInstanceClass;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UPaperZDAnimSequence> TakeDMGAnim;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<USoundBase> TakeDMGSound;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UPaperZDAnimSequence> HealAnim;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<USoundBase> HealSound;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FCombatActions CombatActions;
 
-	//eq info
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<UBLWeaponItem> Weapon;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<UBLArmorItem> Armor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<UBLHelmetItem> Helmet;
 };
 
 /**
@@ -66,9 +76,9 @@ public:
 	FCombatCharData CalculateBaseCombatData(int32 Index);
 
 public:
-	/** Heroes in player's team */
+	/** Player's heroes */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FHeroAssetInfo> Heroes;
 
-	//items info
+	//Team's items info
 };
