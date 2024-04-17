@@ -128,29 +128,39 @@ struct FHeroAttributes
 
 	UPROPERTY(EditAnywhere)
 	FString Name;
+
 	UPROPERTY(EditAnywhere)
 	int32 Level;
+
 	UPROPERTY(EditAnywhere)
 	int32 Experience;
+
 	UPROPERTY(EditAnywhere)
 	int32 ExperienceNextLevel;
+
 	UPROPERTY(EditAnywhere)
 	float BaseHealth;	
+
 	UPROPERTY(EditAnywhere)
 	float BaseMagicEnergy;
+
 	UPROPERTY(EditAnywhere)
 	int32 Strength;
+
 	UPROPERTY(EditAnywhere)
 	int32 Agility;
+
 	UPROPERTY(EditAnywhere)
 	int32 Wisdom;
+
 	UPROPERTY(EditAnywhere)
 	int32 Endurance;
+
 	UPROPERTY(EditAnywhere)
 	int32 TotalCrystalsLevel;
 
 	FHeroAttributes()
-		: Name(""), Level(1), Experience(0), ExperienceNextLevel(100), BaseHealth(20.f)
+		: Level(1), Experience(0), ExperienceNextLevel(50), BaseHealth(10.f)
 		, BaseMagicEnergy(10.f), Strength(1), Agility(1), Wisdom(1), Endurance(1), TotalCrystalsLevel(0)
 	{}
 };
@@ -229,13 +239,20 @@ struct FCombatCharData
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<USoundBase> HealSound;
 
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UPaperZDAnimSequence> DeathAnim;
+
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<USoundBase> DeathSound;
+
 	FCombatCharData()
-		:Name(""), Class(nullptr), MaxHP(0.f), MaxME(0.f), BaseAttackDMG(0.f)
+		: Class(nullptr), MaxHP(0.f), MaxME(0.f), BaseAttackDMG(0.f)
 		, BaseDefense(0.f), BaseDodge(0.f), Cooldown(0.f), Strength(0)
 		, Agility(0), Wisdom(0), Endurance(0), Pierce(0.f), Element(ECombatElementType::NONE)
 		, WeaponElement(ECombatElementType::NONE), WeaponStatus(FCombatStatus())
 		, Sprite(nullptr), AnimInstanceClass(nullptr), TakeDMGAnim(nullptr)
 		, TakeDMGSound(nullptr), HealAnim(nullptr), HealSound(nullptr)
+		, DeathAnim(nullptr), DeathSound(nullptr)
 	{}
 
 	FCombatCharData(const FString& InName, TSubclassOf<ABLCombatCharacter> InClass, float InMaxHP
@@ -244,7 +261,8 @@ struct FCombatCharData
 		, float InPierce, ECombatElementType InElement, ECombatElementType InWeaponElement 
 		, const TSet<ECombatStatus>& InStatusesImmunity, const FCombatStatus& InWeaponStatus
 		, UPaperFlipbook* InSprite, TSubclassOf<UPaperZDAnimInstance> InAnimClass, UPaperZDAnimSequence* InTakeDMGAnim
-		, USoundBase* InTakeDMGSound, UPaperZDAnimSequence* InHealAnim, USoundBase* InHealSound)
+		, USoundBase* InTakeDMGSound, UPaperZDAnimSequence* InHealAnim, USoundBase* InHealSound
+		, UPaperZDAnimSequence* InDeathAnim, USoundBase* InDeathSound)
 
 		:Name(InName), Class(InClass), MaxHP(InMaxHP), MaxME(InMaxME), BaseAttackDMG(InAttackDMG)
 		, BaseDefense(InBaseDefense), BaseDodge(InBaseDodge), Cooldown(InCooldown), Strength(InStrength)
@@ -252,6 +270,7 @@ struct FCombatCharData
 		, WeaponElement(InWeaponElement), StatusesImmunity(InStatusesImmunity), WeaponStatus(InWeaponStatus)
 		, Sprite(InSprite), AnimInstanceClass(InAnimClass), TakeDMGAnim(InTakeDMGAnim)
 		, TakeDMGSound(InTakeDMGSound), HealAnim(InHealAnim), HealSound(InHealSound)
+		, DeathAnim(InDeathAnim), DeathSound(InDeathSound)
 	{}
 };
 
@@ -287,7 +306,8 @@ struct FCombatActionData
 	{}
 
 	FCombatActionData(ECombatActionType InType, ECombatActionFlow InFlow, int32 InIndex
-		, ECrystalColor InCrystalColor = ECrystalColor::NONE, float InMECost = 0.f, int32 InTargetsNum = 1.f, UObject* InActionEntry = nullptr)
+		, ECrystalColor InCrystalColor = ECrystalColor::NONE, float InMECost = 0.f
+		, int32 InTargetsNum = 1.f, UObject* InActionEntry = nullptr)
 
 		: Type(InType), Flow(InFlow), Index(InIndex), CrystalColor(InCrystalColor)
 		, MECost(InMECost), TargetsNum(InTargetsNum), ActionEntry(InActionEntry)
@@ -343,6 +363,10 @@ struct FPostCombatData
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Money;
 
+	/** Optional items gained after winning fight */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<TSoftClassPtr<UBLItem>> Items;
+
 	/** Optional level sequence to play after the fight */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<ULevelSequence> LevelSequence;
@@ -351,19 +375,15 @@ struct FPostCombatData
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector PlayerPosition;
 
-	/** Optional items gained after winning fight */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<TSoftClassPtr<UBLItem>> Items;
-
 	FPostCombatData()
-		: LevelName(""), Experience(0), Money(0), LevelSequence(nullptr), PlayerPosition(FVector(0.f, 0.f, 0.f))
+		: Experience(0), Money(0), LevelSequence(nullptr), PlayerPosition(FVector(0.f, 0.f, 0.f))
 	{}
 
 	FPostCombatData(const FName& InName, int32 InExperience, int32 InMoney, const TArray<TSoftClassPtr<UBLItem>>& InItems
 		, ULevelSequence* InLevelSequence = nullptr, const FVector& InPlayerPosition = FVector(0.f, 0.f, 0.f))
 
-		: LevelName(InName), Experience(InExperience), Money(InMoney), Items(InItems), LevelSequence(InLevelSequence)
-		, PlayerPosition(InPlayerPosition)
+		: LevelName(InName), Experience(InExperience), Money(InMoney), Items(InItems)
+		, LevelSequence(InLevelSequence), PlayerPosition(InPlayerPosition)
 	{}
 };
 

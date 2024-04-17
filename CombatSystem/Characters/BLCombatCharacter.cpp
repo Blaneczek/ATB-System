@@ -202,8 +202,8 @@ void ABLCombatCharacter::DefaultMeleeAction()
 	}
 
 	AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLCombatCharacter::ReachedActionDestination);
-	UE_LOG(LogTemp, Warning, TEXT("STARTED"));
-	AIC->MoveToActor(TargetCharacters[0], 30.f);
+	const FVector& Location = TargetCharacters[0]->GetActorLocation() + (TargetCharacters[0]->GetActorForwardVector() * 40);
+	AIC->MoveToLocation(Location, 5.f);
 }
 
 void ABLCombatCharacter::DefaultRangeAction(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite)
@@ -231,9 +231,9 @@ void ABLCombatCharacter::MultipleDefaultMeleeAction()
 		return;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("STARTED"));
 	AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLCombatCharacter::ReachedActionDestination, 0);
-	AIC->MoveToActor(TargetCharacters[0], 30.f);
+	const FVector& Location = TargetCharacters[0]->GetActorLocation() + (TargetCharacters[0]->GetActorForwardVector() * 40);
+	AIC->MoveToLocation(Location, 5.f);
 }
 
 void ABLCombatCharacter::MultipleDefaultRangeAction(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite)
@@ -257,7 +257,6 @@ void ABLCombatCharacter::ColumnMeleeAction()
 	}
 
 	AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLCombatCharacter::ReachedActionDestination);
-	UE_LOG(LogTemp, Warning, TEXT("STARTED"));
 	AIC->MoveToActor(TargetCharacters[0], 30.f);
 }
 
@@ -289,12 +288,12 @@ float ABLCombatCharacter::CalculateElementsMultipliers(ECombatElementType Damage
 		{1.0f,   1.0f,   1.0f,   1.0f,   1.0f,   0.0f,   1.0f,   1.0f,   1.0f,   1.0f}   // NONE
 	};
 
-	const uint8 AttackElementIndex = static_cast<int32>(DamageElementType);
-	const uint8 TargetElementIndex = static_cast<int32>(CharacterElementType);
+	const int32 AttackElementIndex = static_cast<int32>(DamageElementType);
+	const int32 TargetElementIndex = static_cast<int32>(CharacterElementType);
 
 	const float Multiplier = ElementsTable[TargetElementIndex][AttackElementIndex];
 
-	// If Attack and Target Element is the same, heals target
+	// If Attack and Target Element is the same, damage will be converted to healing (except NONE NONE)
 	if (AttackElementIndex == TargetElementIndex && AttackElementIndex != ElementsTable.Num() - 1)
 	{
 		OutIsHeal = true;
@@ -362,7 +361,8 @@ void ABLCombatCharacter::ReachedActionDestination(FAIRequestID RequestID, const 
 	if (TargetCharacters.IsValidIndex(TargetIndex + 1) && TargetCharacters[TargetIndex + 1] && TargetCharacters[TargetIndex + 1]->GetCurrentHP() > 0)
 	{
 		AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLCombatCharacter::ReachedActionDestination, TargetIndex + 1);
-		CurrentAction->OnEndExecution.BindLambda([this, TargetIndex]() { AIC->MoveToActor(TargetCharacters[TargetIndex + 1], 10.f); });
+		const FVector& Location = TargetCharacters[TargetIndex + 1]->GetActorLocation() + (TargetCharacters[TargetIndex + 1]->GetActorForwardVector() * 50);
+		CurrentAction->OnEndExecution.BindLambda([this, Location]() { AIC->MoveToLocation(Location, 5.f); });
 	}
 	else
 	{
@@ -442,7 +442,7 @@ void ABLCombatCharacter::GiveStatus(ECombatStatus Status, int32 Turns)
 		return;
 	}
 
-	Statuses.Add(Status, Turns); //TODO: change back to 5 turns or not
+	Statuses.Add(Status, Turns);
 	switch (Status)
 	{
 		case ECombatStatus::STUN:
@@ -567,8 +567,16 @@ void ABLCombatCharacter::TakeSimpleDamage(float Damage)
 	OnHealthUpdate.ExecuteIfBound();
 	if (CurrentHP <= 0.f)
 	{
-		//TODO: add death animation
-		//TODO: change idle anim to death
+		bDeathIdle = true;
+		if (BaseData.DeathAnim)
+		{
+			GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(BaseData.DeathAnim);
+		}
+		if (BaseData.DeathSound)
+		{
+			UGameplayStatics::PlaySound2D(GetWorld(), BaseData.DeathSound);
+		}
+
 		OnDeath.ExecuteIfBound();
 	}
 }
@@ -604,6 +612,86 @@ void ABLCombatCharacter::HandleTurnsCooldown()
 	}
 }
 
+void ABLCombatCharacter::HandleHealHit(float Damage, float HealMultiplier, ECombatElementType HealElementType)
+{
+	const float HealValue = Damage * HealMultiplier;
+	CurrentHP = FMath::Clamp((CurrentHP + HealValue), 0, BaseData.MaxHP);
+	DisplayTextDMG(HealValue, true, HealElementType);
+	if (BaseData.HealAnim)
+	{
+		GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(BaseData.HealAnim);
+	}
+	if (BaseData.HealSound)
+	{
+		UGameplayStatics::PlaySound2D(GetWorld(), BaseData.HealSound);
+	}
+}
+
+void ABLCombatCharacter::HandleDamageHit(ABLCombatCharacter* Attacker, float Damage, float DMGMultiplier, ECombatElementType DamageElementType, bool bMagicalAction)
+{
+	// if it draws DODGE, character will not take any damage or heal
+	const int32 DodgeChance = FMath::RandRange(1, 100);
+	if (DodgeChance <= BaseData.BaseDodge)
+	{
+		DisplayTextDMG(0, false, DamageElementType, true);
+		return;
+	}
+
+	// if it draws Pierce, Defense is reduced by half
+	const int32 PierceChance = FMath::RandRange(1, 100);
+	const float NewDefense = PierceChance <= BaseData.Pierce ? CurrentDefense / 2 : CurrentDefense;
+
+	// 10 def decreases dmg by 5%
+	float DMGValue = (Damage * DMGMultiplier) * (1.f - ((NewDefense / 1000) * 5));
+
+	// if attack is physical and Attacker has Poisoning status, dmg is decreased by 20%
+	if (!bMagicalAction && Attacker->Statuses.Contains(ECombatStatus::POISONING))
+	{
+		// Clamp because Defense can be higher than Damage, so that Damage is not negative
+		DMGValue = FMath::Clamp(FMath::RoundHalfFromZero(DMGValue * 0.8f), 0, FMath::RoundHalfFromZero(DMGValue));
+	}
+	else
+	{
+		DMGValue = FMath::Clamp(FMath::RoundHalfFromZero(DMGValue), 0, FMath::RoundHalfFromZero(DMGValue));
+	}
+
+	// sets character HP between 0 and MaxHP
+	CurrentHP = FMath::Clamp((CurrentHP - DMGValue), 0, BaseData.MaxHP);
+
+	DisplayTextDMG(DMGValue, false, DamageElementType);
+
+	if (BaseData.TakeDMGAnim)
+	{
+		GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(BaseData.TakeDMGAnim);
+	}
+	if (BaseData.TakeDMGSound)
+	{
+		UGameplayStatics::PlaySound2D(GetWorld(), BaseData.TakeDMGSound);
+	}
+}
+
+void ABLCombatCharacter::HandleHitStatuses(ABLCombatCharacter* Attacker, const TArray<FCombatStatus>& InStatuses, bool bMagicalAction)
+{
+	// temp array to add weapon and action statuses (weapon status only if its physical action)
+	TArray<FCombatStatus> AllStatuses = InStatuses;
+	if (!bMagicalAction)
+	{
+		AllStatuses.Add(Attacker->GetWeaponStatus());
+	}
+
+	for (const auto& Status : AllStatuses)
+	{
+		if (BaseData.StatusesImmunity.Contains(Status.Status))
+		{
+			continue;
+		}
+		const int32 ApplicationChance = FMath::RandRange(1, 100);
+		if (ApplicationChance <= Status.ApplicationChance)
+		{
+			GiveStatus(Status.Status, Status.Turns);
+		}
+	}
+}
 
 void ABLCombatCharacter::HandleHitByAction(ABLCombatCharacter* Attacker, float Damage, ECombatElementType DamageElementType, bool bMagical, const TArray<FCombatStatus>& InStatuses)
 {
@@ -619,82 +707,28 @@ void ABLCombatCharacter::HandleHitByAction(ABLCombatCharacter* Attacker, float D
 
 	if (bIsHeal)
 	{
-		const float HealValue = Damage * DMGMultiplier;
-		CurrentHP = FMath::Clamp((CurrentHP + HealValue), 0, BaseData.MaxHP);
-		DisplayTextDMG(HealValue, true, DamageElement);
-		if (BaseData.HealAnim && BaseData.HealSound)
-		{
-			GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(BaseData.HealAnim);
-			UGameplayStatics::PlaySound2D(GetWorld(), BaseData.HealSound);
-		}
+		HandleHealHit(Damage, DMGMultiplier, DamageElement);
 	}
 	else
 	{	
-		const int32 DodgeChance = FMath::RandRange(1, 100);
-		if (DodgeChance <= BaseData.BaseDodge)
-		{
-			DisplayTextDMG(0, false, DamageElement, true);
-			return;
-		}
-
-		// if it draws Pierce, Defense is reduced by half
-		const int32 PierceChance = FMath::RandRange(1, 100);
-		float NewDefense = PierceChance <= BaseData.Pierce ? CurrentDefense / 2 : CurrentDefense;
-
-		// 10 def decreases dmg by 5%
-		float DMGValue = DMGMultiplier > 0 ? ((Damage * DMGMultiplier) * (1.f - ((NewDefense / 1000) * 5))) : 0.f; 
-
-		// if attack is physical and Attacker has Poisoning status, dmg is decreased by 20%
-		if (!bMagical && Attacker->Statuses.Contains(ECombatStatus::POISONING))
-		{
-			// Clamp because Defense can be higher than Damage, so that Damage is not negative
-			DMGValue = FMath::Clamp(FMath::RoundHalfFromZero(DMGValue * 0.8f), 0, FMath::RoundHalfFromZero(DMGValue));
-		}
-		else
-		{
-			DMGValue = FMath::Clamp(FMath::RoundHalfFromZero(DMGValue), 0, FMath::RoundHalfFromZero(DMGValue));
-		}
-
-		CurrentHP = FMath::Clamp((CurrentHP - DMGValue), 0, BaseData.MaxHP);
-
-		DisplayTextDMG(DMGValue, false, DamageElement);
-		if (BaseData.TakeDMGAnim)
-		{
-			GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(BaseData.TakeDMGAnim);
-		}
-		if (BaseData.TakeDMGSound)
-		{
-			UGameplayStatics::PlaySound2D(GetWorld(), BaseData.TakeDMGSound);
-		}
+		HandleDamageHit(Attacker, Damage, DMGMultiplier, DamageElement, bMagical);
 	}
 
-
-	// adding statuses
-	TArray<FCombatStatus> AllStatuses = InStatuses;
-	if (!bMagical)
-	{
-		AllStatuses.Add(Attacker->GetWeaponStatus());
-	}
-	
-	for (const auto& Status : AllStatuses)
-	{
-		if (BaseData.StatusesImmunity.Contains(Status.Status))
-		{
-			continue;
-		}
-		const int32 ApplicationChance = FMath::RandRange(1, 100);
-		if (ApplicationChance <= Status.ApplicationChance)
-		{
-			GiveStatus(Status.Status, Status.Turns);
-		}	
-	}
+	HandleHitStatuses(Attacker, InStatuses, bMagical);
 
 	OnHealthUpdate.ExecuteIfBound();
-
 	if (CurrentHP <= 0.f)
 	{
-		//TODO: add death animation
-		//TODO: change idle anim to death
+		bDeathIdle = true;
+		if (BaseData.DeathAnim)
+		{
+			GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(BaseData.DeathAnim);
+		}
+		if (BaseData.DeathSound)
+		{
+			UGameplayStatics::PlaySound2D(GetWorld(), BaseData.DeathSound);
+		}
+
 		OnDeath.ExecuteIfBound();
 	}
 }

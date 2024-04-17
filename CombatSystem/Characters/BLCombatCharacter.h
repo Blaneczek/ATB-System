@@ -93,13 +93,18 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool IsDefendIdle() const { return bDefendIdle; };
 
+	UFUNCTION(BlueprintCallable)
+	bool IsDeathIdle() const { return bDeathIdle; };
+
 	/** Only for text render (Debug) */
 	UFUNCTION(BlueprintCallable)
 	FString GetName() const { return BaseData.Name; };
 
 	void CreateAction(const FVector& OwnerSlotLocation, const TArray<ABLCombatCharacter*>& Targets, const FCombatActionData& ActionData, AActor* CombatManager);
 
-	/** ACTION FLOW TYPES */
+	/********************* 
+	*  ACTION FLOW TYPES 
+	**********************/
 
 	/** Action is executing in place, no targets */
 	void DefaultAction();
@@ -119,7 +124,7 @@ public:
 	/** Character runs up to the column and executes action for every target in column */
 	void ColumnMeleeAction();
 
-	/***/
+	/***********************************************************************************************/
 
 	/** Special actions turns cooldown */
 	void StartActionCooldown(int32 TurnsCost);
@@ -135,7 +140,7 @@ public:
 	* Adds/Removes given status icon
 	* @param bNewVisibility: true - add, false - remove
 	*/
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent, meta = (AutoCreateRefTerm = "Status"))
 	void SetStatusDisplayVisibility(ECombatStatus Status, bool bNewVisibility);
 
 	/** Removes given status from Statuses */
@@ -150,10 +155,19 @@ private:
 	UFUNCTION()
 	void EndAction(bool bResult);
 
+	/** For DefaultMelee and ColumnMelee action flow*/
 	void ReachedActionDestination(FAIRequestID RequestID, const FPathFollowingResult& Result);
+
+	/** For MultipleMelee action flow */
 	void ReachedActionDestination(FAIRequestID RequestID, const FPathFollowingResult& Result, int32 TargetIndex);
+
+	/** For DeafultRange action flow */
 	void ReachedActionDestination();
+
+	/** For MultipleRange action flow */
 	void ReachedActionDestination(int32 Index, bool bLastProjectile);
+
+	/** Back to the owner slot after action */
 	void ReachedSlotLocation(FAIRequestID RequestID, const FPathFollowingResult& Result);
 
 	void SpawnProjectile(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite);
@@ -163,6 +177,15 @@ private:
 	void TakeSimpleDamage(float Damage);
 
 	void HandleTurnsCooldown();
+
+	/** Handles the situation where Action damage will be converted into healing */
+	void HandleHealHit(float Damage, float HealMultiplier, ECombatElementType HealElementType);
+
+	/** Handles the situation where Action deals damage to a character */
+	void HandleDamageHit(ABLCombatCharacter* Attacker, float Damage, float DMGMultiplier, ECombatElementType DamageElementType, bool bMagicalAction);
+
+	/** Adds all statuses from Action and weapon that will be successively applied */
+	void HandleHitStatuses(ABLCombatCharacter* Attacker, const TArray<FCombatStatus>& InStatuses, bool bMagicalAction);
 
 public:
 	FOnEndCooldown OnEndCooldown;
@@ -182,8 +205,13 @@ public:
 	TArray<TSoftClassPtr<UBLCombatItem>> ItemActions;
 
 protected:
+	/** If idle Defend animation should be played */
 	UPROPERTY()
 	bool bDefendIdle;
+
+	/** If idle Death animation should be played */
+	UPROPERTY()
+	bool bDeathIdle;
 
 	UPROPERTY()
 	FCombatCharData BaseData;
@@ -233,7 +261,7 @@ private:
 	UPROPERTY()
 	TObjectPtr<UBLActionEntryData> ClickedActionEntry;
 
-	/** Counter for multiple projectiles to now when ends action*/
+	/** Counter for multiple projectiles to know when ends action*/
 	UPROPERTY()
 	int32 ProjectileTargetsNum;
 	UPROPERTY()

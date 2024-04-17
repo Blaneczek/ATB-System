@@ -19,5 +19,6 @@ public:
 	void ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharacter* Target) override;
 
 private:
-	bool bEndAction { true };
+	/** To track when the last target in column will get hit by action and then end action*/
+	bool bEndAction = true;
 };

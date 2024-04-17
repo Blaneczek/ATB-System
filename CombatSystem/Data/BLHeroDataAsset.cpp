@@ -61,11 +61,16 @@ FCombatCharData UBLHeroDataAsset::CalculateBaseCombatData(int32 Index)
 
 	USoundBase* HealSound = Heroes[Index].HealSound;
 
+	UPaperZDAnimSequence* DeathAnim = Heroes[Index].DeathAnim;
+
+	USoundBase* DeathSound = Heroes[Index].DeathSound;
+
 	const FCombatCharData OutData = FCombatCharData(Name, Class, MaxHP, MaxME, BaseAttackDMG, BaseDefense
 													, BaseDodge, Cooldown, Strength, Agility, Wisdom
 													, Endurance, Pierce, Element, WeaponElement, StatusesImmunity
 													, WeaponStatus, Sprite, AnimInstanceClass
-													, TakeDMGAnim, TakeDMGSound, HealAnim, HealSound);
+													, TakeDMGAnim, TakeDMGSound, HealAnim, HealSound
+													, DeathAnim, DeathSound);
 
 	return OutData;
 }
