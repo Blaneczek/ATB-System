@@ -20,14 +20,12 @@ void UBLMultipleDefaultMeleeAction::ExecuteAction(ABLCombatCharacter* Owner, ABL
 {
 	if (!Owner || !Target || Target->GetCurrentHP() <= 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("asdasd"));
 		OnEndExecution.ExecuteIfBound();
 		return;
 	}
 
-	if (ActionAnim && ActionSound)
+	if (ActionAnim)
 	{
-		UGameplayStatics::PlaySound2D(GetWorld(), ActionSound);
 		FZDOnAnimationOverrideEndSignature EndAnimDel;
 		EndAnimDel.BindLambda([this](bool bResult) { OnEndExecution.ExecuteIfBound(); });
 		Owner->GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(ActionAnim, "DefaultSlot", 1.f, 0.0f, EndAnimDel);

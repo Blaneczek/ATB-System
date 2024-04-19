@@ -9,10 +9,9 @@
 
 void UBLDefaultRangeAction::ActivateAction(ABLCombatCharacter* Owner)
 {
-	if (Owner && ActionAnim && ActionSound)
+	if (Owner && ActionAnim)
 	{
 		Owner->SetCurrentME(FMath::Clamp((Owner->GetCurrentME() - MECost), 0.f, Owner->GetMaxME()));
-		UGameplayStatics::PlaySound2D(GetWorld(), ActionSound);
 		FZDOnAnimationOverrideEndSignature EndAnimDel;
 		EndAnimDel.BindLambda([this, Owner](bool bResult) { Owner->DefaultRangeAction(ProjectileClass, ProjectileSprite); });
 		Owner->GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(ActionAnim, "DefaultSlot", 1.f, 0.0f, EndAnimDel);

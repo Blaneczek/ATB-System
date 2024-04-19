@@ -45,6 +45,12 @@ void ABLCombatManager::BeginPlay()
 		AC->OnSlotRemoved.BindUObject(this, &ABLCombatManager::DeselectClickedSlot);
 	}
 
+	UBLGameInstance* GI = Cast<UBLGameInstance>(GetGameInstance());
+	if (GI && GI->CombatData.CombatMusic)
+	{
+		UGameplayStatics::PlaySound2D(GetWorld(), GI->CombatData.CombatMusic);
+	}
+
 	InitializeWidget();
 	SetPlayerTeam();
 	SetEnemyTeam();

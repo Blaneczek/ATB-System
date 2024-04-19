@@ -134,18 +134,18 @@ public:
 	void DisplayTextDMG(float DMG, bool bHeal, ECombatElementType DMGElement, bool bDodge = false);
 
 	UFUNCTION(BlueprintCallable)
-	void GiveStatus(ECombatStatus Status, int32 Turns);
+	void GiveStatus(ECombatStatusType Status, int32 Turns);
 
 	/**
 	* Adds/Removes given status icon
 	* @param bNewVisibility: true - add, false - remove
 	*/
 	UFUNCTION(BlueprintImplementableEvent, meta = (AutoCreateRefTerm = "Status"))
-	void SetStatusDisplayVisibility(ECombatStatus Status, bool bNewVisibility);
+	void SetStatusDisplayVisibility(ECombatStatusType Status, bool bNewVisibility);
 
 	/** Removes given status from Statuses */
 	UFUNCTION()
-	void RemoveStatus(ECombatStatus Status);
+	void RemoveStatus(ECombatStatusType Status);
 
 private:
 	float CalculateElementsMultipliers(ECombatElementType DamageElementType, ECombatElementType CharacterElementType, bool& OutIsHeal);
@@ -238,7 +238,7 @@ protected:
 	FTimerHandle CooldownTimer;
 
 	UPROPERTY()
-	TMap<ECombatStatus, int32> Statuses;
+	TMap<ECombatStatusType, int32> Statuses;
 
 private:
 	UPROPERTY()

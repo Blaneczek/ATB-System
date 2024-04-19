@@ -43,7 +43,7 @@ FCombatCharData UBLHeroDataAsset::CalculateBaseCombatData(int32 Index)
 
 	const ECombatElementType WeaponElement = Heroes[Index].Weapon.GetDefaultObject()->Element;
 
-	TSet<ECombatStatus> StatusesImmunity;
+	TSet<ECombatStatusType> StatusesImmunity;
 	StatusesImmunity.Add(Heroes[Index].Armor.GetDefaultObject()->StatusImmunity);
 	StatusesImmunity.Add(Heroes[Index].Helmet.GetDefaultObject()->StatusImmunity);
 
@@ -57,20 +57,13 @@ FCombatCharData UBLHeroDataAsset::CalculateBaseCombatData(int32 Index)
 
 	USoundBase* TakeDMGSound = Heroes[Index].TakeDMGSound;
 
-	UPaperZDAnimSequence* HealAnim = Heroes[Index].HealAnim;
-
-	USoundBase* HealSound = Heroes[Index].HealSound;
-
-	UPaperZDAnimSequence* DeathAnim = Heroes[Index].DeathAnim;
-
 	USoundBase* DeathSound = Heroes[Index].DeathSound;
 
 	const FCombatCharData OutData = FCombatCharData(Name, Class, MaxHP, MaxME, BaseAttackDMG, BaseDefense
 													, BaseDodge, Cooldown, Strength, Agility, Wisdom
 													, Endurance, Pierce, Element, WeaponElement, StatusesImmunity
 													, WeaponStatus, Sprite, AnimInstanceClass
-													, TakeDMGAnim, TakeDMGSound, HealAnim, HealSound
-													, DeathAnim, DeathSound);
+													, TakeDMGAnim, TakeDMGSound, DeathSound);
 
 	return OutData;
 }

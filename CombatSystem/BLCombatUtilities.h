@@ -64,7 +64,7 @@ enum class ECrystalColor : uint8
 };
 
 UENUM(BlueprintType)
-enum class ECombatStatus : uint8
+enum class ECombatStatusType : uint8
 {
 	NONE		UMETA(DisplayName = "None"),
 	BLEEDING	UMETA(DisplayName = "Bleeding"),
@@ -102,7 +102,7 @@ struct FCombatStatus
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	ECombatStatus Status;
+	ECombatStatusType Status;
 
 	/** Number of cooldowns for which the status will be active */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -113,10 +113,10 @@ struct FCombatStatus
 	int32 ApplicationChance;
 
 	FCombatStatus()
-		: Status(ECombatStatus::NONE), Turns(0), ApplicationChance(0)
+		: Status(ECombatStatusType::NONE), Turns(0), ApplicationChance(0)
 	{}
 
-	FCombatStatus(ECombatStatus InStatus, int32 InTurns, int32 InApplicationChance)
+	FCombatStatus(ECombatStatusType InStatus, int32 InTurns, int32 InApplicationChance)
 		: Status(InStatus), Turns(InTurns), ApplicationChance(InApplicationChance)
 	{}
 };
@@ -216,7 +216,7 @@ struct FCombatCharData
 	ECombatElementType WeaponElement;
 
 	UPROPERTY(EditAnywhere)
-	TSet<ECombatStatus> StatusesImmunity;
+	TSet<ECombatStatusType> StatusesImmunity;
 
 	UPROPERTY(EditAnywhere)
 	FCombatStatus WeaponStatus;
@@ -234,15 +234,6 @@ struct FCombatCharData
 	TObjectPtr<USoundBase> TakeDMGSound;
 
 	UPROPERTY(EditAnywhere)
-	TObjectPtr<UPaperZDAnimSequence> HealAnim;
-
-	UPROPERTY(EditAnywhere)
-	TObjectPtr<USoundBase> HealSound;
-
-	UPROPERTY(EditAnywhere)
-	TObjectPtr<UPaperZDAnimSequence> DeathAnim;
-
-	UPROPERTY(EditAnywhere)
 	TObjectPtr<USoundBase> DeathSound;
 
 	FCombatCharData()
@@ -251,26 +242,23 @@ struct FCombatCharData
 		, Agility(0), Wisdom(0), Endurance(0), Pierce(0.f), Element(ECombatElementType::NONE)
 		, WeaponElement(ECombatElementType::NONE), WeaponStatus(FCombatStatus())
 		, Sprite(nullptr), AnimInstanceClass(nullptr), TakeDMGAnim(nullptr)
-		, TakeDMGSound(nullptr), HealAnim(nullptr), HealSound(nullptr)
-		, DeathAnim(nullptr), DeathSound(nullptr)
+		, TakeDMGSound(nullptr), DeathSound(nullptr)
 	{}
 
 	FCombatCharData(const FString& InName, TSubclassOf<ABLCombatCharacter> InClass, float InMaxHP
 		, float InMaxME, float InAttackDMG, float InBaseDefense, float InBaseDodge
 		, float InCooldown, int32 InStrength, int32 InAgility, int32 InWisdom, int32 InEndurance
 		, float InPierce, ECombatElementType InElement, ECombatElementType InWeaponElement 
-		, const TSet<ECombatStatus>& InStatusesImmunity, const FCombatStatus& InWeaponStatus
+		, const TSet<ECombatStatusType>& InStatusesImmunity, const FCombatStatus& InWeaponStatus
 		, UPaperFlipbook* InSprite, TSubclassOf<UPaperZDAnimInstance> InAnimClass, UPaperZDAnimSequence* InTakeDMGAnim
-		, USoundBase* InTakeDMGSound, UPaperZDAnimSequence* InHealAnim, USoundBase* InHealSound
-		, UPaperZDAnimSequence* InDeathAnim, USoundBase* InDeathSound)
+		, USoundBase* InTakeDMGSound, USoundBase* InDeathSound)
 
 		:Name(InName), Class(InClass), MaxHP(InMaxHP), MaxME(InMaxME), BaseAttackDMG(InAttackDMG)
 		, BaseDefense(InBaseDefense), BaseDodge(InBaseDodge), Cooldown(InCooldown), Strength(InStrength)
 		, Agility(InAgility), Wisdom(InWisdom), Endurance(InEndurance), Pierce(InPierce), Element(InElement)
 		, WeaponElement(InWeaponElement), StatusesImmunity(InStatusesImmunity), WeaponStatus(InWeaponStatus)
 		, Sprite(InSprite), AnimInstanceClass(InAnimClass), TakeDMGAnim(InTakeDMGAnim)
-		, TakeDMGSound(InTakeDMGSound), HealAnim(InHealAnim), HealSound(InHealSound)
-		, DeathAnim(InDeathAnim), DeathSound(InDeathSound)
+		, TakeDMGSound(InTakeDMGSound), DeathSound(InDeathSound)
 	{}
 };
 
@@ -398,15 +386,21 @@ struct FCombatData
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UMaterialInstance> BackgroundMaterial;
 
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<USoundBase> CombatMusic;
+
 	/** Optional */
 	UPROPERTY(EditAnywhere)
 	TArray<FText> QuestDisplayTexts;
 
 	FCombatData()
-		: EnemyData(nullptr), BackgroundMaterial(nullptr)
+		: EnemyData(nullptr), BackgroundMaterial(nullptr), CombatMusic(nullptr)
 	{}
 
-	FCombatData(TSoftObjectPtr<UBLEnemyDataAsset> InEnemyData, UMaterialInstance* InBackgroundMaterial, const TArray<FText>& InQuestDisplayTexts)
-		: EnemyData(InEnemyData), BackgroundMaterial(InBackgroundMaterial), QuestDisplayTexts(InQuestDisplayTexts)
+	FCombatData(TSoftObjectPtr<UBLEnemyDataAsset> InEnemyData, UMaterialInstance* InBackgroundMaterial
+		, USoundBase* InCombatMusic, const TArray<FText>& InQuestDisplayTexts)
+
+		: EnemyData(InEnemyData), BackgroundMaterial(InBackgroundMaterial), CombatMusic(InCombatMusic)
+		, QuestDisplayTexts(InQuestDisplayTexts)
 	{}
 };

@@ -23,9 +23,8 @@ void UBLDefaultMeleeAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCh
 		OnEndExecution.ExecuteIfBound();
 	}
 
-	if (ActionAnim && ActionSound)
+	if (ActionAnim)
 	{
-		UGameplayStatics::PlaySound2D(GetWorld(), ActionSound);
 		FZDOnAnimationOverrideEndSignature EndAnimDel;
 		EndAnimDel.BindLambda([this](bool bResult) { OnEndExecution.ExecuteIfBound(); });
 		Owner->GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(ActionAnim, "DefaultSlot", 1.f, 0.0f, EndAnimDel);

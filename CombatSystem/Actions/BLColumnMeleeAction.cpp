@@ -23,15 +23,14 @@ void UBLColumnMeleeAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCha
 		OnEndExecution.ExecuteIfBound();
 	}
 
-	if (ActionAnim && ActionSound)
+	if (ActionAnim)
 	{
 		if (bEndAction)
 		{
-			UGameplayStatics::PlaySound2D(GetWorld(), ActionSound);
 			FZDOnAnimationOverrideEndSignature EndAnimDel;
 			EndAnimDel.BindLambda([this](bool bResult) { OnEndExecution.ExecuteIfBound(); });
 			Owner->GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(ActionAnim, "DefaultSlot", 1.f, 0.0f, EndAnimDel);
-		}		
+		}
 		ActionCalculations(Owner, Target, CombatManager);
 	}
 

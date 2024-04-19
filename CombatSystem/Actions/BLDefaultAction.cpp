@@ -25,9 +25,8 @@ void UBLDefaultAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharact
 
 	ActionCalculations(Owner, Owner, CombatManager);
 
-	if (ActionAnim && ActionSound)
+	if (ActionAnim)
 	{
-		UGameplayStatics::PlaySound2D(GetWorld(), ActionSound);
 		FZDOnAnimationOverrideEndSignature EndAnimDel;
 		EndAnimDel.BindLambda([this](bool bResult) { OnEndExecution.ExecuteIfBound(); });
 		Owner->GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(ActionAnim, "DefaultSlot", 1.f, 0.0f, EndAnimDel);

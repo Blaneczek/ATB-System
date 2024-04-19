@@ -45,15 +45,6 @@ struct FHeroAssetInfo
 	TObjectPtr<USoundBase> TakeDMGSound;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UPaperZDAnimSequence> HealAnim;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<USoundBase> HealSound;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UPaperZDAnimSequence> DeathAnim;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<USoundBase> DeathSound;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

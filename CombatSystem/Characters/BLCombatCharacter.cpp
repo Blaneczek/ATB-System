@@ -434,7 +434,7 @@ void ABLCombatCharacter::SpawnProjectile(TSubclassOf<ABLRangeProjectile> Project
 	}
 }
 
-void ABLCombatCharacter::GiveStatus(ECombatStatus Status, int32 Turns)
+void ABLCombatCharacter::GiveStatus(ECombatStatusType Status, int32 Turns)
 {
 	if (Statuses.Contains(Status))
 	{
@@ -445,22 +445,22 @@ void ABLCombatCharacter::GiveStatus(ECombatStatus Status, int32 Turns)
 	Statuses.Add(Status, Turns);
 	switch (Status)
 	{
-		case ECombatStatus::STUN:
+		case ECombatStatusType::STUN:
 		{
 			CurrentCooldown += BaseData.Cooldown;
 			break;
 		}
-		case ECombatStatus::BLINDING:
+		case ECombatStatusType::BLINDING:
 		{
 			CurrentCooldown += BaseData.Cooldown * 0.5f;
 			break;
 		}
-		case ECombatStatus::SPEEDUP:
+		case ECombatStatusType::SPEEDUP:
 		{
-			CurrentCooldown -= BaseData.Cooldown * 0.7f;
+			CurrentCooldown -= BaseData.Cooldown * 0.5f;
 			break;
 		}
-		case ECombatStatus::INSPIRATION:
+		case ECombatStatusType::INSPIRATION:
 		{
 			CurrentCooldown -= BaseData.Cooldown * 0.3;
 			break;
@@ -471,27 +471,27 @@ void ABLCombatCharacter::GiveStatus(ECombatStatus Status, int32 Turns)
 	SetStatusDisplayVisibility(Status, true);
 }
 
-void ABLCombatCharacter::RemoveStatus(ECombatStatus Status)
+void ABLCombatCharacter::RemoveStatus(ECombatStatusType Status)
 {
 	Statuses.Remove(Status);
 	switch (Status)
 	{
-		case ECombatStatus::STUN:
+		case ECombatStatusType::STUN:
 		{
 			CurrentCooldown -= BaseData.Cooldown;
 			break;
 		}
-		case ECombatStatus::BLINDING:
+		case ECombatStatusType::BLINDING:
 		{
 			CurrentCooldown -= BaseData.Cooldown * 0.5f;
 			break;
 		}
-		case ECombatStatus::SPEEDUP:
+		case ECombatStatusType::SPEEDUP:
 		{
 			CurrentCooldown += BaseData.Cooldown * 0.7f;
 			break;
 		}
-		case ECombatStatus::INSPIRATION:
+		case ECombatStatusType::INSPIRATION:
 		{
 			CurrentCooldown += BaseData.Cooldown * 0.3f;
 			break;
@@ -504,7 +504,7 @@ void ABLCombatCharacter::RemoveStatus(ECombatStatus Status)
 
 void ABLCombatCharacter::HandleStatuses()
 {
-	TArray<ECombatStatus> StatusesToDelete;
+	TArray<ECombatStatusType> StatusesToDelete;
 
 	float SimpleDMG = 0.f;
 
@@ -512,13 +512,13 @@ void ABLCombatCharacter::HandleStatuses()
 	{
 		switch (Status.Key)
 		{
-			case ECombatStatus::BLEEDING:
-			case ECombatStatus::POISONING:
+			case ECombatStatusType::BLEEDING:
+			case ECombatStatusType::POISONING:
 			{
 				SimpleDMG += 1.f;
 				break;
 			}
-			case ECombatStatus::FLAMING:
+			case ECombatStatusType::FLAMING:
 			{
 				SimpleDMG += 2.f;
 				break;
@@ -568,15 +568,6 @@ void ABLCombatCharacter::TakeSimpleDamage(float Damage)
 	if (CurrentHP <= 0.f)
 	{
 		bDeathIdle = true;
-		if (BaseData.DeathAnim)
-		{
-			GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(BaseData.DeathAnim);
-		}
-		if (BaseData.DeathSound)
-		{
-			UGameplayStatics::PlaySound2D(GetWorld(), BaseData.DeathSound);
-		}
-
 		OnDeath.ExecuteIfBound();
 	}
 }
@@ -617,14 +608,6 @@ void ABLCombatCharacter::HandleHealHit(float Damage, float HealMultiplier, EComb
 	const float HealValue = Damage * HealMultiplier;
 	CurrentHP = FMath::Clamp((CurrentHP + HealValue), 0, BaseData.MaxHP);
 	DisplayTextDMG(HealValue, true, HealElementType);
-	if (BaseData.HealAnim)
-	{
-		GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(BaseData.HealAnim);
-	}
-	if (BaseData.HealSound)
-	{
-		UGameplayStatics::PlaySound2D(GetWorld(), BaseData.HealSound);
-	}
 }
 
 void ABLCombatCharacter::HandleDamageHit(ABLCombatCharacter* Attacker, float Damage, float DMGMultiplier, ECombatElementType DamageElementType, bool bMagicalAction)
@@ -645,7 +628,7 @@ void ABLCombatCharacter::HandleDamageHit(ABLCombatCharacter* Attacker, float Dam
 	float DMGValue = (Damage * DMGMultiplier) * (1.f - ((NewDefense / 1000) * 5));
 
 	// if attack is physical and Attacker has Poisoning status, dmg is decreased by 20%
-	if (!bMagicalAction && Attacker->Statuses.Contains(ECombatStatus::POISONING))
+	if (!bMagicalAction && Attacker->Statuses.Contains(ECombatStatusType::POISONING))
 	{
 		// Clamp because Defense can be higher than Damage, so that Damage is not negative
 		DMGValue = FMath::Clamp(FMath::RoundHalfFromZero(DMGValue * 0.8f), 0, FMath::RoundHalfFromZero(DMGValue));
@@ -663,10 +646,6 @@ void ABLCombatCharacter::HandleDamageHit(ABLCombatCharacter* Attacker, float Dam
 	if (BaseData.TakeDMGAnim)
 	{
 		GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(BaseData.TakeDMGAnim);
-	}
-	if (BaseData.TakeDMGSound)
-	{
-		UGameplayStatics::PlaySound2D(GetWorld(), BaseData.TakeDMGSound);
 	}
 }
 
@@ -720,15 +699,6 @@ void ABLCombatCharacter::HandleHitByAction(ABLCombatCharacter* Attacker, float D
 	if (CurrentHP <= 0.f)
 	{
 		bDeathIdle = true;
-		if (BaseData.DeathAnim)
-		{
-			GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(BaseData.DeathAnim);
-		}
-		if (BaseData.DeathSound)
-		{
-			UGameplayStatics::PlaySound2D(GetWorld(), BaseData.DeathSound);
-		}
-
 		OnDeath.ExecuteIfBound();
 	}
 }

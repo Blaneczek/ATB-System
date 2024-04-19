@@ -64,9 +64,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
 	int32 TargetsNumber = 1;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
-	TObjectPtr<USoundBase> ActionSound = nullptr;
-
 	/** To call interface functions in CombatManager */
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat")
 	TObjectPtr<AActor> CombatManager;
