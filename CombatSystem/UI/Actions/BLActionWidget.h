@@ -43,6 +43,8 @@ public:
 	/** Resets action to default state (no description and normal button) */
 	virtual void ResetAction();
 
+	virtual void ShowDescription(int32 Index);
+
 public:
 	FOnAction OnAction;
 

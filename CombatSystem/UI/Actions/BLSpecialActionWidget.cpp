@@ -48,7 +48,7 @@ void UBLSpecialActionWidget::OnActionClicked(UObject* Item)
 		Button->Border->SetBrushColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.f));
 		if (Descriptions.IsValidIndex(Button->Index))
 		{
-			DescDisplay->SetText(Descriptions[Button->Index]);
+			ShowDescription(Button->Index);
 		}
 		OnAction.ExecuteIfBound(FCombatActionData(ECombatActionType::SPECIAL_SKILL, Action->ActionFlow, Button->Index, ECrystalColor::NONE, Button->MECost, Button->TargetsNum, Action));
 	}

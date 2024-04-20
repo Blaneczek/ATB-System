@@ -39,3 +39,12 @@ void UBLActionWidget::ResetAction()
 
 	DescDisplay->SetText(FText::FromString(""));
 }
+
+void UBLActionWidget::ShowDescription(int32 Index)
+{
+	if (Descriptions.IsValidIndex(Index))
+	{
+		DescDisplay->SetText(Descriptions[Index]);
+	}
+}
+

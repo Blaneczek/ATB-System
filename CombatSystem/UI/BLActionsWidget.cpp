@@ -59,7 +59,9 @@ void UBLActionsWidget::OnBTAttackClicked()
 	ClickedButton = BTAttack;
 	ClickedAction = AttackAction;
 	ClickedButton->SetBackgroundColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.f));
+	AttackAction->ShowDescription(0);
 	ActionTypeSwitcher->SetActiveWidget(AttackAction);
+	AttackAction->OnAction.ExecuteIfBound(FCombatActionData(ECombatActionType::ATTACK, ECombatActionFlow::NONE, 0));
 }
 
 void UBLActionsWidget::OnBTDefendClicked()
@@ -69,7 +71,9 @@ void UBLActionsWidget::OnBTDefendClicked()
 	ClickedButton = BTDefend;
 	ClickedAction = DefendAction;
 	ClickedButton->SetBackgroundColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.f));
+	DefendAction->ShowDescription(0);
 	ActionTypeSwitcher->SetActiveWidget(DefendAction);
+	DefendAction->OnAction.ExecuteIfBound(FCombatActionData(ECombatActionType::DEFEND, ECombatActionFlow::NONE, 0));
 }
 
 void UBLActionsWidget::OnBTCrystalClicked()

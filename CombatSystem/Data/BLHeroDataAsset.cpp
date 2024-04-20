@@ -67,3 +67,14 @@ FCombatCharData UBLHeroDataAsset::CalculateBaseCombatData(int32 Index)
 
 	return OutData;
 }
+
+void UBLHeroDataAsset::AddCombatReward(int32 InExperience, int32 InMoney, const TArray<TSoftClassPtr<UBLItem>>& InItems)
+{
+	Money += InMoney;
+	Items.Append(InItems);
+
+	for (auto& Hero : Heroes)
+	{
+		Hero.HeroAttributes.Experience += InExperience;
+	}
+}

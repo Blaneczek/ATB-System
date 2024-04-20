@@ -23,7 +23,8 @@ struct FEnemyAssetInfo
 	UPROPERTY(EditAnywhere)
 	TArray<TSoftClassPtr<UBLAction>> DefendActions;
 
-	// special skills info
+	UPROPERTY(EditAnywhere)
+	TArray<TSoftClassPtr<UBLAction>> SpecialActions;
 };
 
 /**
@@ -37,6 +38,4 @@ class BLADEOFLEGEND_API UBLEnemyDataAsset : public UDataAsset
 public:
 	UPROPERTY(EditAnywhere)
 	TArray<FEnemyAssetInfo> Enemies;
-
-	//items info
 };

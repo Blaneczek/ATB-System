@@ -117,8 +117,10 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "BL|Combat")
 	TSubclassOf<UUserWidget> TargetWidgetClass;
+
 	UPROPERTY(EditDefaultsOnly, Category = "BL|Combat")
 	TSubclassOf<UUserWidget> HoverWidgetClass;
+
 	UPROPERTY(EditDefaultsOnly, Category = "BL|Combat")
 	TSubclassOf<UUserWidget> HeroWidgetClass;
 

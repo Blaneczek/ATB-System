@@ -21,43 +21,43 @@ struct FHeroAssetInfo
 	FHeroAttributes HeroAttributes;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<ABLCombatCharacter> Class;
+	TSubclassOf<ABLCombatCharacter> Class = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float Cooldown{0};
+	float Cooldown = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	ECombatElementType Element{ECombatElementType::NONE};
+	ECombatElementType Element = ECombatElementType::NONE;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UPaperFlipbook> Sprite;
+	TObjectPtr<UPaperFlipbook> Sprite = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<UPaperZDAnimInstance> AnimInstanceClass;
+	TSubclassOf<UPaperZDAnimInstance> AnimInstanceClass = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<UPaperZDAnimInstance> OutOfCombatAnimInstanceClass;
+	TSubclassOf<UPaperZDAnimInstance> OutOfCombatAnimInstanceClass = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UPaperZDAnimSequence> TakeDMGAnim;
+	TObjectPtr<UPaperZDAnimSequence> TakeDMGAnim = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<USoundBase> TakeDMGSound;
+	TObjectPtr<USoundBase> TakeDMGSound = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<USoundBase> DeathSound;
+	TObjectPtr<USoundBase> DeathSound = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FCombatActions CombatActions;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<UBLWeaponItem> Weapon;
+	TSubclassOf<UBLWeaponItem> Weapon = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<UBLArmorItem> Armor;
+	TSubclassOf<UBLArmorItem> Armor = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<UBLHelmetItem> Helmet;
+	TSubclassOf<UBLHelmetItem> Helmet = nullptr;
 };
 
 /**
@@ -72,10 +72,17 @@ public:
 	/** Takes data from the hero (stats) and calculates the variables needed for combat */
 	FCombatCharData CalculateBaseCombatData(int32 Index);
 
+	/** Adds to data asset reward from won combat */
+	void AddCombatReward(int32 InExperience, int32 InMoney, const TArray<TSoftClassPtr<UBLItem>>& InItems);
+
 public:
 	/** Player's heroes */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FHeroAssetInfo> Heroes;
 
-	//Team's items info
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<TSoftClassPtr<UBLItem>> Items;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 Money;
 };

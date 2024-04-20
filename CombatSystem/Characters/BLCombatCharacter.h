@@ -47,7 +47,7 @@ public:
 	UFUNCTION()
 	void StartCooldown();
 
-	FTimerHandle GetCooldownTimer() { return CooldownTimer; };
+	const FTimerHandle& GetCooldownTimer() const { return CooldownTimer; };
 
 	UFUNCTION(BlueprintCallable)
 	float GetCooldown() const { return CurrentCooldown; };
@@ -74,24 +74,16 @@ public:
 	ECombatElementType GetWeaponElement() const { return BaseData.WeaponElement; };
 
 	UFUNCTION(BlueprintCallable)
-	FCombatStatus GetWeaponStatus() const { return BaseData.WeaponStatus; };
+	const FCombatStatus& GetWeaponStatus() const{ return BaseData.WeaponStatus; };
 
 	UFUNCTION(BlueprintCallable)
 	float GetAttackDMG() const { return BaseData.BaseAttackDMG; };
-	UFUNCTION(BlueprintCallable)
-	int32 GetBaseDefense() const { return BaseData.BaseDefense; };
-	UFUNCTION(BlueprintCallable)
-	void SetDefense(int32 NewDefense) { CurrentDefense = NewDefense; };
-	
-	/**
-	* Activates/deactivates Defend idle animation
-	* @param NewActive: true - active, false - inactive
-	*/
-	UFUNCTION(BlueprintCallable)
-	void DefendIdleActivation(bool NewActiv) { bDefendIdle = NewActiv; };
 
 	UFUNCTION(BlueprintCallable)
-	bool IsDefendIdle() const { return bDefendIdle; };
+	float GetCurrentDefense() const { return CurrentDefense; };
+
+	UFUNCTION(BlueprintCallable)
+	void SetCurrentDefense(float NewDefense) { CurrentDefense = NewDefense; };
 
 	UFUNCTION(BlueprintCallable)
 	bool IsDeathIdle() const { return bDeathIdle; };
@@ -205,10 +197,6 @@ public:
 	TArray<TSoftClassPtr<UBLCombatItem>> ItemActions;
 
 protected:
-	/** If idle Defend animation should be played */
-	UPROPERTY()
-	bool bDefendIdle;
-
 	/** If idle Death animation should be played */
 	UPROPERTY()
 	bool bDeathIdle;
@@ -223,7 +211,7 @@ protected:
 	float CurrentME;
 
 	UPROPERTY()
-	int32 CurrentDefense;
+	float CurrentDefense;
 
 	UPROPERTY()
 	float CurrentCooldown;

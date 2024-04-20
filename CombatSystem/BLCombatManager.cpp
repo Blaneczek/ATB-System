@@ -610,9 +610,9 @@ void ABLCombatManager::HandleEndGame(bool bWonGame)
 	if (bWonGame)
 	{		
 		UBLHeroDataAsset* HeroData = HeroesData.LoadSynchronous();
-		if (!HeroData)
+		if (HeroData)
 		{
-			//TODO: save post combat data
+			HeroData->AddCombatReward(GI->PostCombatData.Experience, GI->PostCombatData.Money, GI->PostCombatData.Items);
 		}
 
 		if (WinWidgetClass)

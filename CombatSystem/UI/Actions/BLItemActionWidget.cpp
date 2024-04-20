@@ -68,7 +68,7 @@ void UBLItemActionWidget::OnActionClicked(UObject* Item)
 		ClickedItem->Border->Background.OutlineSettings.Color = FLinearColor(0.1f, 1.f, 0.5f, 1.f);
 		if (Descriptions.IsValidIndex(ItemEntry->Index))
 		{
-			DescDisplay->SetText(Descriptions[ItemEntry->Index]);
+			ShowDescription(ItemEntry->Index);
 		}
 		OnAction.ExecuteIfBound(FCombatActionData(ECombatActionType::ITEM, ItemEntry->ActionFlow, ItemEntry->Index, ECrystalColor::NONE, 0.f, 1, Item));
 	}

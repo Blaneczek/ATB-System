@@ -40,9 +40,10 @@ void ABLRangeProjectile::FlyToTarget(ABLCombatCharacter* Target)
 {
 	AAIController* AIC = Cast<AAIController>(GetController());
 	if (AIC && Target)
-	{
+	{	
 		AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLRangeProjectile::ReachedDestination);
-		AIC->MoveToActor(Target, 10.f);
+		const FVector& Location = Target->GetActorLocation() + FVector(0.f, -30.f, 0.f);
+		AIC->MoveToLocation(Location, 5.f);
 	}
 }
 

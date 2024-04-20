@@ -17,6 +17,7 @@
 #include "UI/Entries/BLActionEntryData.h"
 #include "UI/Entries/BLItemEntryData.h"
 #include "BladeOfLegend/DAWID/Items/BLCombatItem.h"
+#include "Kismet/KismetMathLibrary.h"
 
 ABLCombatCharacter::ABLCombatCharacter()
 {
@@ -60,7 +61,6 @@ void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData, const FComba
 
 void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions)
 {
-	bDefendIdle = false;
 	BaseData = InBaseData;
 	CurrentHP = BaseData.MaxHP;
 	CurrentME = BaseData.MaxME;
@@ -209,11 +209,13 @@ void ABLCombatCharacter::DefaultMeleeAction()
 void ABLCombatCharacter::DefaultRangeAction(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite)
 {
 	ProjectileTargetsNum = 0;
-	if (ProjectileClass && ProjectileSprite)
+	if (ProjectileClass && ProjectileSprite && TargetCharacters.IsValidIndex(0) && TargetCharacters[0])
 	{
 		FActorSpawnParameters SpawnInfo;
 		SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		ABLRangeProjectile* Projectile = GetWorld()->SpawnActor<ABLRangeProjectile>(ProjectileClass, GetActorLocation(), GetActorRotation(), SpawnInfo);
+		const FVector& Location = GetActorLocation() + FVector(0.f, -30.f, 0.f);
+		const FRotator& Rotation = UKismetMathLibrary::FindLookAtRotation(Location, TargetCharacters[0]->GetActorLocation() + FVector(0.f, -30.f, 0.f));
+		ABLRangeProjectile* Projectile = GetWorld()->SpawnActor<ABLRangeProjectile>(ProjectileClass, Location, Rotation, SpawnInfo);
 		if (Projectile)
 		{		
 			Projectile->SetData(ProjectileSprite);
@@ -221,6 +223,10 @@ void ABLCombatCharacter::DefaultRangeAction(TSubclassOf<ABLRangeProjectile> Proj
 			Projectile->FlyToTarget(TargetCharacters[0]);
 			++ProjectileTargetsNum;
 		}
+	}
+	else
+	{
+		EndAction(true);
 	}
 }
 
@@ -314,9 +320,6 @@ void ABLCombatCharacter::StartCooldown()
 
 void ABLCombatCharacter::EndCooldown()
 {
-	CurrentDefense = BaseData.BaseDefense;
-	bDefendIdle = false;
-
 	TargetCharacters.Empty();
 
 	HandleTurnsCooldown();
@@ -373,7 +376,6 @@ void ABLCombatCharacter::ReachedActionDestination(FAIRequestID RequestID, const 
 	CurrentAction->ExecuteAction(this, TargetCharacters[TargetIndex]);
 }
 
-// for projectile
 void ABLCombatCharacter::ReachedActionDestination()
 {
 	if (!IsValid(CurrentAction) || !TargetCharacters.IsValidIndex(0) || !TargetCharacters[0])
@@ -462,7 +464,12 @@ void ABLCombatCharacter::GiveStatus(ECombatStatusType Status, int32 Turns)
 		}
 		case ECombatStatusType::INSPIRATION:
 		{
-			CurrentCooldown -= BaseData.Cooldown * 0.3;
+			CurrentCooldown -= BaseData.Cooldown * 0.3f;
+			break;
+		}
+		case ECombatStatusType::SHIELD:
+		{
+			CurrentDefense += BaseData.BaseDefense * 2.f;
 			break;
 		}
 		default: break;
@@ -494,6 +501,11 @@ void ABLCombatCharacter::RemoveStatus(ECombatStatusType Status)
 		case ECombatStatusType::INSPIRATION:
 		{
 			CurrentCooldown += BaseData.Cooldown * 0.3f;
+			break;
+		}
+		case ECombatStatusType::SHIELD:
+		{
+			CurrentDefense -= BaseData.BaseDefense * 2.f;
 			break;
 		}
 		default: break;
@@ -545,7 +557,7 @@ void ABLCombatCharacter::HandleStatuses()
 			RemoveStatus(Status);
 		}
 	});
-	GetWorld()->GetTimerManager().SetTimer(RemoveDelay, RemoveDel, 1.5f, false);
+	GetWorld()->GetTimerManager().SetTimer(RemoveDelay, RemoveDel, 1.f, false);
 }
 
 void ABLCombatCharacter::TakeSimpleDamage(float Damage)

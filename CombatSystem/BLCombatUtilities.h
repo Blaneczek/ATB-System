@@ -74,7 +74,8 @@ enum class ECombatStatusType : uint8
 	BLINDING	UMETA(DisplayName = "Blinding"),
 	SPEEDUP		UMETA(DisplayName = "Speedup"),
 	INSPIRATION	UMETA(DisplayName = "Inspiration"),
-	FLAMING		UMETA(DisplayName = "Flaming")
+	FLAMING		UMETA(DisplayName = "Flaming"),
+	SHIELD		UMETA(DisplayName = "Shield")
 };
 
 
@@ -84,7 +85,20 @@ enum class EItemType: uint8
 	NONE		UMETA(DisplayName = "None"),
 	WEAPON		UMETA(DisplayName = "Weapon"),
 	ARMOR		UMETA(DisplayName = "Armor"),
-	HELMET		UMETA(DisplayName = "Helmet")
+	HELMET		UMETA(DisplayName = "Helmet"),
+	USABLE		UMETA(DisplayName = "Helmet"),
+	JUNK		UMETA(DisplayName = "Junk")
+};
+
+UENUM(BlueprintType)
+enum class EItemClass : uint8
+{
+	NONE		UMETA(DisplayName = "None"),
+	Warrior		UMETA(DisplayName = "Warrior"),
+	ARCHER		UMETA(DisplayName = "Archer"),
+	MAGE		UMETA(DisplayName = "Mage")
+
+	/// others
 };
 
 USTRUCT(BlueprintType)
