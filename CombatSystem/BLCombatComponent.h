@@ -28,6 +28,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void StartCombat();
 
+	/** Sets the flag if it was a sneak attack (the player attacked first in Overworld). */
+	UFUNCTION(BlueprintCallable)
+	void SneakAttack();
+
 public:
 	UPROPERTY(EditInstanceOnly, BlueprintReadWrite)
 	FCombatData CombatData;

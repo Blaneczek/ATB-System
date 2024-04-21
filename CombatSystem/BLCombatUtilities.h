@@ -70,12 +70,13 @@ enum class ECombatStatusType : uint8
 	BLEEDING	UMETA(DisplayName = "Bleeding"),
 	POISONING	UMETA(DisplayName = "Poisoning"),
 	BLOODLUST	UMETA(DisplayName = "Bloodlust"),
-	STUN		UMETA(DisplayName = "Stun"),
+	STUNNED		UMETA(DisplayName = "Stunned"),
 	BLINDING	UMETA(DisplayName = "Blinding"),
 	SPEEDUP		UMETA(DisplayName = "Speedup"),
 	INSPIRATION	UMETA(DisplayName = "Inspiration"),
 	FLAMING		UMETA(DisplayName = "Flaming"),
-	SHIELD		UMETA(DisplayName = "Shield")
+	SHIELD		UMETA(DisplayName = "Shield"),
+	SNEAK		UMETA(DisplayName = "Sneak attack")
 };
 
 
@@ -407,14 +408,18 @@ struct FCombatData
 	UPROPERTY(EditAnywhere)
 	TArray<FText> QuestDisplayTexts;
 
+	/** Flag if player attacked first in Overworld  */
+	UPROPERTY()
+	bool bSneakAttack;
+
 	FCombatData()
-		: EnemyData(nullptr), BackgroundMaterial(nullptr), CombatMusic(nullptr)
+		: EnemyData(nullptr), BackgroundMaterial(nullptr), CombatMusic(nullptr), bSneakAttack(false)
 	{}
 
 	FCombatData(TSoftObjectPtr<UBLEnemyDataAsset> InEnemyData, UMaterialInstance* InBackgroundMaterial
-		, USoundBase* InCombatMusic, const TArray<FText>& InQuestDisplayTexts)
+		, USoundBase* InCombatMusic, const TArray<FText>& InQuestDisplayTexts, bool InSneakAttack = false)
 
 		: EnemyData(InEnemyData), BackgroundMaterial(InBackgroundMaterial), CombatMusic(InCombatMusic)
-		, QuestDisplayTexts(InQuestDisplayTexts)
+		, QuestDisplayTexts(InQuestDisplayTexts), bSneakAttack(InSneakAttack)
 	{}
 };

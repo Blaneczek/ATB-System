@@ -43,11 +43,9 @@ public:
 	bool IsActive() const { return bIsActive; };
 	float GetCooldown() const;
 
-	/** Spawn Hero */
-	void SpawnCharacter(const FCombatCharData& BaseData, const FCombatActions& CombatActions);
+	void SpawnHero(const FCombatCharData& BaseData, const FCombatActions& CombatActions, bool bSneakAttack);
 
-	/** Spawn Enemy */
-	void SpawnCharacter(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& AttackActions, const TArray<TSoftClassPtr<UBLAction>>& DefendActions);
+	void SpawnEnemy(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& AttackActions, const TArray<TSoftClassPtr<UBLAction>>& DefendActions, bool bSneakAttack);
 
 	void PauseCharCooldown();
 	void UnPauseCharCooldown();

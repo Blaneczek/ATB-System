@@ -56,7 +56,7 @@ float ABLCombatSlot::GetCooldown() const
 	return GetCharacter() ? GetCharacter()->GetCooldown() : 0.f;
 }
 
-void ABLCombatSlot::SpawnCharacter(const FCombatCharData& BaseData, const FCombatActions& CombatActions)
+void ABLCombatSlot::SpawnHero(const FCombatCharData& BaseData, const FCombatActions& CombatActions, bool bSneakAttack)
 {
 	if (BaseData.Class)
 	{
@@ -73,6 +73,9 @@ void ABLCombatSlot::SpawnCharacter(const FCombatCharData& BaseData, const FComba
 			Character->OnDeath.BindUObject(this, &ABLCombatSlot::HandleCharDeath);
 			Character->OnHealthUpdate.BindUObject(this, &ABLCombatSlot::UpdateCharHealth);	
 			bIsActive = true;
+
+			if (bSneakAttack) Character->SneakAttack();
+
 			// Cooldown will start after 1 sek
 			FTimerHandle CooldownTimer;
 			GetWorld()->GetTimerManager().SetTimer(CooldownTimer, this, &ABLCombatSlot::StartCharCooldown, 1.f, false);
@@ -80,7 +83,7 @@ void ABLCombatSlot::SpawnCharacter(const FCombatCharData& BaseData, const FComba
 	}
 }
 
-void ABLCombatSlot::SpawnCharacter(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& AttackActions, const TArray<TSoftClassPtr<UBLAction>>& DefendActions)
+void ABLCombatSlot::SpawnEnemy(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& AttackActions, const TArray<TSoftClassPtr<UBLAction>>& DefendActions, bool bSneakAttack)
 {
 	if (BaseData.Class)
 	{
@@ -97,6 +100,9 @@ void ABLCombatSlot::SpawnCharacter(const FCombatCharData& BaseData, const TArray
 			Character->OnDeath.BindUObject(this, &ABLCombatSlot::HandleCharDeath);
 			Character->OnHealthUpdate.BindUObject(this, &ABLCombatSlot::UpdateCharHealth);
 			bIsActive = true;
+
+			if (bSneakAttack) Character->SneakAttack();
+
 			// Cooldown will start after 1 sek
 			FTimerHandle CooldownTimer;
 			GetWorld()->GetTimerManager().SetTimer(CooldownTimer, this, &ABLCombatSlot::StartCharCooldown, 1.f, false);

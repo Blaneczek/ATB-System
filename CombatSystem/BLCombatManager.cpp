@@ -75,8 +75,9 @@ void ABLCombatManager::Tick(float DeltaTime)
 
 void ABLCombatManager::SetPlayerTeam()
 {
+	UBLGameInstance* GI = Cast<UBLGameInstance>(GetGameInstance());
 	UBLHeroDataAsset* Data = HeroesData.LoadSynchronous();
-	if (!Data)
+	if (!GI || !Data)
 	{
 		return;
 	}
@@ -86,8 +87,8 @@ void ABLCombatManager::SetPlayerTeam()
 		const FCombatCharData CharBaseData = Data->CalculateBaseCombatData(Index);
 		if (PlayerTeam[Index] && Widget)
 		{
-			PlayerTeam[Index]->SpawnCharacter(CharBaseData, Data->Heroes[Index].CombatActions);
-			Widget->AddHero(PlayerTeam[Index]->GetIndex(), CharBaseData);
+			PlayerTeam[Index]->SpawnHero(CharBaseData, Data->Heroes[Index].CombatActions, GI->CombatData.bSneakAttack);
+			GI->CombatData.bSneakAttack ? Widget->AddHero(PlayerTeam[Index]->GetIndex(), CharBaseData, 0.1f) : Widget->AddHero(PlayerTeam[Index]->GetIndex(), CharBaseData);
 			Widget->AddHeroActions(PlayerTeam[Index]->GetIndex(), CharBaseData, Data->Heroes[Index].CombatActions);
 		}
 	}
@@ -111,7 +112,7 @@ void ABLCombatManager::SetEnemyTeam()
 	{
 		if (EnemyTeam[Index] && Widget)
 		{
-			EnemyTeam[Index]->SpawnCharacter(Data->Enemies[Index].BaseData, Data->Enemies[Index].AttackActions, Data->Enemies[Index].DefendActions);
+			EnemyTeam[Index]->SpawnEnemy(Data->Enemies[Index].BaseData, Data->Enemies[Index].AttackActions, Data->Enemies[Index].DefendActions, GI->CombatData.bSneakAttack);
 			Widget->AddEnemy(EnemyTeam[Index]->GetIndex(), Data->Enemies[Index].BaseData.Name);
 		}
 	}	
@@ -672,7 +673,28 @@ void ABLCombatManager::ShowDisplayWindow(const FText& InText, float ShowTime)
 void ABLCombatManager::ExitCombat()
 {
 	UBLGameInstance* GI = Cast<UBLGameInstance>(GetGameInstance());
-	if (GI)
+	if (!GI)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ABLCombatManager::ExitCombat | GameInstance is nullptr"));
+		return;
+	}
+
+	if (Widget)
+	{
+		Widget->RemoveFromParent();
+	}
+
+	// Camera fade before opening new level
+	APlayerCameraManager* CM = Cast<APlayerCameraManager>(UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0));
+	if (CM)
+	{
+		CM->StartCameraFade(0.f, 1.f, 1.f, FLinearColor(0.f, 0.f, 0.f), false, true);
+		FTimerDelegate DelayDel;
+		DelayDel.BindLambda([this, GI]() { UGameplayStatics::OpenLevel(GetWorld(), GI->PostCombatData.LevelName); });
+		FTimerHandle DelayTimer;
+		GetWorld()->GetTimerManager().SetTimer(DelayTimer, DelayDel, 1.5f, false);
+	}
+	else
 	{
 		UGameplayStatics::OpenLevel(GetWorld(), GI->PostCombatData.LevelName);
 	}

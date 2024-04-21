@@ -35,7 +35,6 @@ public:
 
 	virtual void BeginPlay() override;
 
-public:
 	virtual void Tick(float DeltaTime);
 
 	void SetData(const FCombatCharData& InBaseData, const FCombatActions& InCombatActions, const FTransform& InSlotTransform);
@@ -139,6 +138,11 @@ public:
 	UFUNCTION()
 	void RemoveStatus(ECombatStatusType Status);
 
+	virtual void SneakAttack() {};
+
+protected:
+	void TakeSimpleDamage(float Damage);
+
 private:
 	float CalculateElementsMultipliers(ECombatElementType DamageElementType, ECombatElementType CharacterElementType, bool& OutIsHeal);
 
@@ -165,8 +169,6 @@ private:
 	void SpawnProjectile(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite);
 
 	void HandleStatuses();
-
-	void TakeSimpleDamage(float Damage);
 
 	void HandleTurnsCooldown();
 

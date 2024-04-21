@@ -34,9 +34,22 @@ void UBLCombatWidget::AddHero(int32 SlotIndex, const FCombatCharData& BaseData)
 {
 	Heroes->AddHero(SlotIndex, BaseData.Name, BaseData.MaxHP, BaseData.MaxME);
 	Heroes->OnHeroClicked.BindUObject(this, &UBLCombatWidget::HeroClicked);
+
 	//Cooldown bar will start after 1 sek
 	FTimerDelegate CooldownDel;
 	CooldownDel.BindUObject(this, &UBLCombatWidget::StartHeroCooldownBar, SlotIndex, BaseData.Cooldown);
+	FTimerHandle CooldownTimer;
+	GetWorld()->GetTimerManager().SetTimer(CooldownTimer, CooldownDel, 1.f, false);
+}
+
+void UBLCombatWidget::AddHero(int32 SlotIndex, const FCombatCharData& BaseData, float SneakyCooldown)
+{
+	Heroes->AddHero(SlotIndex, BaseData.Name, BaseData.MaxHP, BaseData.MaxME);
+	Heroes->OnHeroClicked.BindUObject(this, &UBLCombatWidget::HeroClicked);
+
+	//Cooldown bar will start after 1 sek
+	FTimerDelegate CooldownDel;
+	CooldownDel.BindUObject(this, &UBLCombatWidget::StartHeroCooldownBar, SlotIndex, 0.1f);
 	FTimerHandle CooldownTimer;
 	GetWorld()->GetTimerManager().SetTimer(CooldownTimer, CooldownDel, 1.f, false);
 }

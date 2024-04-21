@@ -18,6 +18,7 @@ void UBLWinCombatWidget::NativeConstruct()
 
 void UBLWinCombatWidget::OnBTNextClicked()
 {
+	HideAllElements();
 	OnWinGame.ExecuteIfBound();
 }
 
@@ -51,4 +52,13 @@ void UBLWinCombatWidget::SetData(int32 InExp, int32 InMoney, const TArray<TSoftC
 			Items->AddChildToGrid(Image, 0, Index);
 		}	
 	}
+}
+
+void UBLWinCombatWidget::HideAllElements()
+{
+	Victory->SetVisibility(ESlateVisibility::Hidden);
+	BTNext->SetVisibility(ESlateVisibility::Hidden);
+	Exp->SetVisibility(ESlateVisibility::Hidden);
+	Money->SetVisibility(ESlateVisibility::Hidden);
+	Items->SetVisibility(ESlateVisibility::Hidden);
 }

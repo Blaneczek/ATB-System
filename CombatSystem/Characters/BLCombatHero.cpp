@@ -3,3 +3,8 @@
 
 #include "BLCombatHero.h"
 
+void ABLCombatHero::SneakAttack()
+{
+	UE_LOG(LogTemp, Warning, TEXT("snekay attack status"));
+	GiveStatus(ECombatStatusType::SNEAK, 1);
+}

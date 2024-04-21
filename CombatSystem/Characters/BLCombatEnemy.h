@@ -13,5 +13,7 @@ UCLASS()
 class BLADEOFLEGEND_API ABLCombatEnemy : public ABLCombatCharacter
 {
 	GENERATED_BODY()
-	
+
+public:
+	virtual void SneakAttack() override;
 };

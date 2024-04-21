@@ -34,40 +34,48 @@ protected:
 	virtual void NativeOnInitialized() override;
 
 public:
-	/** Adds row with hero to widget */
+	/** Adds row with hero to widget. */
 	void AddHero(int32 SlotIndex, const FCombatCharData& BaseData);
-	/** Adds cell with enemy to widget */
+
+	/** Adds row with hero to widget. A version if a sneaky attack was used. */
+	void AddHero(int32 SlotIndex, const FCombatCharData& BaseData, float SneakyCooldown);
+
+	/** Adds cell with enemy to widget. */
 	void AddEnemy(int32 SlotIndex, const FString& EnemyName);
 
 	/** Populate actions */
 	void AddHeroActions(int32 SlotIndex, const FCombatCharData& BaseData, const FCombatActions& CombatActions);
 
-	/** Highlights chosen hero and shows his actions */
+	/** Highlights chosen hero and shows his actions. */
 	void SetCurrentHero(int32 SlotIndex);
-	/** Unhighlights highlighted hero and hides his actions */
+
+	/** Unhighlights highlighted hero and hides his actions. */
 	void ResetCurrentHero(int32 SlotIndex);
 
-	/** Called when one of the heroes died and greys him out */
+	/** Called when one of the heroes died and greys him out. */
 	void HeroDied(int32 SlotIndex);
-	/** Called when one of the enemies died and greys him out */
+	/** Called when one of the enemies died and greys him out. */
 	void EnemyDied(int32 SlotIndex);
 
-	/** Stops filling heroes' cooldown bars */
+	/** Stops filling heroes' cooldown bars. */
 	void PauseCooldownBars(bool bNewPause);
-	/** Starts filling from zero hero's cooldown bar */
+
+	/** Starts filling from zero hero's cooldown bar. */
 	void StartHeroCooldownBar(int32 SlotIndex, float Cooldown);
-	/** Resets hero's cooldown bar to zero */
+
+	/** Resets hero's cooldown bar to zero. */
 	void ResetHeroCooldownBar(int32 SlotIndex);
 
-	/** Handle "ACTION" text widget visibility. It is displayed when the action is executed */
+	/** Handle "ACTION" text widget visibility. It is displayed when the action is executed. */
 	void SetIsActionVisibility(ESlateVisibility InVisibility);
 
 	void UpdateHeroHealth(int32 SlotIndex, float MaxHP, float CurrentHP);
+
 	void UpdateHeroMagicEnergy(int32 SlotIndex, float MaxME, float CurrentME);
 
 	void HideActions();
 
-	/** It shows a text widget for a while when the hero does not have enough magic energy to execute an Action */
+	/** It shows a text widget for a while when the hero does not have enough magic energy to execute an Action. */
 	void ActivateNotEnoughME();
 
 	void ShowWindowText(const FText& InText, float Time);

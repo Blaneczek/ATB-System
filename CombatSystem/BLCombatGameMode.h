@@ -14,4 +14,6 @@ class BLADEOFLEGEND_API ABLCombatGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 	
+protected:
+	virtual void BeginPlay() override;
 };

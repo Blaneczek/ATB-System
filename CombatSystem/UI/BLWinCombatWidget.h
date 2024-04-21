@@ -30,10 +30,16 @@ public:
 
 	void SetData(int32 InExp, int32 InMoney, const TArray<TSoftClassPtr<UBLItem>>& InItems);
 
+private:
+	void HideAllElements();
+
 public:
 	FOnWinGame OnWinGame;
 
 protected:
+	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
+	TObjectPtr<UTextBlock> Victory;
+
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
 	TObjectPtr<UButton> BTNext;
 

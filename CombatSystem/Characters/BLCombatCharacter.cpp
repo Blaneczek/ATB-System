@@ -447,7 +447,7 @@ void ABLCombatCharacter::GiveStatus(ECombatStatusType Status, int32 Turns)
 	Statuses.Add(Status, Turns);
 	switch (Status)
 	{
-		case ECombatStatusType::STUN:
+		case ECombatStatusType::STUNNED:
 		{
 			CurrentCooldown += BaseData.Cooldown;
 			break;
@@ -472,6 +472,11 @@ void ABLCombatCharacter::GiveStatus(ECombatStatusType Status, int32 Turns)
 			CurrentDefense += BaseData.BaseDefense * 2.f;
 			break;
 		}
+		case ECombatStatusType::SNEAK:
+		{
+			CurrentCooldown = 0.1f;
+			break;
+		}
 		default: break;
 	}
 
@@ -483,7 +488,7 @@ void ABLCombatCharacter::RemoveStatus(ECombatStatusType Status)
 	Statuses.Remove(Status);
 	switch (Status)
 	{
-		case ECombatStatusType::STUN:
+		case ECombatStatusType::STUNNED:
 		{
 			CurrentCooldown -= BaseData.Cooldown;
 			break;
@@ -506,6 +511,11 @@ void ABLCombatCharacter::RemoveStatus(ECombatStatusType Status)
 		case ECombatStatusType::SHIELD:
 		{
 			CurrentDefense -= BaseData.BaseDefense * 2.f;
+			break;
+		}
+		case ECombatStatusType::SNEAK:
+		{
+			CurrentCooldown = BaseData.Cooldown;
 			break;
 		}
 		default: break;
@@ -567,7 +577,8 @@ void ABLCombatCharacter::TakeSimpleDamage(float Damage)
 		return;
 	}
 
-	const float NewHP = FMath::RoundHalfFromZero((CurrentHP - Damage));
+	Damage = FMath::RoundHalfFromZero(Damage);
+	const float NewHP = CurrentHP - Damage;
 	CurrentHP = FMath::Clamp(NewHP, 0, BaseData.MaxHP);
 	DisplayTextDMG(Damage, false, ECombatElementType::NONE);
 
