@@ -9,6 +9,7 @@
 
 class UButton;
 class UBorder;
+class UTextBlock;
 class UWidgetSwitcher;
 class UBLActionWidget;
 class UBLAttackActionWidget;
@@ -102,6 +103,10 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
 	TObjectPtr<UBLActionWidget> ItemAction;
+
+	/** Name of special actions to display on button */
+	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
+	TObjectPtr<UTextBlock> SpecialActionsName;
 
 private:
 	UPROPERTY()

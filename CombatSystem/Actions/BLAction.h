@@ -17,7 +17,7 @@ DECLARE_DELEGATE(FOnEndExecution);
 /**
  * 
  */
-UCLASS()
+UCLASS(BlueprintType)
 class BLADEOFLEGEND_API UBLAction : public UObject
 {
 	GENERATED_BODY()

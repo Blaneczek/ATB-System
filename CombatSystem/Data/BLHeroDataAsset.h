@@ -24,6 +24,9 @@ struct FHeroAssetInfo
 	TSubclassOf<ABLCombatCharacter> Class = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FText SpecialActionsName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Cooldown = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

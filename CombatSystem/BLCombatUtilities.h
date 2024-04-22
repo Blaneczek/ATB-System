@@ -185,71 +185,74 @@ struct FCombatCharData
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString Name;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<ABLCombatCharacter> Class;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float MaxHP;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float MaxME;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float BaseAttackDMG;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float BaseDefense;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float BaseDodge;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Cooldown;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Strength;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Agility;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Wisdom;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Endurance;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Pierce;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	ECombatElementType Element;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	ECombatElementType WeaponElement;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSet<ECombatStatusType> StatusesImmunity;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FCombatStatus WeaponStatus;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UPaperFlipbook> Sprite;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<UPaperZDAnimInstance> AnimInstanceClass;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UPaperZDAnimSequence> TakeDMGAnim;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<USoundBase> TakeDMGSound;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<USoundBase> DeathSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FText SpecialActionsName;
 
 	FCombatCharData()
 		: Class(nullptr), MaxHP(0.f), MaxME(0.f), BaseAttackDMG(0.f)
@@ -266,14 +269,14 @@ struct FCombatCharData
 		, float InPierce, ECombatElementType InElement, ECombatElementType InWeaponElement 
 		, const TSet<ECombatStatusType>& InStatusesImmunity, const FCombatStatus& InWeaponStatus
 		, UPaperFlipbook* InSprite, TSubclassOf<UPaperZDAnimInstance> InAnimClass, UPaperZDAnimSequence* InTakeDMGAnim
-		, USoundBase* InTakeDMGSound, USoundBase* InDeathSound)
+		, USoundBase* InTakeDMGSound, USoundBase* InDeathSound, const FText& InSpecialActionsName)
 
 		:Name(InName), Class(InClass), MaxHP(InMaxHP), MaxME(InMaxME), BaseAttackDMG(InAttackDMG)
 		, BaseDefense(InBaseDefense), BaseDodge(InBaseDodge), Cooldown(InCooldown), Strength(InStrength)
 		, Agility(InAgility), Wisdom(InWisdom), Endurance(InEndurance), Pierce(InPierce), Element(InElement)
 		, WeaponElement(InWeaponElement), StatusesImmunity(InStatusesImmunity), WeaponStatus(InWeaponStatus)
 		, Sprite(InSprite), AnimInstanceClass(InAnimClass), TakeDMGAnim(InTakeDMGAnim)
-		, TakeDMGSound(InTakeDMGSound), DeathSound(InDeathSound)
+		, TakeDMGSound(InTakeDMGSound), DeathSound(InDeathSound), SpecialActionsName(InSpecialActionsName)
 	{}
 };
 
@@ -354,39 +357,43 @@ struct FPostCombatData
 {
 	GENERATED_BODY()
 
-	/** Level to open after the fight */
+	/** Level to open after the fight. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FName LevelName;
 
-	/** Experience gained after winning fight */
+	/** Experience gained after winning fight. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Experience;
 
-	/** Money gained after winnging fight */
+	/** Money gained after winnging fight. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Money;
 
-	/** Optional items gained after winning fight */
+	/** Optional items gained after winning fight. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<TSoftClassPtr<UBLItem>> Items;
 
-	/** Optional level sequence to play after the fight */
+	/** Optional level sequence to play after the fight. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<ULevelSequence> LevelSequence;
 
-	/** Optional player's position if he was in Overworld before the fight */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	/** Optional player's position if he was in Overworld before the fight. */
+	UPROPERTY(BlueprintReadWrite)
 	FVector PlayerPosition;
 
+	/** A flag telling whether a player must start from PlayerPosition. */
+	UPROPERTY(EditInstanceOnly, BlueprintReadWrite)
+	bool bUseNewPlayerPosition;
+
 	FPostCombatData()
-		: Experience(0), Money(0), LevelSequence(nullptr), PlayerPosition(FVector(0.f, 0.f, 0.f))
+		: Experience(0), Money(0), LevelSequence(nullptr), PlayerPosition(FVector(0.f, 0.f, 0.f)), bUseNewPlayerPosition(false)
 	{}
 
 	FPostCombatData(const FName& InName, int32 InExperience, int32 InMoney, const TArray<TSoftClassPtr<UBLItem>>& InItems
-		, ULevelSequence* InLevelSequence = nullptr, const FVector& InPlayerPosition = FVector(0.f, 0.f, 0.f))
+		, ULevelSequence* InLevelSequence = nullptr, bool InUseNewPlayerPosition = false)
 
 		: LevelName(InName), Experience(InExperience), Money(InMoney), Items(InItems)
-		, LevelSequence(InLevelSequence), PlayerPosition(InPlayerPosition)
+		, LevelSequence(InLevelSequence), bUseNewPlayerPosition(InUseNewPlayerPosition)
 	{}
 };
 
@@ -395,8 +402,8 @@ struct FCombatData
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere)
-	TSoftObjectPtr<UBLEnemyDataAsset> EnemyData;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UBLEnemyDataAsset> EnemyData;
 
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UMaterialInstance> BackgroundMaterial;
@@ -412,11 +419,14 @@ struct FCombatData
 	UPROPERTY()
 	bool bSneakAttack;
 
+	UPROPERTY()
+	FName EnemyTag;
+
 	FCombatData()
 		: EnemyData(nullptr), BackgroundMaterial(nullptr), CombatMusic(nullptr), bSneakAttack(false)
 	{}
 
-	FCombatData(TSoftObjectPtr<UBLEnemyDataAsset> InEnemyData, UMaterialInstance* InBackgroundMaterial
+	FCombatData(TObjectPtr<UBLEnemyDataAsset> InEnemyData, UMaterialInstance* InBackgroundMaterial
 		, USoundBase* InCombatMusic, const TArray<FText>& InQuestDisplayTexts, bool InSneakAttack = false)
 
 		: EnemyData(InEnemyData), BackgroundMaterial(InBackgroundMaterial), CombatMusic(InCombatMusic)

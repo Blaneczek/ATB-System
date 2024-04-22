@@ -4,6 +4,7 @@
 #include "BLActionsWidget.h"
 #include "Components/Border.h"
 #include "Components/Button.h"
+#include "Components/TextBlock.h"
 #include "Components/WidgetSwitcher.h"
 #include "UI/Actions/BLAttackActionWidget.h"
 #include "UI/Actions/BLDefendActionWidget.h"
@@ -31,6 +32,8 @@ void UBLActionsWidget::SetActionsData(const FCombatCharData& BaseData, const FCo
 	!CombatActions.SpecialActions.IsEmpty() ? SpecialAction->AddActions(CombatActions.SpecialActions) : BTSpecial->SetIsEnabled(false);
 
 	ItemAction->AddActions(CombatActions.ItemActions);
+
+	SpecialActionsName->SetText(BaseData.SpecialActionsName);
 }
 
 void UBLActionsWidget::BindButtons()

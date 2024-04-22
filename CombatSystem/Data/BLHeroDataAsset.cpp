@@ -59,11 +59,13 @@ FCombatCharData UBLHeroDataAsset::CalculateBaseCombatData(int32 Index)
 
 	USoundBase* DeathSound = Heroes[Index].DeathSound;
 
+	const FText SpecialActionsName = Heroes[Index].SpecialActionsName;
+
 	const FCombatCharData OutData = FCombatCharData(Name, Class, MaxHP, MaxME, BaseAttackDMG, BaseDefense
 													, BaseDodge, Cooldown, Strength, Agility, Wisdom
 													, Endurance, Pierce, Element, WeaponElement, StatusesImmunity
 													, WeaponStatus, Sprite, AnimInstanceClass
-													, TakeDMGAnim, TakeDMGSound, DeathSound);
+													, TakeDMGAnim, TakeDMGSound, DeathSound, SpecialActionsName);
 
 	return OutData;
 }

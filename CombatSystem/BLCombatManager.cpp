@@ -102,7 +102,7 @@ void ABLCombatManager::SetEnemyTeam()
 		return;
 	}
 
-	UBLEnemyDataAsset* Data = GI->CombatData.EnemyData.LoadSynchronous();
+	UBLEnemyDataAsset* Data = GI->CombatData.EnemyData;
 	if (!Data)
 	{
 		return;
@@ -609,7 +609,14 @@ void ABLCombatManager::HandleEndGame(bool bWonGame)
 	}
 
 	if (bWonGame)
-	{		
+	{	
+		if (GI->ForestEnemies.Contains(GI->CombatData.EnemyTag))
+		{
+			// Enemy is dead.
+			GI->ForestEnemies[GI->CombatData.EnemyTag] = true;
+		}
+
+		// Setting data in Heroes data asset
 		UBLHeroDataAsset* HeroData = HeroesData.LoadSynchronous();
 		if (HeroData)
 		{

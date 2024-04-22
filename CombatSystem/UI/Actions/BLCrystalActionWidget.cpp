@@ -54,7 +54,7 @@ void UBLCrystalActionWidget::AddActions(const TMap<ECrystalColor, FCrystalSkills
 					Args.Add(TEXT("TurnsCost"), Action->TurnsCost);
 					Args.Add(TEXT("TargetsNum"), Action->TargetsNumber);
 					const FText Desc = FText::Format(FText::FromString("{Desc}\r\rME: {MECost}\rTurns cooldown: {TurnsCost}\rTargets: {TargetsNum}"), Args);
-					Descriptions.Add(Desc);
+					CrystalsDescriptions[CrystalAction.Key].Descriptions.Add(Desc);
 				}
 			}
 		}
@@ -104,6 +104,7 @@ void UBLCrystalActionWidget::OnActionClicked(UObject* Item)
 		Button->Border->SetBrushColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.f));
 		if (CrystalsDescriptions.Contains(ClickedColor) && CrystalsDescriptions.Find(ClickedColor)->Descriptions.IsValidIndex(Button->Index))
 		{
+			UE_LOG(LogTemp, Warning, TEXT("asdada"));
 			DescDisplay->SetText(CrystalsDescriptions.Find(ClickedColor)->Descriptions[Button->Index]);
 		}	
 	}

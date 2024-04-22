@@ -39,6 +39,10 @@ void UBLCombatComponent::StartCombat()
 	UBLGameInstance* GI = Cast<UBLGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 	if (GI)
 	{
+		if (GetOwner()->Tags.IsValidIndex(0))
+		{
+			CombatData.EnemyTag = GetOwner()->Tags[0];
+		}	
 		GI->SetCombatData(CombatData, PostCombatData);
 	}
 

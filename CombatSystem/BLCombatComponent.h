@@ -8,7 +8,7 @@
 #include "BLCombatComponent.generated.h"
 
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), Blueprintable)
 class BLADEOFLEGEND_API UBLCombatComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -33,9 +33,9 @@ public:
 	void SneakAttack();
 
 public:
-	UPROPERTY(EditInstanceOnly, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FCombatData CombatData;
-	UPROPERTY(EditInstanceOnly, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FPostCombatData PostCombatData;
 
 };

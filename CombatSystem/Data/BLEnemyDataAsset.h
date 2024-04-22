@@ -9,33 +9,36 @@
 
 class UBLAction;
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FEnemyAssetInfo
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FCombatCharData BaseData;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<TSoftClassPtr<UBLAction>> AttackActions;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<TSoftClassPtr<UBLAction>> DefendActions;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<TSoftClassPtr<UBLAction>> SpecialActions;
 };
 
 /**
  * 
  */
-UCLASS()
+UCLASS(Blueprintable)
 class BLADEOFLEGEND_API UBLEnemyDataAsset : public UDataAsset
 {
 	GENERATED_BODY()
 	
+	UFUNCTION(BlueprintCallable)
+	void SetData(const TArray<FEnemyAssetInfo>& InEnemies);
+
 public:
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FEnemyAssetInfo> Enemies;
 };

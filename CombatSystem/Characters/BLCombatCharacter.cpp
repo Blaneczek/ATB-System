@@ -192,6 +192,7 @@ void ABLCombatCharacter::DefaultAction()
 		CurrentAction->OnEndExecution.BindLambda([this](){ EndAction(true); });
 		CurrentAction->ExecuteAction(this, nullptr);		
 	}
+
 }
 
 void ABLCombatCharacter::DefaultMeleeAction()
