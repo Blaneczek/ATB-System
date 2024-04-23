@@ -84,7 +84,7 @@ void ABLCombatManager::SetPlayerTeam()
 
 	for (int32 Index = 0; Index < FMath::Clamp(Data->Heroes.Num(), 1, 5); ++Index)
 	{
-		const FCombatCharData CharBaseData = Data->CalculateBaseCombatData(Index);
+		const FCombatCharData& CharBaseData = Data->CalculateBaseCombatData(Index);
 		if (PlayerTeam[Index] && Widget)
 		{
 			PlayerTeam[Index]->SpawnHero(CharBaseData, Data->Heroes[Index].CombatActions, GI->CombatData.bSneakAttack);

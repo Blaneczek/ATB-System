@@ -12,13 +12,13 @@ FCombatCharData UBLHeroDataAsset::CalculateBaseCombatData(int32 Index)
 
 	TSubclassOf<ABLCombatCharacter> Class = Heroes[Index].Class;
 
-	const int32 Strength = Heroes[Index].HeroAttributes.Strength + Heroes[Index].Armor.GetDefaultObject()->Strength + Heroes[Index].Helmet.GetDefaultObject()->Strength;
+	const float Strength = Heroes[Index].HeroAttributes.Strength + Heroes[Index].Armor.GetDefaultObject()->Strength + Heroes[Index].Helmet.GetDefaultObject()->Strength;
 
-	const int32 Agility = Heroes[Index].HeroAttributes.Agility + Heroes[Index].Armor.GetDefaultObject()->Agility + Heroes[Index].Helmet.GetDefaultObject()->Agility;
+	const float Agility = Heroes[Index].HeroAttributes.Agility + Heroes[Index].Armor.GetDefaultObject()->Agility + Heroes[Index].Helmet.GetDefaultObject()->Agility;
 
-	const int32 Wisdom = Heroes[Index].HeroAttributes.Wisdom + Heroes[Index].Armor.GetDefaultObject()->Wisdom + Heroes[Index].Helmet.GetDefaultObject()->Wisdom;
+	const float Wisdom = Heroes[Index].HeroAttributes.Wisdom + Heroes[Index].Armor.GetDefaultObject()->Wisdom + Heroes[Index].Helmet.GetDefaultObject()->Wisdom;
 
-	const int32 Endurance = Heroes[Index].HeroAttributes.Endurance + Heroes[Index].Armor.GetDefaultObject()->Endurance + Heroes[Index].Helmet.GetDefaultObject()->Endurance;
+	const float Endurance = Heroes[Index].HeroAttributes.Endurance + Heroes[Index].Armor.GetDefaultObject()->Endurance + Heroes[Index].Helmet.GetDefaultObject()->Endurance;
 
 	const float MaxHP = Heroes[Index].HeroAttributes.BaseHealth + (5 * Endurance) + Heroes[Index].Armor.GetDefaultObject()->AdditionalHP;
 
@@ -30,14 +30,12 @@ FCombatCharData UBLHeroDataAsset::CalculateBaseCombatData(int32 Index)
 	float BaseDefense = (Heroes[Index].HeroAttributes.Level / 2) + (Agility / 3) + Heroes[Index].Armor.GetDefaultObject()->Defense + Heroes[Index].Helmet.GetDefaultObject()->Defense;
 	BaseDefense = FMath::RoundHalfFromZero(BaseDefense);
 
-	float BaseDodge = Agility / 4;
-	BaseDodge = FMath::RoundHalfFromZero(BaseDodge);
+	const float BaseDodge = FMath::RoundHalfFromZero(Agility / 4);
 
 	const float CooldownTemp = Heroes[Index].Cooldown - Heroes[Index].Armor.GetDefaultObject()->CooldownDecrease - Heroes[Index].Helmet.GetDefaultObject()->CooldownDecrease - Heroes[Index].Weapon.GetDefaultObject()->CooldownDecrease;
 	const float Cooldown = FMath::Clamp(CooldownTemp, 1.f, Heroes[Index].Cooldown);
 
-	float Pierce = Agility / 5;
-	Pierce = FMath::RoundHalfFromZero(Pierce);
+	const float Pierce = FMath::RoundHalfFromZero(Agility / 5);
 
 	const ECombatElementType Element = Heroes[Index].Element;
 
@@ -55,19 +53,13 @@ FCombatCharData UBLHeroDataAsset::CalculateBaseCombatData(int32 Index)
 
 	UPaperZDAnimSequence* TakeDMGAnim = Heroes[Index].TakeDMGAnim;
 
-	USoundBase* TakeDMGSound = Heroes[Index].TakeDMGSound;
-
-	USoundBase* DeathSound = Heroes[Index].DeathSound;
-
 	const FText SpecialActionsName = Heroes[Index].SpecialActionsName;
 
-	const FCombatCharData OutData = FCombatCharData(Name, Class, MaxHP, MaxME, BaseAttackDMG, BaseDefense
+	return FCombatCharData(Name, Class, MaxHP, MaxME, BaseAttackDMG, BaseDefense
 													, BaseDodge, Cooldown, Strength, Agility, Wisdom
 													, Endurance, Pierce, Element, WeaponElement, StatusesImmunity
 													, WeaponStatus, Sprite, AnimInstanceClass
-													, TakeDMGAnim, TakeDMGSound, DeathSound, SpecialActionsName);
-
-	return OutData;
+													, TakeDMGAnim, SpecialActionsName);
 }
 
 void UBLHeroDataAsset::AddCombatReward(int32 InExperience, int32 InMoney, const TArray<TSoftClassPtr<UBLItem>>& InItems)

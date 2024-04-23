@@ -160,23 +160,23 @@ struct FHeroAttributes
 	float BaseMagicEnergy;
 
 	UPROPERTY(EditAnywhere)
-	int32 Strength;
+	float Strength;
 
 	UPROPERTY(EditAnywhere)
-	int32 Agility;
+	float Agility;
 
 	UPROPERTY(EditAnywhere)
-	int32 Wisdom;
+	float Wisdom;
 
 	UPROPERTY(EditAnywhere)
-	int32 Endurance;
+	float Endurance;
 
 	UPROPERTY(EditAnywhere)
-	int32 TotalCrystalsLevel;
+	float TotalCrystalsLevel;
 
 	FHeroAttributes()
 		: Level(1), Experience(0), ExperienceNextLevel(50), BaseHealth(10.f)
-		, BaseMagicEnergy(10.f), Strength(1), Agility(1), Wisdom(1), Endurance(1), TotalCrystalsLevel(0)
+		, BaseMagicEnergy(10.f), Strength(1.f), Agility(1.f), Wisdom(1.f), Endurance(1.f), TotalCrystalsLevel(0)
 	{}
 };
 
@@ -210,16 +210,16 @@ struct FCombatCharData
 	float Cooldown;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 Strength;
+	float Strength;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 Agility;
+	float Agility;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 Wisdom;
+	float Wisdom;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 Endurance;
+	float Endurance;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Pierce;
@@ -246,37 +246,30 @@ struct FCombatCharData
 	TObjectPtr<UPaperZDAnimSequence> TakeDMGAnim;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<USoundBase> TakeDMGSound;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<USoundBase> DeathSound;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FText SpecialActionsName;
 
 	FCombatCharData()
 		: Class(nullptr), MaxHP(0.f), MaxME(0.f), BaseAttackDMG(0.f)
-		, BaseDefense(0.f), BaseDodge(0.f), Cooldown(0.f), Strength(0)
-		, Agility(0), Wisdom(0), Endurance(0), Pierce(0.f), Element(ECombatElementType::NONE)
+		, BaseDefense(0.f), BaseDodge(0.f), Cooldown(0.f), Strength(0.f)
+		, Agility(0.f), Wisdom(0.f), Endurance(0.f), Pierce(0.f), Element(ECombatElementType::NONE)
 		, WeaponElement(ECombatElementType::NONE), WeaponStatus(FCombatStatus())
 		, Sprite(nullptr), AnimInstanceClass(nullptr), TakeDMGAnim(nullptr)
-		, TakeDMGSound(nullptr), DeathSound(nullptr)
 	{}
 
 	FCombatCharData(const FString& InName, TSubclassOf<ABLCombatCharacter> InClass, float InMaxHP
 		, float InMaxME, float InAttackDMG, float InBaseDefense, float InBaseDodge
-		, float InCooldown, int32 InStrength, int32 InAgility, int32 InWisdom, int32 InEndurance
+		, float InCooldown, float InStrength, float InAgility, float InWisdom, float InEndurance
 		, float InPierce, ECombatElementType InElement, ECombatElementType InWeaponElement 
 		, const TSet<ECombatStatusType>& InStatusesImmunity, const FCombatStatus& InWeaponStatus
 		, UPaperFlipbook* InSprite, TSubclassOf<UPaperZDAnimInstance> InAnimClass, UPaperZDAnimSequence* InTakeDMGAnim
-		, USoundBase* InTakeDMGSound, USoundBase* InDeathSound, const FText& InSpecialActionsName)
+		, const FText& InSpecialActionsName)
 
 		:Name(InName), Class(InClass), MaxHP(InMaxHP), MaxME(InMaxME), BaseAttackDMG(InAttackDMG)
 		, BaseDefense(InBaseDefense), BaseDodge(InBaseDodge), Cooldown(InCooldown), Strength(InStrength)
 		, Agility(InAgility), Wisdom(InWisdom), Endurance(InEndurance), Pierce(InPierce), Element(InElement)
 		, WeaponElement(InWeaponElement), StatusesImmunity(InStatusesImmunity), WeaponStatus(InWeaponStatus)
 		, Sprite(InSprite), AnimInstanceClass(InAnimClass), TakeDMGAnim(InTakeDMGAnim)
-		, TakeDMGSound(InTakeDMGSound), DeathSound(InDeathSound), SpecialActionsName(InSpecialActionsName)
+		, SpecialActionsName(InSpecialActionsName)
 	{}
 };
 
@@ -431,5 +424,51 @@ struct FCombatData
 
 		: EnemyData(InEnemyData), BackgroundMaterial(InBackgroundMaterial), CombatMusic(InCombatMusic)
 		, QuestDisplayTexts(InQuestDisplayTexts), bSneakAttack(InSneakAttack)
+	{}
+};
+
+
+USTRUCT(BlueprintType)
+struct FEnemyLevelData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Strength;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Agility;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Wisdom;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Endurance;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float BaseHP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float BaseME;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float BaseAttackDMG;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float BaseDefense;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Cooldown;
+
+	FEnemyLevelData()
+		: Strength(0.f), Agility(0.f), Wisdom(0.f), Endurance(0.f), BaseHP(0.f), BaseME(0.f), BaseAttackDMG(0.f)
+		, BaseDefense(0.f), Cooldown(0.f)
+	{}
+
+	FEnemyLevelData(float InStrength, float InAgility, float InWisdom, float InEndurance, float InBaseHP, float InBaseME
+		, float InBaseAttackDMG, float InBaseDefens, float InCooldown)
+
+		: Strength(InStrength), Agility(InAgility), Wisdom(InWisdom), Endurance(InEndurance), BaseHP(InBaseHP), BaseME(InBaseME)
+		, BaseAttackDMG(InBaseAttackDMG), BaseDefense(InBaseDefens), Cooldown(InCooldown)
 	{}
 };
