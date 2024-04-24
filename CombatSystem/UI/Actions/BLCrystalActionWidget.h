@@ -60,8 +60,12 @@ private:
 
 	UPROPERTY()
 	TArray<TObjectPtr<UObject>> RedItems;
+
 	UPROPERTY()
-	TArray<TObjectPtr<UObject>> BlueItems;
+	TArray<TObjectPtr<UObject>> PurpleItems;
+
+	UPROPERTY()
+	TArray<TObjectPtr<UObject>> WhiteItems;
 
 	UPROPERTY()
 	ECrystalColor ClickedColor{ ECrystalColor::NONE };

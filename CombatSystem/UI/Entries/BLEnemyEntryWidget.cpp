@@ -17,5 +17,5 @@ void UBLEnemyEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 
 void UBLEnemyEntryWidget::GreyOutEnemy()
 {
-	Border->SetBrushColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.f));
+	Border->SetBrushColor(DeathColor);
 }

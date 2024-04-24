@@ -13,12 +13,12 @@ void UBLHeroesWidget::NativeConstruct()
 	HeroesTileView->OnItemClicked().AddUObject(this, &UBLHeroesWidget::HeroClicked);
 }
 
-void UBLHeroesWidget::AddHero(int32 Index, const FString& HeroName, float HP, float ME)
+void UBLHeroesWidget::AddHero(int32 Index, const FString& HeroName, float MaxHP, float CurrentHP, float MaxME, float CurrentME)
 {
 	UBLHeroEntryData* Hero = NewObject<UBLHeroEntryData>();
 	if (Hero)
 	{
-		Hero->Init(Index, FText::FromString(HeroName), HP, ME);
+		Hero->Init(Index, FText::FromString(HeroName), MaxHP, CurrentHP, MaxME, CurrentME);
 		HeroesTileView->AddItem(Hero);
 	}
 }

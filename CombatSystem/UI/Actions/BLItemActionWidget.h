@@ -37,4 +37,7 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<UBLItemEntryWidget> ClickedItem;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FLinearColor ClickedColor;
 };

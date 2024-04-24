@@ -3,10 +3,12 @@
 
 #include "BLHeroEntryData.h"
 
-void UBLHeroEntryData::Init(int32 InIndex, const FText& InName, float InHP, float InME)
+void UBLHeroEntryData::Init(int32 InIndex, const FText& InName, float InMaxHP, float InCurrentHP, float InMaxME, float InCurrentME)
 {
 	Index = InIndex;
 	Name = InName;
-	HP = InHP;
-	ME = InME;
+	MaxHP = InMaxHP;
+	CurrentHP = InCurrentHP;
+	MaxME = InMaxME;
+	CurrentME = InCurrentME;
 }

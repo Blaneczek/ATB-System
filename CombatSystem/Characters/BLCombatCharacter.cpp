@@ -62,8 +62,8 @@ void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData, const FComba
 void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions)
 {
 	BaseData = InBaseData;
-	CurrentHP = BaseData.MaxHP;
-	CurrentME = BaseData.MaxME;
+	CurrentHP = BaseData.CurrentHP;
+	CurrentME = BaseData.CurrentME;
 	CurrentDefense = BaseData.BaseDefense;
 	CurrentCooldown = BaseData.Cooldown;
 
@@ -632,26 +632,31 @@ void ABLCombatCharacter::HandleHealHit(float Damage, float HealMultiplier, EComb
 	const float HealValue = Damage * HealMultiplier;
 	CurrentHP = FMath::Clamp((CurrentHP + HealValue), 0, BaseData.MaxHP);
 	DisplayTextDMG(HealValue, true, HealElementType);
+	OnHealthUpdate.ExecuteIfBound();
 }
 
 void ABLCombatCharacter::HandleDamageHit(ABLCombatCharacter* Attacker, float Damage, float DMGMultiplier, ECombatElementType DamageElementType, bool bMagicalAction)
 {
-	// if it draws DODGE, character will not take any damage or heal
-	const int32 DodgeChance = FMath::RandRange(1, 100);
-	if (DodgeChance <= BaseData.BaseDodge)
+	// Only if action is physical
+	if (!bMagicalAction)
 	{
-		DisplayTextDMG(0, false, DamageElementType, true);
-		return;
+		// If it draws DODGE, character will not take any damage or heal
+		const int32 DodgeChance = FMath::RandRange(1, 100);
+		if (DodgeChance <= BaseData.BaseDodge)
+		{
+			DisplayTextDMG(0, false, DamageElementType, true);
+			return;
+		}
 	}
-
-	// if it draws Pierce, Defense is reduced by half
+	
+	// If it draws Pierce, Defense is reduced by half
 	const int32 PierceChance = FMath::RandRange(1, 100);
 	const float NewDefense = PierceChance <= BaseData.Pierce ? CurrentDefense / 2 : CurrentDefense;
 
 	// 10 def decreases dmg by 5%
 	float DMGValue = (Damage * DMGMultiplier) * (1.f - ((NewDefense / 1000) * 5));
 
-	// if attack is physical and Attacker has Poisoning status, dmg is decreased by 20%
+	// If attack is physical and Attacker has Poisoning status, dmg is decreased by 20%
 	if (!bMagicalAction && Attacker->Statuses.Contains(ECombatStatusType::POISONING))
 	{
 		// Clamp because Defense can be higher than Damage, so that Damage is not negative
@@ -662,10 +667,11 @@ void ABLCombatCharacter::HandleDamageHit(ABLCombatCharacter* Attacker, float Dam
 		DMGValue = FMath::Clamp(FMath::RoundHalfFromZero(DMGValue), 0, FMath::RoundHalfFromZero(DMGValue));
 	}
 
-	// sets character HP between 0 and MaxHP
+	// Sets character HP between 0 and MaxHP
 	CurrentHP = FMath::Clamp((CurrentHP - DMGValue), 0, BaseData.MaxHP);
 
 	DisplayTextDMG(DMGValue, false, DamageElementType);
+	OnHealthUpdate.ExecuteIfBound();
 
 	if (BaseData.TakeDMGAnim)
 	{
@@ -675,7 +681,7 @@ void ABLCombatCharacter::HandleDamageHit(ABLCombatCharacter* Attacker, float Dam
 
 void ABLCombatCharacter::HandleHitStatuses(ABLCombatCharacter* Attacker, const TArray<FCombatStatus>& InStatuses, bool bMagicalAction)
 {
-	// temp array to add weapon and action statuses (weapon status only if its physical action)
+	// Temp array to add weapon and action statuses (weapon status only if its physical action)
 	TArray<FCombatStatus> AllStatuses = InStatuses;
 	if (!bMagicalAction)
 	{
@@ -719,7 +725,6 @@ void ABLCombatCharacter::HandleHitByAction(ABLCombatCharacter* Attacker, float D
 
 	HandleHitStatuses(Attacker, InStatuses, bMagical);
 
-	OnHealthUpdate.ExecuteIfBound();
 	if (CurrentHP <= 0.f)
 	{
 		bDeathIdle = true;

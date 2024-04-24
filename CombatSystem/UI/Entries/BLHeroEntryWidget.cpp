@@ -13,7 +13,7 @@ void UBLHeroEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 	UBLHeroEntryData* Item = Cast<UBLHeroEntryData>(ListItemObject);
 	if (Item)
 	{
-		SetData(Item->Index, Item->Name, Item->HP, Item->ME);
+		SetData(Item->Index, Item->Name, Item->MaxHP, Item->CurrentHP, Item->MaxME, Item->CurrentME);
 	}
 }
 
@@ -24,32 +24,34 @@ void UBLHeroEntryWidget::NativeConstruct()
 	CooldownBar->OnCooldownEnded.BindLambda([this](){ bCanDoAction = true; });
 }
 
-void UBLHeroEntryWidget::SetData(int32 InIndex, const FText& InName, float InHP, float InME)
+void UBLHeroEntryWidget::SetData(int32 InIndex, const FText& InName, float InMaxHP, float InCurrentHP, float InMaxME, float InCurrentME)
 {
 	Index = InIndex;
 	Name->SetText(InName);
 	FFormatNamedArguments Args;
-	Args.Add(TEXT("HP"), InHP);
-	Args.Add(TEXT("ME"), InME);
-	HP->SetText(FText::Format(FText::FromString("HP: {HP}/{HP}"), Args));
-	ME->SetText(FText::Format(FText::FromString("ME: {ME}/{ME}"), Args));
+	Args.Add(TEXT("maxHP"), InMaxHP);
+	Args.Add(TEXT("currentHP"), InCurrentHP);
+	Args.Add(TEXT("maxME"), InMaxME);
+	Args.Add(TEXT("currentME"), InCurrentME);
+	HP->SetText(FText::Format(FText::FromString("HP: {currentHP}/{maxHP}"), Args));
+	ME->SetText(FText::Format(FText::FromString("ME: {currentME}/{maxME}"), Args));
 }
 
 void UBLHeroEntryWidget::GreyOutHero()
 {
 	bDied = true;
-	Border->SetBrushColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.f));
+	Border->SetBrushColor(DeathColor);
 	ResetCooldownBar();
 }
 
 void UBLHeroEntryWidget::HighlightHero()
 {
-	Border->SetBrushColor(FLinearColor(0.f, 0.35f, 0.5f, 1.f));
+	Border->SetBrushColor(HighlightColor);
 }
 
 void UBLHeroEntryWidget::UnlightHero()
 {
-	Border->SetBrushColor(FLinearColor(1.f, 1.f, 1.f, 0.f));
+	Border->SetBrushColor(DefaultColor);
 }
 
 void UBLHeroEntryWidget::UpdateHP(float MaxHP, float CurrentHP)

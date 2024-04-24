@@ -45,12 +45,6 @@ void ABLCombatManager::BeginPlay()
 		AC->OnSlotRemoved.BindUObject(this, &ABLCombatManager::DeselectClickedSlot);
 	}
 
-	UBLGameInstance* GI = Cast<UBLGameInstance>(GetGameInstance());
-	if (GI && GI->CombatData.CombatMusic)
-	{
-		UGameplayStatics::PlaySound2D(GetWorld(), GI->CombatData.CombatMusic);
-	}
-
 	InitializeWidget();
 	SetPlayerTeam();
 	SetEnemyTeam();
@@ -621,6 +615,7 @@ void ABLCombatManager::HandleEndGame(bool bWonGame)
 		if (HeroData)
 		{
 			HeroData->AddCombatReward(GI->PostCombatData.Experience, GI->PostCombatData.Money, GI->PostCombatData.Items);
+			SetHeroesCurrentHPME(HeroData);
 		}
 
 		if (WinWidgetClass)
@@ -704,6 +699,23 @@ void ABLCombatManager::ExitCombat()
 	else
 	{
 		UGameplayStatics::OpenLevel(GetWorld(), GI->PostCombatData.LevelName);
+	}
+}
+
+void ABLCombatManager::SetHeroesCurrentHPME(UBLHeroDataAsset* HeroData)
+{
+	if (!HeroData)
+	{
+		return;
+	}
+
+	for (int32 Index = 0; Index < HeroData->Heroes.Num(); ++Index)
+	{
+		if (PlayerTeam.IsValidIndex(Index) && PlayerTeam[Index] && PlayerTeam[Index]->GetCharacter())
+		{
+			HeroData->Heroes[Index].HeroAttributes.CurrentHP = PlayerTeam[Index]->IsActive() ? PlayerTeam[Index]->GetCharacter()->GetCurrentHP() : 1.f;
+			HeroData->Heroes[Index].HeroAttributes.CurrentME = PlayerTeam[Index]->GetCharacter()->GetCurrentME();
+		}
 	}
 }
 

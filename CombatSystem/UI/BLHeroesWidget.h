@@ -22,7 +22,7 @@ class BLADEOFLEGEND_API UBLHeroesWidget : public UUserWidget
 
 public:
 	/** Adds item to TileView */
-	void AddHero(int32 Index, const FString& HeroName, float HP, float ME);
+	void AddHero(int32 Index, const FString& HeroName, float MaxHP, float CurrentHP, float MaxME, float CurrentME);
 
 	/** Will call when one of the heroes has died which will gray out the corresponding item in TileView */
 	void HeroDied(int32 Index);

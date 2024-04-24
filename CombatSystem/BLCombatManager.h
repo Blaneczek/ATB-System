@@ -156,6 +156,8 @@ private:
 
 	void ShowDisplayWindow(const FText& InText, float Time);
 
+	void SetHeroesCurrentHPME(UBLHeroDataAsset* HeroData);
+
 public:
 	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "BL|Combat")
 	TArray<TObjectPtr<ABLCombatSlot>> PlayerTeam;

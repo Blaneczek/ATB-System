@@ -33,7 +33,7 @@ void UBLActionWidget::ResetAction()
 {
 	if (ClickedButton)
 	{
-		ClickedButton->Border->SetBrushColor(FLinearColor(0.5f, 0.5f, 0.5f, 1.f));
+		ClickedButton->SetIsClicked(false);
 		ClickedButton = nullptr;
 	}
 

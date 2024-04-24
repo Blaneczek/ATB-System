@@ -25,6 +25,8 @@ protected:
 public:
 	void SetData(int32 InIndex, const FText& InName, float InMECost = 0.f, int32 InTargetsNum = 1);
 
+	void SetIsClicked(bool bNewClicked);
+
 public:
 	UPROPERTY()
 	int32 Index;
@@ -40,4 +42,10 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
 	TObjectPtr<UTextBlock> Name;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FLinearColor DefaultColor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FLinearColor ClickedColor;
 };

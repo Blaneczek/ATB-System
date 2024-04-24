@@ -45,7 +45,7 @@ void UBLSpecialActionWidget::OnActionClicked(UObject* Item)
 	if (Button && Action)
 	{
 		ClickedButton = Button; 
-		Button->Border->SetBrushColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.f));
+		Button->SetIsClicked(true);
 		if (Descriptions.IsValidIndex(Button->Index))
 		{
 			ShowDescription(Button->Index);

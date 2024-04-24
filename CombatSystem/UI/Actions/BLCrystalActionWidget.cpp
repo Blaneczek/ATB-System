@@ -33,14 +33,19 @@ void UBLCrystalActionWidget::AddActions(const TMap<ECrystalColor, FCrystalSkills
 				EntryItem->OnNameChange.BindUObject(this, &UBLCrystalActionWidget::ChangeName);
 				switch (CrystalAction.Key)
 				{
-					case ECrystalColor::BLUE: 
+					case ECrystalColor::PURPLE: 
 					{
-						BlueItems.Add(EntryItem);
+						PurpleItems.Add(EntryItem);
 						break;
 					}
 					case ECrystalColor::RED:
 					{
 						RedItems.Add(EntryItem);
+						break;
+					}
+					case ECrystalColor::WHITE:
+					{
+						WhiteItems.Add(EntryItem);
 						break;
 					}
 					// other colors
@@ -67,7 +72,7 @@ void UBLCrystalActionWidget::ResetAction()
 
 	if (ClickedColorButton)
 	{
-		ClickedColorButton->Border->SetBrushColor(FLinearColor(0.5f, 0.5f, 0.5f, 1.f));
+		ClickedColorButton->SetIsClicked(false);
 		ClickedColorButton = nullptr;
 	}
 	BTBack->SetVisibility(ESlateVisibility::Hidden);
@@ -101,10 +106,9 @@ void UBLCrystalActionWidget::OnActionClicked(UObject* Item)
 	if (Button)
 	{
 		ClickedButton = Button;
-		Button->Border->SetBrushColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.f));
+		Button->SetIsClicked(true);
 		if (CrystalsDescriptions.Contains(ClickedColor) && CrystalsDescriptions.Find(ClickedColor)->Descriptions.IsValidIndex(Button->Index))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("asdada"));
 			DescDisplay->SetText(CrystalsDescriptions.Find(ClickedColor)->Descriptions[Button->Index]);
 		}	
 	}
@@ -122,7 +126,7 @@ void UBLCrystalActionWidget::OnColorClicked(UObject* Item)
 	}
 
 	ClickedColorButton = Button;
-	Button->Border->SetBrushColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.f));
+	Button->SetIsClicked(true);
 	ClickedColor = ButtonData->CrystalColor;
 
 	switch (ClickedColor)
@@ -132,9 +136,14 @@ void UBLCrystalActionWidget::OnColorClicked(UObject* Item)
 		ActionsList->SetListItems(RedItems);
 		break;
 	}
-	case ECrystalColor::BLUE:
+	case ECrystalColor::PURPLE:
 	{
-		ActionsList->SetListItems(BlueItems);
+		ActionsList->SetListItems(PurpleItems);
+		break;
+	}
+	case ECrystalColor::WHITE:
+	{
+		ActionsList->SetListItems(WhiteItems);
 		break;
 	}
 	default: return;
@@ -148,7 +157,7 @@ void UBLCrystalActionWidget::ResetColorsAction()
 {
 	if (ClickedButton)
 	{
-		ClickedButton->Border->SetBrushColor(FLinearColor(0.5f, 0.5f, 0.5f, 1.f));
+		ClickedButton->SetIsClicked(false);
 		ClickedButton = nullptr;
 	}
 }

@@ -22,5 +22,5 @@ protected:
 
 public:
 	UPROPERTY()
-	int32 TurnsCost { 0 };
+	int32 TurnsCost = 0;
 };

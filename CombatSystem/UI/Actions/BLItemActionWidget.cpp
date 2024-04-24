@@ -65,7 +65,7 @@ void UBLItemActionWidget::OnActionClicked(UObject* Item)
 	{
 		ClickedItem = ItemWidget;
 		ClickedItem->Border->Background.OutlineSettings.Width = 5.f;
-		ClickedItem->Border->Background.OutlineSettings.Color = FLinearColor(0.1f, 1.f, 0.5f, 1.f);
+		ClickedItem->Border->Background.OutlineSettings.Color = ClickedColor;
 		if (Descriptions.IsValidIndex(ItemEntry->Index))
 		{
 			ShowDescription(ItemEntry->Index);

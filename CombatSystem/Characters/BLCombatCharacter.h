@@ -85,9 +85,11 @@ public:
 	void SetCurrentDefense(float NewDefense) { CurrentDefense = NewDefense; };
 
 	UFUNCTION(BlueprintCallable)
+	const FCombatCharData& GetBaseData() const { return BaseData; };
+
+	UFUNCTION(BlueprintCallable)
 	bool IsDeathIdle() const { return bDeathIdle; };
 
-	/** Only for text render (Debug) */
 	UFUNCTION(BlueprintCallable)
 	FString GetName() const { return BaseData.Name; };
 
@@ -140,6 +142,10 @@ public:
 
 	virtual void SneakAttack() {};
 
+	/** Handles the situation where Action damage will be converted into healing or used action with heal*/
+	UFUNCTION(BlueprintCallable)
+	void HandleHealHit(float Damage, float HealMultiplier, ECombatElementType HealElementType);
+
 protected:
 	void TakeSimpleDamage(float Damage);
 
@@ -171,9 +177,6 @@ private:
 	void HandleStatuses();
 
 	void HandleTurnsCooldown();
-
-	/** Handles the situation where Action damage will be converted into healing */
-	void HandleHealHit(float Damage, float HealMultiplier, ECombatElementType HealElementType);
 
 	/** Handles the situation where Action deals damage to a character */
 	void HandleDamageHit(ABLCombatCharacter* Attacker, float Damage, float DMGMultiplier, ECombatElementType DamageElementType, bool bMagicalAction);

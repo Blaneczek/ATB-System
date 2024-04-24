@@ -61,7 +61,7 @@ void UBLActionsWidget::OnBTAttackClicked()
 	ResetAction();
 	ClickedButton = BTAttack;
 	ClickedAction = AttackAction;
-	ClickedButton->SetBackgroundColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.f));
+	ClickedButton->SetIsEnabled(false);
 	AttackAction->ShowDescription(0);
 	ActionTypeSwitcher->SetActiveWidget(AttackAction);
 	AttackAction->OnAction.ExecuteIfBound(FCombatActionData(ECombatActionType::ATTACK, ECombatActionFlow::NONE, 0));
@@ -73,7 +73,7 @@ void UBLActionsWidget::OnBTDefendClicked()
 	ResetAction();
 	ClickedButton = BTDefend;
 	ClickedAction = DefendAction;
-	ClickedButton->SetBackgroundColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.f));
+	ClickedButton->SetIsEnabled(false);
 	DefendAction->ShowDescription(0);
 	ActionTypeSwitcher->SetActiveWidget(DefendAction);
 	DefendAction->OnAction.ExecuteIfBound(FCombatActionData(ECombatActionType::DEFEND, ECombatActionFlow::NONE, 0));
@@ -85,7 +85,7 @@ void UBLActionsWidget::OnBTCrystalClicked()
 	ResetAction();
 	ClickedButton = BTCrystal;
 	ClickedAction = CrystalAction;
-	ClickedButton->SetBackgroundColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.f));
+	ClickedButton->SetIsEnabled(false);
 	ActionTypeSwitcher->SetActiveWidget(CrystalAction);
 }
 
@@ -95,7 +95,7 @@ void UBLActionsWidget::OnBTSpecialSkillClicked()
 	ResetAction();
 	ClickedButton = BTSpecial;
 	ClickedAction = SpecialAction;
-	ClickedButton->SetBackgroundColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.f));
+	ClickedButton->SetIsEnabled(false);
 	ActionTypeSwitcher->SetActiveWidget(SpecialAction);
 }
 
@@ -105,7 +105,7 @@ void UBLActionsWidget::OnBTItemClicked()
 	ResetAction();
 	ClickedButton = BTItem;
 	ClickedAction = ItemAction;
-	ClickedButton->SetBackgroundColor(FLinearColor(0.3f, 0.3f, 0.3f, 1.f));
+	ClickedButton->SetIsEnabled(false);
 	ActionTypeSwitcher->SetActiveWidget(ItemAction);
 }
 
@@ -118,7 +118,7 @@ void UBLActionsWidget::ResetButton()
 {
 	if (ClickedButton)
 	{
-		ClickedButton->SetBackgroundColor(FLinearColor(1.f, 1.f, 1.f, 1.f));
+		ClickedButton->SetIsEnabled(true);
 		ClickedButton = nullptr;
 	}
 }
@@ -144,3 +144,4 @@ void UBLActionsWidget::ChosenAction(const FCombatActionData& ActionData)
 {
 	OnChosenAction.ExecuteIfBound(ActionData);
 }
+

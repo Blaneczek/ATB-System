@@ -27,7 +27,7 @@ protected:
 
 public:
 	/** Sets Hero data for widget */
-	void SetData(int32 InIndex, const FText& InName, float InHP, float InME);
+	void SetData(int32 InIndex, const FText& InName, float InMaxHP, float InCurrentHP, float InMaxME, float InCurrentME);
 
 	/** Greys the border and resets cooldown bar when hero died */
 	void GreyOutHero();
@@ -72,6 +72,15 @@ protected:
 	UPROPERTY()
 	int32 Index;
 
-	bool bDied { false };
-	bool bCanDoAction{ false };
+	bool bDied = false;
+	bool bCanDoAction = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FLinearColor DefaultColor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FLinearColor HighlightColor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FLinearColor DeathColor;
 };

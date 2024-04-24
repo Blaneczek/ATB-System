@@ -32,4 +32,7 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
 	TObjectPtr<UTextBlock> Name;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FLinearColor DeathColor;
 };
