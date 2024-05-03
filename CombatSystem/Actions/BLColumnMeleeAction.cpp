@@ -21,6 +21,7 @@ void UBLColumnMeleeAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCha
 	if (!Owner || !Target && bEndAction)
 	{
 		OnEndExecution.ExecuteIfBound();
+		return;
 	}
 
 	if (ActionAnim)
@@ -28,10 +29,15 @@ void UBLColumnMeleeAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCha
 		if (bEndAction)
 		{
 			FZDOnAnimationOverrideEndSignature EndAnimDel;
-			EndAnimDel.BindLambda([this](bool bResult) { OnEndExecution.ExecuteIfBound(); });
+			EndAnimDel.BindWeakLambda(this, [this](bool bResult) { OnEndExecution.ExecuteIfBound(); });
 			Owner->GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(ActionAnim, "DefaultSlot", 1.f, 0.0f, EndAnimDel);
 		}
 		ActionCalculations(Owner, Target, CombatManager);
+	}
+	else
+	{
+		ActionCalculations(Owner, Target, CombatManager);
+		OnEndExecution.ExecuteIfBound();
 	}
 
 	bEndAction = false;

@@ -22,18 +22,28 @@ void UBLActionsWidget::NativeConstruct()
 	BindActions();
 }
 
-void UBLActionsWidget::SetActionsData(const FCombatCharData& BaseData, const FCombatActions& CombatActions)
+void UBLActionsWidget::SetActionsData(const FCombatCharData& BaseData, const FCombatActions& CombatActions, bool bCanRunAway)
 {	
-	AttackAction->AddActions(CombatActions.AttackActions);
-	DefendAction->AddActions(CombatActions.DefendActions);
+	!CombatActions.AttackActions.IsEmpty() ? AttackAction->AddActions(CombatActions.AttackActions) : DisableButton(BTAttack);
 
-	!CombatActions.CrystalActions.IsEmpty() ? CrystalAction->AddActions(CombatActions.CrystalActions) : BTCrystal->SetIsEnabled(false);
+	!CombatActions.DefendAction.IsNull() ? DefendAction->AddActions(CombatActions.DefendAction) : DisableButton(BTDefend);
 
-	!CombatActions.SpecialActions.IsEmpty() ? SpecialAction->AddActions(CombatActions.SpecialActions) : BTSpecial->SetIsEnabled(false);
+	!CombatActions.CrystalActions.IsEmpty() ? CrystalAction->AddActions(CombatActions.CrystalActions) : DisableButton(BTCrystal);
+
+	!CombatActions.SpecialActions.IsEmpty() ? SpecialAction->AddActions(CombatActions.SpecialActions) : DisableButton(BTSpecial);
 
 	ItemAction->AddActions(CombatActions.ItemActions);
 
-	SpecialActionsName->SetText(BaseData.SpecialActionsName);
+	if (!bCanRunAway)
+	{
+		DisableButton(BTRun);
+	}
+	else
+	{
+		!CombatActions.RunAwayAction.IsNull() ? RunAwayAction->AddActions(CombatActions.RunAwayAction) : DisableButton(BTRun);
+	}
+
+	SpecialActionsName->SetText(BaseData.SpecialActionsName);	
 }
 
 void UBLActionsWidget::BindButtons()
@@ -53,6 +63,17 @@ void UBLActionsWidget::BindActions()
 	CrystalAction->OnAction.BindUObject(this, &UBLActionsWidget::ChosenAction);
 	SpecialAction->OnAction.BindUObject(this, &UBLActionsWidget::ChosenAction);
 	ItemAction->OnAction.BindUObject(this, &UBLActionsWidget::ChosenAction);
+	RunAwayAction->OnAction.BindUObject(this, &UBLActionsWidget::ChosenAction);
+}
+
+void UBLActionsWidget::DisableButton(UButton* Button)
+{
+	FButtonStyle Style = Button->GetStyle();
+	Style.Disabled.TintColor = FLinearColor(0.3f, 0.3f, 0.3f, 1.f);
+	Style.Disabled.OutlineSettings.Width = 0.f;
+
+	Button->SetStyle(Style);
+	Button->SetIsEnabled(false);
 }
 
 void UBLActionsWidget::OnBTAttackClicked()
@@ -111,7 +132,13 @@ void UBLActionsWidget::OnBTItemClicked()
 
 void UBLActionsWidget::OnBTRunClicked()
 {
-
+	ResetButton();
+	ResetAction();
+	ClickedButton = BTRun;
+	ClickedAction = RunAwayAction;
+	ClickedButton->SetIsEnabled(false);
+	ActionTypeSwitcher->SetActiveWidget(RunAwayAction);
+	RunAwayAction->OnAction.ExecuteIfBound(FCombatActionData(ECombatActionType::RUN_AWAY, ECombatActionFlow::NONE, 0));
 }
 
 void UBLActionsWidget::ResetButton()

@@ -32,7 +32,7 @@ protected:
 	virtual void NativeConstruct() override;
 
 public:
-	void SetActionsData(const FCombatCharData& BaseData, const FCombatActions& CombatActions);
+	void SetActionsData(const FCombatCharData& BaseData, const FCombatActions& CombatActions, bool bCanRunAway);
 
 	/** Returns widget to default state */
 	void ResetWidget();
@@ -40,6 +40,8 @@ public:
 private:
 	void BindButtons();
 	void BindActions();
+
+	void DisableButton(UButton* Button);
 
 	UFUNCTION()
 	void OnBTAttackClicked();
@@ -103,6 +105,9 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
 	TObjectPtr<UBLActionWidget> ItemAction;
+
+	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
+	TObjectPtr<UBLActionWidget> RunAwayAction;
 
 	/** Name of special actions to display on button */
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))

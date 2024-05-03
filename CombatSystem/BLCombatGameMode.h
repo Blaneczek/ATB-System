@@ -3,17 +3,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/GameModeBase.h"
+#include "BladeOfLegend/AREK/GameMode/GameModeBase/BLGameModeBase.h"
 #include "BLCombatGameMode.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class BLADEOFLEGEND_API ABLCombatGameMode : public AGameModeBase
+class BLADEOFLEGEND_API ABLCombatGameMode : public ABLGameModeBase
 {
 	GENERATED_BODY()
 	
-protected:
-	virtual void BeginPlay() override;
 };

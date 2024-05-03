@@ -16,4 +16,13 @@ class BLADEOFLEGEND_API ABLCombatEnemy : public ABLCombatCharacter
 
 public:
 	virtual void SneakAttack() override;
+
+	virtual FCombatActionData GetEnemyAction() override;
+
+protected:
+	virtual void HandleTurnsCooldown() override;
+
+private:
+	UPROPERTY()
+	TMap<int32, int32> ActionsCooldown;
 };

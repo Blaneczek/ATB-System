@@ -15,16 +15,13 @@ struct FEnemyAssetInfo
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 Level = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FCombatCharData BaseData;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<TSoftClassPtr<UBLAction>> AttackActions;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<TSoftClassPtr<UBLAction>> DefendActions;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<TSoftClassPtr<UBLAction>> SpecialActions;
+	TArray<TSoftClassPtr<UBLAction>> Actions;
 };
 
 /**

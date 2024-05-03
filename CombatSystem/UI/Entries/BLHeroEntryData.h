@@ -16,7 +16,7 @@ class BLADEOFLEGEND_API UBLHeroEntryData : public UObject
 
 public:
 	/** Sets the data needed for UI */
-	void Init(int32 InIndex, const FText& InName, float InMaxHP, float InCurrentHP, float InMaxME, float InCurrentME);
+	void Init(int32 InIndex, const FText& InName, float InMaxHP, float InCurrentHP, float InMaxME);
 
 public:
 	UPROPERTY()

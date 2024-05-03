@@ -26,10 +26,16 @@ public:
 	UFUNCTION()
 	void OnBTNextClicked();
 
+	UFUNCTION()
+	void OnBTExitClicked();
+
 public:
 	FOnLostGame OnLostGame;
 
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
 	TObjectPtr<UButton> BTNext;
+
+	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
+	TObjectPtr<UButton> BTExit;
 };

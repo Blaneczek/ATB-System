@@ -5,7 +5,9 @@
 #include "BladeOfLegend/DAWID/Items/BLArmorItem.h"
 #include "BladeOfLegend/DAWID/Items/BLWeaponItem.h"
 #include "BladeOfLegend/DAWID/Items/BLHelmetItem.h"
+#include "Actions/BLAction.h"
 
+/*
 void FHeroAssetInfo::UpdateCurrentHP()
 {
 #pragma region NullChecks
@@ -73,7 +75,7 @@ void UBLHeroDataAsset::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 			}
 		}
 	}
-}
+}*/
 
 FCombatCharData UBLHeroDataAsset::CalculateBaseCombatData(int32 Index)
 {
@@ -106,7 +108,7 @@ FCombatCharData UBLHeroDataAsset::CalculateBaseCombatData(int32 Index)
 	const float MaxME = GetMaxME(Index);
 
 	float BaseAttackDMG = 
-		Heroes[Index].HeroAttributes.Level + 
+		Level + 
 		Heroes[Index].HeroAttributes.TotalCrystalsLevel + 
 		(Strength / 3) + 
 		Heroes[Index].Weapon.GetDefaultObject()->Damage;
@@ -114,7 +116,7 @@ FCombatCharData UBLHeroDataAsset::CalculateBaseCombatData(int32 Index)
 	BaseAttackDMG = FMath::RoundHalfFromZero(BaseAttackDMG);
 
 	float BaseDefense = 
-		(Heroes[Index].HeroAttributes.Level / 2) + 
+		(Level / 2) + 
 		(Agility / 3) +
 		Heroes[Index].Armor.GetDefaultObject()->Defense + 
 		Heroes[Index].Helmet.GetDefaultObject()->Defense;
@@ -165,14 +167,23 @@ void UBLHeroDataAsset::AddCombatReward(int32 InExperience, int32 InMoney, const 
 	Money += InMoney;
 	Items.Append(InItems);
 
-	for (auto& Hero : Heroes)
+	bLevelUP = false;
+	LevelUPData.Empty();
+
+	Experience += InExperience;
+	if (Experience >= ExperienceNextLevel)
 	{
-		Hero.HeroAttributes.Experience += InExperience;
+		LevelUP();
 	}
 }
 
 float UBLHeroDataAsset::GetMaxHP(int32 Index) const
 {
+	if (!Heroes.IsValidIndex(Index))
+	{
+		return 0.f;
+	}
+
 	return Heroes[Index].HeroAttributes.BaseHealth + 
 		(5 * Heroes[Index].HeroAttributes.Endurance) + 
 		Heroes[Index].Armor.GetDefaultObject()->AdditionalHP;
@@ -180,7 +191,134 @@ float UBLHeroDataAsset::GetMaxHP(int32 Index) const
 
 float UBLHeroDataAsset::GetMaxME(int32 Index) const
 {
-	return Heroes[Index].HeroAttributes.BaseMagicEnergy + 
-		(5 * Heroes[Index].HeroAttributes.Wisdom) + 
+	if (!Heroes.IsValidIndex(Index))
+	{
+		return 0.f;
+	}
+
+	return Heroes[Index].HeroAttributes.BaseMagicEnergy +
+		(5 * Heroes[Index].HeroAttributes.Wisdom) +
 		Heroes[Index].Armor.GetDefaultObject()->AdditionalME;
 }
+
+void UBLHeroDataAsset::LevelUP()
+{
+	bLevelUP = true;
+	Level++;
+	Experience = FMath::Clamp(Experience - ExperienceNextLevel, 0, ExperienceNextLevel);
+	ExperienceNextLevel += 30;
+
+	const float Strength = 2.f;
+	const float Agility = 2.f;
+	const float Wisdom = 2.f;
+	const float Endurance = 2.f;
+
+	int32 TempIndex = 0;
+
+	for (auto& Hero : Heroes)
+	{
+		float CrystalStrength = 0.f;
+		float CrystalAgility = 0.f;
+		float CrystalWisdom = 0.f;
+		float CrystalEndurance = 0.f;
+		ECrystalColor CrystalColor = ECrystalColor::NONE;
+		bool bNewSkill = false;
+		FText SkillName;
+		UPaperSprite* CrystalSprite = nullptr;
+
+		int32 CrystalSkillIndex = 0;
+		CrystalColor = Hero.CurrentCrystal;
+
+		if (Hero.CrystalsData.Contains(CrystalColor))
+		{
+			const int32 CrystalLevel = ++Hero.CrystalsData.Find(CrystalColor)->Level;
+			CrystalSprite = Hero.CrystalsData.Find(CrystalColor)->CrystalSprite;
+
+			if (CrystalLevel % 5 == 0)
+			{
+				bNewSkill = true;
+				CrystalSkillIndex = CrystalLevel / 5 - 1;
+			}
+
+			if (bNewSkill && Hero.CrystalsData.Find(CrystalColor)->Skills.IsValidIndex(CrystalSkillIndex))
+			{
+				if (!Hero.CombatActions.CrystalActions.Contains(CrystalColor))
+				{
+					Hero.CombatActions.CrystalActions.Add(CrystalColor, FCrystalSkills());
+				}
+
+				Hero.CombatActions.CrystalActions.Find(CrystalColor)->Skills.Add(Hero.CrystalsData.Find(CrystalColor)->Skills[CrystalSkillIndex]);
+
+				if (UBLAction* Action = Cast<UBLAction>(Hero.CrystalsData.Find(CrystalColor)->Skills[CrystalSkillIndex].LoadSynchronous()->GetDefaultObject()))
+				{
+					SkillName = Action->Name;
+				}
+			}
+			switch (CrystalColor)
+			{
+				case ECrystalColor::RED:
+				{
+					if (CrystalLevel % 3 == 0)
+					{
+						CrystalAgility = 1.f;
+						CrystalWisdom = 1.f;
+					}
+					CrystalStrength = 3.f;					
+					CrystalEndurance = 3.f;
+					break;
+				}
+				case ECrystalColor::PURPLE:
+				{
+					if (CrystalLevel % 3 == 0)
+					{
+						CrystalAgility = 1.f;
+						CrystalEndurance = 1.f;
+					}
+					CrystalWisdom = 3.f;
+					CrystalStrength = 1.f;
+					break;
+				}
+				case ECrystalColor::WHITE:
+				{
+					if (CrystalLevel % 3 == 0)
+					{
+						CrystalAgility = 1.f;
+						CrystalStrength = 1.f;
+					}
+					CrystalWisdom = 3.f;
+					CrystalEndurance = 2.f;
+					break;
+				}
+				default: break;
+			}
+		}
+ 
+		Hero.HeroAttributes.TotalCrystalsLevel++;
+		Hero.HeroAttributes.Strength += Strength + CrystalStrength;
+		Hero.HeroAttributes.Agility += Agility + CrystalAgility;
+		Hero.HeroAttributes.Wisdom += Wisdom + CrystalWisdom;
+		Hero.HeroAttributes.Endurance += Endurance + CrystalEndurance;
+		Hero.HeroAttributes.CurrentHP = GetMaxHP(TempIndex);
+		Hero.HeroAttributes.CurrentME = GetMaxME(TempIndex);
+		TempIndex++;
+
+		LevelUPData.Add(FLevelUPData(Strength, Agility, Wisdom, Endurance, CrystalStrength, CrystalAgility, CrystalWisdom, CrystalEndurance, CrystalColor, bNewSkill, SkillName, CrystalSprite));
+	}
+}
+
+FHeroDataAssetData UBLHeroDataAsset::GetDataAssetAsStruct()
+{
+	return FHeroDataAssetData(Heroes, Level, Experience, ExperienceNextLevel, Items, Money);
+}
+
+void UBLHeroDataAsset::SetDataAssetFromStruct(const FHeroDataAssetData& Data)
+{
+	Heroes = Data.Heroes;
+	Level = Data.Level;
+	Experience = Data.Experience;
+	ExperienceNextLevel = Data.ExperienceNextLevel;
+	Items = Data.Items;
+	Money = Data.Money;
+}
+
+

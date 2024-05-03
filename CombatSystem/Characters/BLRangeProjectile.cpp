@@ -14,7 +14,9 @@
 ABLRangeProjectile::ABLRangeProjectile()
 {
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
-	Movement->MaxWalkSpeed = 1200.f;
+	Movement->MaxWalkSpeed = 500.f;
+	PaperFlipbook->SetUsingAbsoluteRotation(false);
+	TranslucencyHelperBase->SetUsingAbsoluteRotation(false);
 }
 
 // Called when the game starts or when spawned
@@ -47,6 +49,17 @@ void ABLRangeProjectile::FlyToTarget(ABLCombatCharacter* Target)
 	}
 }
 
+void ABLRangeProjectile::FlyToTargetBounce(ABLCombatCharacter* Target)
+{
+	AAIController* AIC = Cast<AAIController>(GetController());
+	if (AIC && Target)
+	{
+		AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLRangeProjectile::ReachedBounceDestination);	
+		const FVector& Location = Target->GetActorLocation() + FVector(0.f, -30.f, 0.f);
+		AIC->MoveToLocation(Location, 5.f);
+	}
+}
+
 void ABLRangeProjectile::ReachedDestination(FAIRequestID RequestID, const FPathFollowingResult& Result)
 {
 	AAIController* AIC = Cast<AAIController>(GetController());
@@ -55,6 +68,16 @@ void ABLRangeProjectile::ReachedDestination(FAIRequestID RequestID, const FPathF
 		AIC->GetPathFollowingComponent()->OnRequestFinished.RemoveAll(this);
 		OnReachedDestination.ExecuteIfBound();
 		Destroy();
+	}
+}
+
+void ABLRangeProjectile::ReachedBounceDestination(FAIRequestID RequestID, const FPathFollowingResult& Result)
+{
+	AAIController* AIC = Cast<AAIController>(GetController());
+	if (AIC)
+	{
+		AIC->GetPathFollowingComponent()->OnRequestFinished.RemoveAll(this);
+		OnReachedDestination.ExecuteIfBound();
 	}
 }
 

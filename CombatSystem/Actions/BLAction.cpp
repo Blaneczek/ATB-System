@@ -16,7 +16,22 @@ void UBLAction::OnCreateAction(ABLCombatCharacter* Owner, AActor* InCombatManage
 		{
 			Owner->StartActionCooldown(TurnsCost);
 		}
-	}	
+	}
+}
+
+void UBLAction::OnCreateAction(ABLCombatCharacter* Owner, AActor* InCombatManager, const TArray<ABLCombatSlot*>& Targets)
+{
+	if (Owner)
+	{
+		CombatManager = InCombatManager;
+
+		ActivateAction(Owner, Targets);
+
+		if (TurnsCost > 0)
+		{
+			Owner->StartActionCooldown(TurnsCost);
+		}
+	}
 }
 
 

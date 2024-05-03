@@ -16,4 +16,8 @@ class BLADEOFLEGEND_API ABLCombatHero : public ABLCombatCharacter
 
 public:
 	virtual void SneakAttack() override;
+
+protected:
+	virtual void HandleTurnsCooldown() override;
+
 };

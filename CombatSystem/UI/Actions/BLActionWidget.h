@@ -31,8 +31,11 @@ protected:
 	void ChangeName(UBLActionEntryData* ActionEntry);
 
 public:
-	/** Adds actions to Widget */
+	/** Adds Attack actions to Widget */
 	virtual void AddActions(const TArray<TSoftClassPtr<UBLAction>>& InActions) {};
+
+	/** Adds Defend/RunAway action to Widget */
+	virtual void AddActions(TSoftClassPtr<UBLAction> InAction) {};
 
 	/** Adds Crystal actions to Widget */
 	virtual void AddActions(const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions) {};

@@ -72,6 +72,7 @@ void ABLCombatSlot::SpawnHero(const FCombatCharData& BaseData, const FCombatActi
 			Character->OnActionEnded.BindUObject(this, &ABLCombatSlot::ActionEnded);
 			Character->OnDeath.BindUObject(this, &ABLCombatSlot::HandleCharDeath);
 			Character->OnHealthUpdate.BindUObject(this, &ABLCombatSlot::UpdateCharHealth);	
+			Character->OnEscape.BindUObject(this, &ABLCombatSlot::EscapeCombat);	
 			bIsActive = true;
 
 			if (bSneakAttack) Character->SneakAttack();
@@ -83,7 +84,7 @@ void ABLCombatSlot::SpawnHero(const FCombatCharData& BaseData, const FCombatActi
 	}
 }
 
-void ABLCombatSlot::SpawnEnemy(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& AttackActions, const TArray<TSoftClassPtr<UBLAction>>& DefendActions, bool bSneakAttack)
+void ABLCombatSlot::SpawnEnemy(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& Actions, bool bSneakAttack)
 {
 	if (BaseData.Class)
 	{
@@ -94,7 +95,7 @@ void ABLCombatSlot::SpawnEnemy(const FCombatCharData& BaseData, const TArray<TSo
 		Character = GetWorld()->SpawnActor<ABLCombatCharacter>(BaseData.Class, HelperScene->GetComponentTransform(), SpawnInfo);
 		if (Character)
 		{
-			Character->SetData(BaseData, AttackActions, DefendActions);
+			Character->SetData(BaseData, Actions);
 			Character->OnEndCooldown.BindUObject(this, &ABLCombatSlot::EndCharCooldown);
 			Character->OnActionEnded.BindUObject(this, &ABLCombatSlot::ActionEnded);
 			Character->OnDeath.BindUObject(this, &ABLCombatSlot::HandleCharDeath);
@@ -126,14 +127,23 @@ void ABLCombatSlot::UnPauseCharCooldown()
 	}
 }
 
-void ABLCombatSlot::DoAction(const TArray<ABLCombatSlot*>& TargetsSlots, const FCombatActionData& ActionData, AActor* CombatManager)
+void ABLCombatSlot::DoAction(const TArray<ABLCombatSlot*>& TargetsSlots, const FCombatActionData& ActionData, AActor* CombatManager, bool bSummon)
 {
-	TArray<ABLCombatCharacter*> Targets;
-	for (const auto* Slot : TargetsSlots)
+	if (bSummon)
 	{
-		Targets.Add(Slot->GetCharacter());
+		Character->CreateAction(HelperScene->GetComponentLocation(), TargetsSlots, ActionData, CombatManager);
 	}
-	Character->CreateAction(HelperScene->GetComponentLocation(), Targets, ActionData, CombatManager);
+	else
+	{
+		TArray<ABLCombatCharacter*> Targets;
+		for (const auto* Slot : TargetsSlots)
+		{
+			Targets.Add(Slot->GetCharacter());
+		}
+
+		Character->CreateAction(HelperScene->GetComponentLocation(), Targets, ActionData, CombatManager);
+	}
+	
 }
 
 void ABLCombatSlot::SelectTarget(bool NewSelect)
@@ -184,16 +194,27 @@ void ABLCombatSlot::HoverMouse(bool NewHover)
 	}
 }
 
+void ABLCombatSlot::DestroyCharacter()
+{
+	if (GetCharacter())
+	{
+		GetCharacter()->Destroy();
+	}
+}
+
 void ABLCombatSlot::EndCharCooldown()
 {
 	bCanDoAction = true;
 	if (bIsEnemy)
 	{
-		// TODO: something more advanced
-		if (GetCharacter()->AttackActions.IsValidIndex(0))
-		{
-			OnEnemyAction.ExecuteIfBound(this, FCombatActionData(ECombatActionType::ATTACK, ECombatActionFlow::DEFAULT_MELEE, 0));
-		}	
+		FTimerDelegate DelayDel;
+		FTimerHandle DelayTimer;
+		DelayDel.BindWeakLambda(this, [this]() 
+			{ 
+				OnEnemyAction.ExecuteIfBound(this, GetCharacter()->GetEnemyAction());
+			});
+		const float RandomDelay = FMath::RandRange(0.3f, 2.5f);
+		GetWorld()->GetTimerManager().SetTimer(DelayTimer, DelayDel, RandomDelay, false);	
 	}
 	else
 	{
@@ -224,6 +245,7 @@ void ABLCombatSlot::HandleCharDeath()
 {
 	bIsActive = false;
 	bCanDoAction = false;
+	HoverMouse(false);
 	OnCharDeath.ExecuteIfBound(this, bIsEnemy);
 }
 
@@ -246,5 +268,10 @@ void ABLCombatSlot::OnEndMouseOver(UPrimitiveComponent* TouchedComponent)
 	{
 		HoverMouse(false);
 	}
+}
+
+void ABLCombatSlot::EscapeCombat(bool bSuccessful)
+{
+	OnEscapeCombat.ExecuteIfBound(bSuccessful);
 }
 

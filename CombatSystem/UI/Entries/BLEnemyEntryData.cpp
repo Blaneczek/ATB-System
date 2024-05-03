@@ -3,8 +3,9 @@
 
 #include "BLEnemyEntryData.h"
 
-void UBLEnemyEntryData::Init(int32 InIndex, const FText& InName)
+void UBLEnemyEntryData::Init(int32 InIndex, const FText& InName, int32 InLevel)
 {
 	Index = InIndex;
 	Name = InName;
+	Level = InLevel;
 }

@@ -21,7 +21,7 @@ void UBLHeroEntryWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	CooldownBar->OnCooldownEnded.BindLambda([this](){ bCanDoAction = true; });
+	CooldownBar->OnCooldownEnded.BindWeakLambda(this, [this](){ bCanDoAction = true; });
 }
 
 void UBLHeroEntryWidget::SetData(int32 InIndex, const FText& InName, float InMaxHP, float InCurrentHP, float InMaxME, float InCurrentME)
@@ -72,6 +72,8 @@ void UBLHeroEntryWidget::UpdateME(float MaxME, float CurrentME)
 
 void UBLHeroEntryWidget::StartCooldownBar(float Cooldown)
 {
+	if (bDied) return;
+
 	bCanDoAction = false;
 	CooldownBar->StartCooldown(Cooldown);
 }
@@ -83,7 +85,12 @@ void UBLHeroEntryWidget::PauseCooldownBar()
 
 void UBLHeroEntryWidget::UnPauseCooldownBar()
 {
-	CooldownBar->UnPauseCooldown();
+	if (bDied)
+	{
+		ResetCooldownBar();
+		return;
+	}
+	CooldownBar->UnPauseCooldown();	
 }
 
 void UBLHeroEntryWidget::ResetCooldownBar()

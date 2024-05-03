@@ -24,7 +24,7 @@ public:
 	void EnemyDied(int32 Index);
 
 	/** Adds item to TileView */
-	void AddEnemy(int32 Index, const FString& EnemyName);
+	void AddEnemy(int32 Index, const FString& EnemyName, int32 Level);
  
 protected:
 	/** TileView with the enemies who will take part in the Combat */

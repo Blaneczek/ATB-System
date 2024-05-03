@@ -9,13 +9,19 @@
 
 void UBLDefaultRangeAction::ActivateAction(ABLCombatCharacter* Owner)
 {
-	if (Owner && ActionAnim)
+	if (!Owner)
 	{
-		Owner->SetCurrentME(FMath::Clamp((Owner->GetCurrentME() - MECost), 0.f, Owner->GetMaxME()));
-		FZDOnAnimationOverrideEndSignature EndAnimDel;
-		EndAnimDel.BindLambda([this, Owner](bool bResult) { Owner->DefaultRangeAction(ProjectileClass, ProjectileSprite); });
-		Owner->GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(ActionAnim, "DefaultSlot", 1.f, 0.0f, EndAnimDel);
+		OnEndExecution.ExecuteIfBound();
+		return;
 	}
+
+	if (ActionAnim)
+	{	
+		Owner->GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(ActionAnim);
+	}
+
+	Owner->SetCurrentME(FMath::Clamp((Owner->GetCurrentME() - MECost), 0.f, Owner->GetMaxME()));
+	Owner->DefaultRangeAction(ProjectileClass, ProjectileSprite);
 }
 
 void UBLDefaultRangeAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharacter* Target)
@@ -23,11 +29,12 @@ void UBLDefaultRangeAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCh
 	if (!Owner || !Target)
 	{
 		OnEndExecution.ExecuteIfBound();
+		return;
 	}
 
 	ActionCalculations(Owner, Target, CombatManager);
 	FTimerHandle Delay;
 	FTimerDelegate DelayDel;
-	DelayDel.BindLambda([this]() { OnEndExecution.ExecuteIfBound(); });
+	DelayDel.BindWeakLambda(this, [this]() { OnEndExecution.ExecuteIfBound(); });
 	GetWorld()->GetTimerManager().SetTimer(Delay, DelayDel, 0.5f, false);	
 }

@@ -33,8 +33,14 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	void SetData(UPaperFlipbook* ProjectileSprite);
+
 	void FlyToTarget(ABLCombatCharacter* Target);
+
+	void FlyToTargetBounce(ABLCombatCharacter* Target);
+
 	void ReachedDestination(FAIRequestID RequestID, const FPathFollowingResult& Result);
+
+	void ReachedBounceDestination(FAIRequestID RequestID, const FPathFollowingResult& Result);
 
 public:
 	FOnReachedDestination OnReachedDestination;

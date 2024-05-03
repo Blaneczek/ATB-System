@@ -12,12 +12,12 @@ void UBLEnemiesWidget::NativeConstruct()
 
 }
 
-void UBLEnemiesWidget::AddEnemy(int32 Index, const FString& EnemyName)
+void UBLEnemiesWidget::AddEnemy(int32 Index, const FString& EnemyName, int32 Level)
 {
 	UBLEnemyEntryData* Enemy = NewObject<UBLEnemyEntryData>();
 	if (Enemy)
 	{
-		Enemy->Init(Index, FText::FromString(EnemyName));
+		Enemy->Init(Index, FText::FromString(EnemyName), Level);
 		EnemiesTileView->AddItem(Enemy);
 	}
 }

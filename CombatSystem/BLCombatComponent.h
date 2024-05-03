@@ -32,10 +32,16 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SneakAttack();
 
+	UFUNCTION(BlueprintCallable)
+	void AddExpAndMoney(int32 Exp, int32 Money);
+
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FCombatData CombatData;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FPostCombatData PostCombatData;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bBossFight = false;
 };

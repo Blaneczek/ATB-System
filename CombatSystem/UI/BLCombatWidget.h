@@ -41,10 +41,10 @@ public:
 	void AddHero(int32 SlotIndex, const FCombatCharData& BaseData, float SneakyCooldown);
 
 	/** Adds cell with enemy to widget. */
-	void AddEnemy(int32 SlotIndex, const FString& EnemyName);
+	void AddEnemy(int32 SlotIndex, const FString& EnemyName, int32 Level);
 
 	/** Populate actions */
-	void AddHeroActions(int32 SlotIndex, const FCombatCharData& BaseData, const FCombatActions& CombatActions);
+	void AddHeroActions(int32 SlotIndex, const FCombatCharData& BaseData, const FCombatActions& CombatActions, bool bCanRunAway);
 
 	/** Highlights chosen hero and shows his actions. */
 	void SetCurrentHero(int32 SlotIndex);
@@ -53,7 +53,8 @@ public:
 	void ResetCurrentHero(int32 SlotIndex);
 
 	/** Called when one of the heroes died and greys him out. */
-	void HeroDied(int32 SlotIndex);
+	void HeroDied(int32 SlotIndex, bool bHighlightedHero);
+
 	/** Called when one of the enemies died and greys him out. */
 	void EnemyDied(int32 SlotIndex);
 
@@ -81,6 +82,10 @@ public:
 	void ShowWindowText(const FText& InText, float Time);
 
 	void HideWindowText();
+	
+	void ShowRunAwayText(bool bSuccessful);
+
+	void ShowActionTextDisplay(bool bNewShow);
 
 private:
 	void ChosenAction(const FCombatActionData& ActionData);
@@ -120,8 +125,16 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
 	TObjectPtr<UBorder> DisplayWindow;
+
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
 	TObjectPtr<UTextBlock> WindowText;
+
+	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
+	TObjectPtr<UTextBlock> RunAwayDisplay;
+
+	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
+	TObjectPtr<UTextBlock> ActionTextDisplay;
+
 private:
 	UPROPERTY()
 	TArray<TObjectPtr<UBLActionsWidget>> Actions;

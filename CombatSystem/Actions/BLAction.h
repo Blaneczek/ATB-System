@@ -24,14 +24,19 @@ class BLADEOFLEGEND_API UBLAction : public UObject
 	
 public:
 	virtual void OnCreateAction(ABLCombatCharacter* Owner, AActor* InCombatManager);
+	virtual void OnCreateAction(ABLCombatCharacter* Owner, AActor* InCombatManager, const TArray<class ABLCombatSlot*>& Targets);
 	virtual void ActivateAction(ABLCombatCharacter* Owner) {};
+	virtual void ActivateAction(ABLCombatCharacter* Owner, const TArray<ABLCombatSlot*>& Targets) {};
 	virtual void ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharacter* Target) {};
+	virtual void ExecuteAction(ABLCombatCharacter* Owner, const TArray<ABLCombatSlot*>& Targets) {};
 
 protected:
 	/** Use in blueprints. Each action is of a different class, so each action may have a different use when executed */
 	UFUNCTION(BlueprintImplementableEvent)
 	void ActionCalculations(ABLCombatCharacter* Owner, ABLCombatCharacter* Target, AActor* InCombatManager);
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void ActionCalculationsMultiAtOnce(ABLCombatCharacter* Owner, const TArray<ABLCombatSlot*>& Targets, AActor* InCombatManager);
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
 	FText Name;

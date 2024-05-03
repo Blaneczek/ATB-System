@@ -30,13 +30,16 @@ struct FActionQueue
 	UPROPERTY()
 	bool bEnemyAction;
 
+	UPROPERTY()
+	bool bSummon;
+
 	FActionQueue()
-		: OwnerSlot(nullptr), ActionData(FCombatActionData()), bEnemyAction(false)
+		: OwnerSlot(nullptr), ActionData(FCombatActionData()), bEnemyAction(false), bSummon(false)
 	{}
 
-	FActionQueue(ABLCombatSlot* InOwnerSlot, const TArray<ABLCombatSlot*>& InTargetsSlots, const FCombatActionData& InActionData, bool InEnemyAction)
+	FActionQueue(ABLCombatSlot* InOwnerSlot, const TArray<ABLCombatSlot*>& InTargetsSlots, const FCombatActionData& InActionData, bool InEnemyAction, bool InSummon)
 
-		:OwnerSlot(InOwnerSlot), TargetsSlots(InTargetsSlots), ActionData(InActionData), bEnemyAction(InEnemyAction)
+		:OwnerSlot(InOwnerSlot), TargetsSlots(InTargetsSlots), ActionData(InActionData), bEnemyAction(InEnemyAction), bSummon(InSummon)
 	{}
 };
 
@@ -98,19 +101,19 @@ private:
 	/** Highlights and sets as current random available player slot */
 	void ChooseRandomPlayerSlot();
 
-	void AddActionToQueue(ABLCombatSlot* OwnerSlot, const TArray<ABLCombatSlot*>& TargetsSlots, const FCombatActionData& ActionData, bool bEnemyAction);
+	void AddActionToQueue(ABLCombatSlot* OwnerSlot, const TArray<ABLCombatSlot*>& TargetsSlots, const FCombatActionData& ActionData, bool bEnemyAction, bool bUseSlots = false);
 
 	/** Executes if it can the first action from the queue, checks the ability at constant intervals */
 	void HandleActionsQueue();
 
 	/** Pauses all cooldowns and calls the appropriate OwnerSlot function */
-	void DoAction(ABLCombatSlot* OwnerSlot, const TArray<ABLCombatSlot*>& TargetsSlots, const FCombatActionData& ActionData, bool bEnemyAction);
+	void DoAction(ABLCombatSlot* OwnerSlot, const TArray<ABLCombatSlot*>& TargetsSlots, const FCombatActionData& ActionData, bool bEnemyAction, bool bUseSlots = false);
 
 	/** Finds new active target slot */
 	ABLCombatSlot* FindNewTargetSlot(bool bEnemyAction);
 
 	/** Chooses target for enemy action */
-	void HandleEnemyAction(ABLCombatSlot* EnemySlot, const FCombatActionData& ActionData);
+	void HandleEnemyAction(ABLCombatSlot* EnemySlot, FCombatActionData&& ActionData);
 
 	/** Called after the completion of the currently executed action */
 	void ActionEnded(ABLCombatSlot* OwnerSlot, bool bWasEnemy);
@@ -121,7 +124,7 @@ private:
 	/** Resets action and sets new CurrentPlayerSlot */
 	void ResetAction(ABLCombatSlot* NewPlayerSlot);
 
-	void PlayerAction();
+	void PlayerAction(bool bUseSlots);
 
 	/** Pauses the cooldowns of enemies and heroes */
 	void PauseCooldowns();
@@ -156,7 +159,10 @@ private:
 
 	void ShowDisplayWindow(const FText& InText, float Time);
 
-	void SetHeroesCurrentHPME(UBLHeroDataAsset* HeroData);
+	void SetHeroesCurrentHP();
+
+	void RunAway(bool bSuccessful);
+
 
 public:
 	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "BL|Combat")
@@ -187,6 +193,9 @@ private:
 	TSubclassOf<UBLCombatWidget> WidgetClass;
 	UPROPERTY()
 	TObjectPtr<UBLCombatWidget> Widget;
+
+	UPROPERTY(EditDefaultsOnly, Category = "BL|Combat")
+	TSubclassOf<UUserWidget> LvlUPWidgetClass;
 
 	/** Widget class when player won fight */
 	UPROPERTY(EditDefaultsOnly, Category = "BL|Combat")

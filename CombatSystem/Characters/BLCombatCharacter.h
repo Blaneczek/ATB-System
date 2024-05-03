@@ -16,11 +16,13 @@ class UPaperFlipbook;
 class ABLRangeProjectile;
 class UBLAction;
 class UBLActionEntryData;
+class ABLCombatSlot;
 
 DECLARE_DELEGATE(FOnEndCooldown);
 DECLARE_DELEGATE(FOnActionEnded);
 DECLARE_DELEGATE(FOnHealthUpdate);
 DECLARE_DELEGATE(FOnDeath);
+DECLARE_DELEGATE_OneParam(FOnEscape, bool /*bSuccessful*/);
 
 /**
  * 
@@ -38,7 +40,7 @@ public:
 	virtual void Tick(float DeltaTime);
 
 	void SetData(const FCombatCharData& InBaseData, const FCombatActions& InCombatActions, const FTransform& InSlotTransform);
-	void SetData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, const TArray<TSoftClassPtr<UBLAction>>& InDefendActions);
+	void SetData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InActions);
 
 	UFUNCTION(BlueprintCallable, meta = (AutoCreateRefTerm = "InStatuses"))
 	virtual void HandleHitByAction(ABLCombatCharacter* Attacker, float Damage, ECombatElementType DamageElementType, bool bMagical, const TArray<FCombatStatus>& InStatuses);
@@ -73,10 +75,10 @@ public:
 	ECombatElementType GetWeaponElement() const { return BaseData.WeaponElement; };
 
 	UFUNCTION(BlueprintCallable)
-	const FCombatStatus& GetWeaponStatus() const{ return BaseData.WeaponStatus; };
+	const FCombatStatus& GetWeaponStatus() const { return BaseData.WeaponStatus; };
 
 	UFUNCTION(BlueprintCallable)
-	float GetAttackDMG() const { return BaseData.BaseAttackDMG; };
+	float GetAttackDMG() const { return CurrentAttackDMG; };
 
 	UFUNCTION(BlueprintCallable)
 	float GetCurrentDefense() const { return CurrentDefense; };
@@ -88,12 +90,17 @@ public:
 	const FCombatCharData& GetBaseData() const { return BaseData; };
 
 	UFUNCTION(BlueprintCallable)
-	bool IsDeathIdle() const { return bDeathIdle; };
+	bool IsDead() const { return bDead; };
 
 	UFUNCTION(BlueprintCallable)
 	FString GetName() const { return BaseData.Name; };
 
+	UFUNCTION(BlueprintCallable)
+	TSubclassOf<UPaperZDAnimInstance> GetCombatAnimClass() const { return BaseData.AnimInstanceClass; };
+
 	void CreateAction(const FVector& OwnerSlotLocation, const TArray<ABLCombatCharacter*>& Targets, const FCombatActionData& ActionData, AActor* CombatManager);
+
+	void CreateAction(const FVector& OwnerSlotLocation, const TArray<ABLCombatSlot*>& Targets, const FCombatActionData& ActionData, AActor* CombatManager);
 
 	/********************* 
 	*  ACTION FLOW TYPES 
@@ -117,6 +124,12 @@ public:
 	/** Character runs up to the column and executes action for every target in column */
 	void ColumnMeleeAction();
 
+	/** Character runs up to the column and executes action for every target in column */
+	void BounceRangeAction(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite);
+
+	void SummonAction(const TArray<ABLCombatSlot*>& Targets);
+
+	void SpawnEffectsAllAction(const TArray<ABLCombatSlot*>& Targets, TSubclassOf<APaperZDCharacter> EffectClass, UPaperFlipbook* Effect);
 	/***********************************************************************************************/
 
 	/** Special actions turns cooldown */
@@ -140,14 +153,25 @@ public:
 	UFUNCTION()
 	void RemoveStatus(ECombatStatusType Status);
 
+	UFUNCTION()
+	void RemoveStatuses(TArray<ECombatStatusType> StatusesToDelete);
+
 	virtual void SneakAttack() {};
 
 	/** Handles the situation where Action damage will be converted into healing or used action with heal*/
 	UFUNCTION(BlueprintCallable)
 	void HandleHealHit(float Damage, float HealMultiplier, ECombatElementType HealElementType);
 
+	virtual FCombatActionData GetEnemyAction() { return FCombatActionData(); }
+
+
+	UFUNCTION(BlueprintCallable)
+	bool IsDefendIdle() const{ return bDefendIdle; }
+
 protected:
 	void TakeSimpleDamage(float Damage);
+
+	virtual void HandleTurnsCooldown() {};
 
 private:
 	float CalculateElementsMultipliers(ECombatElementType DamageElementType, ECombatElementType CharacterElementType, bool& OutIsHeal);
@@ -169,14 +193,15 @@ private:
 	/** For MultipleRange action flow */
 	void ReachedActionDestination(int32 Index, bool bLastProjectile);
 
+	/** For BounceRange action flow */
+	void ReachedActionDestination(ABLRangeProjectile* Projectile, int32 Index);
+
 	/** Back to the owner slot after action */
 	void ReachedSlotLocation(FAIRequestID RequestID, const FPathFollowingResult& Result);
 
 	void SpawnProjectile(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite);
 
 	void HandleStatuses();
-
-	void HandleTurnsCooldown();
 
 	/** Handles the situation where Action deals damage to a character */
 	void HandleDamageHit(ABLCombatCharacter* Attacker, float Damage, float DMGMultiplier, ECombatElementType DamageElementType, bool bMagicalAction);
@@ -189,22 +214,32 @@ public:
 	FOnActionEnded OnActionEnded;
 	FOnHealthUpdate OnHealthUpdate;
 	FOnDeath OnDeath;
+	FOnEscape OnEscape;
 
 	UPROPERTY()
 	TArray<TSoftClassPtr<UBLAction>> AttackActions;
+
 	UPROPERTY()
-	TArray<TSoftClassPtr<UBLAction>> DefendActions;
+	TSoftClassPtr<UBLAction> DefendAction;
 	UPROPERTY()
 	TMap<ECrystalColor, FCrystalSkills> CrystalActions;
+
 	UPROPERTY()
 	TArray<TSoftClassPtr<UBLAction>> SpecialActions;
+
 	UPROPERTY()
 	TArray<TSoftClassPtr<UBLCombatItem>> ItemActions;
+
+	UPROPERTY()
+	TSoftClassPtr<UBLAction> RunAwayAction;
 
 protected:
 	/** If idle Death animation should be played */
 	UPROPERTY()
-	bool bDeathIdle;
+	bool bDead;
+
+	UPROPERTY()
+	bool bMagicImmunity = false;
 
 	UPROPERTY()
 	FCombatCharData BaseData;
@@ -221,6 +256,12 @@ protected:
 	UPROPERTY()
 	float CurrentCooldown;
 
+	UPROPERTY()
+	float CurrentDodge;
+
+	UPROPERTY()
+	float CurrentAttackDMG;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
 	TObjectPtr<UWidgetComponent> DMGDisplay;
 
@@ -232,6 +273,13 @@ protected:
 
 	UPROPERTY()
 	TMap<ECombatStatusType, int32> Statuses;
+
+	UPROPERTY()
+	TMap<TObjectPtr<UBLActionEntryData>, int32> ActionsTurnsCooldown;
+
+	/// 
+	UPROPERTY()
+	bool bDefendIdle = false;
 
 private:
 	UPROPERTY()
@@ -246,17 +294,17 @@ private:
 
 	UPROPERTY()
 	FVector SlotLocation;
+
 	UPROPERTY()
 	FTransform SlotTransform;
 
-	UPROPERTY()
-	TMap<TObjectPtr<UBLActionEntryData>, int32> ActionsTurnsCooldown;
 	UPROPERTY()
 	TObjectPtr<UBLActionEntryData> ClickedActionEntry;
 
 	/** Counter for multiple projectiles to know when ends action*/
 	UPROPERTY()
 	int32 ProjectileTargetsNum;
+
 	UPROPERTY()
 	int32 ProjectileTargetIndex;
 

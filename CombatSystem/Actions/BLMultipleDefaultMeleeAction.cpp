@@ -27,9 +27,14 @@ void UBLMultipleDefaultMeleeAction::ExecuteAction(ABLCombatCharacter* Owner, ABL
 	if (ActionAnim)
 	{
 		FZDOnAnimationOverrideEndSignature EndAnimDel;
-		EndAnimDel.BindLambda([this](bool bResult) { OnEndExecution.ExecuteIfBound(); });
+		EndAnimDel.BindWeakLambda(this, [this](bool bResult) { OnEndExecution.ExecuteIfBound(); });
 		Owner->GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(ActionAnim, "DefaultSlot", 1.f, 0.0f, EndAnimDel);
 		ActionCalculations(Owner, Target, CombatManager);
+	}
+	else
+	{
+		ActionCalculations(Owner, Target, CombatManager);
+		OnEndExecution.ExecuteIfBound();
 	}
 }
  

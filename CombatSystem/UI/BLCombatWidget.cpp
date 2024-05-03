@@ -17,6 +17,8 @@ void UBLCombatWidget::NativeConstruct()
 	ActionsSwitcher->SetActiveWidget(NoneActions);
 	NotEnoughME->SetVisibility(ESlateVisibility::Hidden);
 	DisplayWindow->SetVisibility(ESlateVisibility::Hidden);
+	RunAwayDisplay->SetVisibility(ESlateVisibility::Hidden);
+	ActionTextDisplay->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void UBLCombatWidget::NativeOnInitialized()
@@ -32,7 +34,7 @@ void UBLCombatWidget::NativeOnInitialized()
 
 void UBLCombatWidget::AddHero(int32 SlotIndex, const FCombatCharData& BaseData)
 {
-	Heroes->AddHero(SlotIndex, BaseData.Name, BaseData.MaxHP, BaseData.CurrentHP, BaseData.MaxME, BaseData.CurrentME);
+	Heroes->AddHero(SlotIndex, BaseData.Name, BaseData.MaxHP, BaseData.CurrentHP, BaseData.MaxME);
 	Heroes->OnHeroClicked.BindUObject(this, &UBLCombatWidget::HeroClicked);
 
 	//Cooldown bar will start after 1 sek
@@ -44,7 +46,7 @@ void UBLCombatWidget::AddHero(int32 SlotIndex, const FCombatCharData& BaseData)
 
 void UBLCombatWidget::AddHero(int32 SlotIndex, const FCombatCharData& BaseData, float SneakyCooldown)
 {
-	Heroes->AddHero(SlotIndex, BaseData.Name, BaseData.MaxHP, BaseData.CurrentHP, BaseData.MaxME, BaseData.CurrentME);
+	Heroes->AddHero(SlotIndex, BaseData.Name, BaseData.MaxHP, BaseData.CurrentHP, BaseData.MaxME);
 	Heroes->OnHeroClicked.BindUObject(this, &UBLCombatWidget::HeroClicked);
 
 	//Cooldown bar will start after 1 sek
@@ -54,17 +56,17 @@ void UBLCombatWidget::AddHero(int32 SlotIndex, const FCombatCharData& BaseData, 
 	GetWorld()->GetTimerManager().SetTimer(CooldownTimer, CooldownDel, 1.f, false);
 }
 
-void UBLCombatWidget::AddEnemy(int32 SlotIndex, const FString& EnemyName)
+void UBLCombatWidget::AddEnemy(int32 SlotIndex, const FString& EnemyName, int32 Level)
 {
-	Enemies->AddEnemy(SlotIndex, EnemyName);
+	Enemies->AddEnemy(SlotIndex, EnemyName, Level);
 }
 
-void UBLCombatWidget::AddHeroActions(int32 SlotIndex, const FCombatCharData& BaseData, const FCombatActions& CombatActions)
+void UBLCombatWidget::AddHeroActions(int32 SlotIndex, const FCombatCharData& BaseData, const FCombatActions& CombatActions, bool bCanRunAway)
 {
 	if (Actions.IsValidIndex(SlotIndex) && Actions[SlotIndex])
 	{
-		Actions[SlotIndex]->OnResetActionType.BindLambda([this]() { OnResetCurrentActionType.ExecuteIfBound(); });
-		Actions[SlotIndex]->SetActionsData(BaseData, CombatActions);
+		Actions[SlotIndex]->OnResetActionType.BindWeakLambda(this, [this]() { OnResetCurrentActionType.ExecuteIfBound(); });
+		Actions[SlotIndex]->SetActionsData(BaseData, CombatActions, bCanRunAway);
 		Actions[SlotIndex]->OnChosenAction.BindUObject(this, &UBLCombatWidget::ChosenAction);
 	}
 }
@@ -74,6 +76,7 @@ void UBLCombatWidget::SetCurrentHero(int32 SlotIndex)
 	Heroes->HighlightsHero(SlotIndex, true);
 	if (Actions.IsValidIndex(SlotIndex) && Actions[SlotIndex])
 	{
+		UE_LOG(LogTemp, Warning, TEXT("index: %s"), *FString::FromInt(SlotIndex));
 		ActionsSwitcher->SetActiveWidget(Actions[SlotIndex]);
 	}
 }
@@ -88,14 +91,17 @@ void UBLCombatWidget::ResetCurrentHero(int32 SlotIndex)
 	ActionsSwitcher->SetActiveWidget(NoneActions);
 }
 
-void UBLCombatWidget::HeroDied(int32 SlotIndex)
+void UBLCombatWidget::HeroDied(int32 SlotIndex, bool bHighlightedHero)
 {
 	Heroes->HeroDied(SlotIndex);
-	if (Actions.IsValidIndex(SlotIndex) && Actions[SlotIndex])
+	if (bHighlightedHero)
 	{
-		Actions[SlotIndex]->ResetWidget();
+		if (Actions.IsValidIndex(SlotIndex) && Actions[SlotIndex])
+		{
+			Actions[SlotIndex]->ResetWidget();
+		}
+		ActionsSwitcher->SetActiveWidget(NoneActions);
 	}
-	ActionsSwitcher->SetActiveWidget(NoneActions);
 }
 
 void UBLCombatWidget::EnemyDied(int32 SlotIndex)
@@ -144,7 +150,7 @@ void UBLCombatWidget::ActivateNotEnoughME()
 	{
 		NotEnoughME->SetVisibility(ESlateVisibility::Visible);
 		FTimerDelegate DelayDel;
-		DelayDel.BindLambda([this]() { NotEnoughME->SetVisibility(ESlateVisibility::Hidden); });
+		DelayDel.BindWeakLambda(this, [this]() { NotEnoughME->SetVisibility(ESlateVisibility::Hidden); });
 		FTimerHandle DelayTimer;
 		GetWorld()->GetTimerManager().SetTimer(DelayTimer, DelayDel, 1.5f, false);
 	}
@@ -165,6 +171,30 @@ void UBLCombatWidget::ShowWindowText(const FText& InText, float Time)
 void UBLCombatWidget::HideWindowText()
 {
 	DisplayWindow->SetVisibility(ESlateVisibility::Hidden);
+}
+
+void UBLCombatWidget::ShowRunAwayText(bool bSuccessful)
+{
+	if (bSuccessful)
+	{
+		GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
+		RunAwayDisplay->SetText(FText::FromString("SUCCESSFUL ESCAPE"));
+		RunAwayDisplay->SetVisibility(ESlateVisibility::Visible);
+	}
+	else
+	{
+		RunAwayDisplay->SetText(FText::FromString("FAILED TO ESCAPE"));
+		RunAwayDisplay->SetVisibility(ESlateVisibility::Visible);
+		FTimerDelegate DelayDel;
+		DelayDel.BindWeakLambda(this, [this]() {RunAwayDisplay->SetVisibility(ESlateVisibility::Hidden); });
+		FTimerHandle DelayTimer;
+		GetWorld()->GetTimerManager().SetTimer(DelayTimer, DelayDel, 2.f, false);
+	}
+}
+
+void UBLCombatWidget::ShowActionTextDisplay(bool bNewShow)
+{
+	bNewShow ? ActionTextDisplay->SetVisibility(ESlateVisibility::Visible) : ActionTextDisplay->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void UBLCombatWidget::ChosenAction(const FCombatActionData& ActionData)
