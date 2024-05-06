@@ -61,6 +61,11 @@ void UBLCombatWidget::AddEnemy(int32 SlotIndex, const FString& EnemyName, int32 
 	Enemies->AddEnemy(SlotIndex, EnemyName, Level);
 }
 
+void UBLCombatWidget::RemoveEnemy(int32 SlotIndex)
+{
+	Enemies->RemoveEnemy(SlotIndex);
+}
+
 void UBLCombatWidget::AddHeroActions(int32 SlotIndex, const FCombatCharData& BaseData, const FCombatActions& CombatActions, bool bCanRunAway)
 {
 	if (Actions.IsValidIndex(SlotIndex) && Actions[SlotIndex])

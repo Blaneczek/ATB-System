@@ -7,24 +7,20 @@
 #include "BLCombatUtilities.h"
 #include "BLCombatComponent.generated.h"
 
-
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), Blueprintable)
+/** Component given to enemy in Overworld, storing all the necessary data about the combat. */
+UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), Blueprintable)
 class BLADEOFLEGEND_API UBLCombatComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:	
-	// Sets default values for this component's properties
 	UBLCombatComponent();
 
 protected:
-	// Called when the game starts
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
+public:
+	/** Sets all data to game instance and opens the appropriate map. */
 	UFUNCTION(BlueprintCallable)
 	void StartCombat();
 
@@ -32,16 +28,15 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SneakAttack();
 
+	/** Adds to Post combata data exp and gold from enemy. */
 	UFUNCTION(BlueprintCallable)
-	void AddExpAndMoney(int32 Exp, int32 Money);
+	void AddExpAndGold(int32 Exp, int32 Gold);
 
 public:
+	/** All information about the combat, including data about enemy team. The enemy team can be set manually or generated (function in the blueprint). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FCombatData CombatData;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FPostCombatData PostCombatData;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bBossFight = false;
 };

@@ -8,6 +8,7 @@
 
 class UStaticMeshComponent;
 
+/** Sets the appropriate combat background depending on the material assigned to a given enemy */
 UCLASS()
 class BLADEOFLEGEND_API ABLBackground : public AActor
 {

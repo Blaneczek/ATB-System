@@ -25,6 +25,9 @@ public:
 
 	/** Adds item to TileView */
 	void AddEnemy(int32 Index, const FString& EnemyName, int32 Level);
+
+	/** Removes item from TileView */
+	void RemoveEnemy(int32 Index);
  
 protected:
 	/** TileView with the enemies who will take part in the Combat */

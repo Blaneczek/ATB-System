@@ -7,6 +7,7 @@
 #include "InputMappingContext.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Blueprint/UserWidget.h"
 
 void ABLCombatPlayerController::BeginPlay()
 {
@@ -43,12 +44,28 @@ void ABLCombatPlayerController::SetupInputComponent()
 	{
 		EnhancedInputComponent->BindAction(MouseLeftClickAction, ETriggerEvent::Triggered, this, &ABLCombatPlayerController::MouseLeftClick);
 		EnhancedInputComponent->BindAction(MouseRightClickAction, ETriggerEvent::Triggered, this, &ABLCombatPlayerController::MouseRightClick);
+		EnhancedInputComponent->BindAction(PauseAction, ETriggerEvent::Triggered, this, &ABLCombatPlayerController::PauseCombat);
 	}
 }
 
 void ABLCombatPlayerController::MouseRightClick()
 {
 	OnSlotRemoved.ExecuteIfBound();
+}
+
+void ABLCombatPlayerController::PauseCombat()
+{	
+	if (!PauseWidgetClass)
+	{
+		return;
+	}
+
+	UUserWidget* PauseWidget = CreateWidget(this, PauseWidgetClass);
+	if (PauseWidget)
+	{
+		UGameplayStatics::SetGamePaused(GetWorld(),true);
+		PauseWidget->AddToViewport();
+	}
 }
 
 void ABLCombatPlayerController::MouseLeftClick()

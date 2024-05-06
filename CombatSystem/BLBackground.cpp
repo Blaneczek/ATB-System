@@ -20,7 +20,6 @@ void ABLBackground::BeginPlay()
 	{
 		Background->SetMaterial(0, GI->CombatData.BackgroundMaterial);
 	}
-
 }
 
 

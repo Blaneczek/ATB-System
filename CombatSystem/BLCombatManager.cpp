@@ -286,7 +286,10 @@ void ABLCombatManager::ChooseTargetSlot(ABLCombatSlot* Slot)
 void ABLCombatManager::ChoosePlayerSlot(ABLCombatSlot* Slot)
 {
 	CurrentPlayerSlot = Slot;
-	ShowHeroActions(CurrentPlayerSlot);
+	if (Widget)
+	{
+		Widget->SetCurrentHero(Slot->GetIndex());
+	}
 	CurrentPlayerSlot->SelectHero(true);
 }
 
@@ -321,7 +324,10 @@ void ABLCombatManager::ClearPlayerSlot()
 {
 	if (CurrentPlayerSlot)
 	{	
-		HideHeroActions(CurrentPlayerSlot);
+		if (Widget)
+		{
+			Widget->ResetCurrentHero(CurrentPlayerSlot->GetIndex());
+		}
 		CurrentPlayerSlot->SelectHero(false);
 		CurrentPlayerSlot = nullptr;
 	}
@@ -339,9 +345,9 @@ void ABLCombatManager::ChooseRandomPlayerSlot()
 	}
 }
 
-void ABLCombatManager::AddActionToQueue(ABLCombatSlot* OwnerSlot, const TArray<ABLCombatSlot*>& TargetsSlots, const FCombatActionData& ActionData, bool bEnemyAction, bool bSummon)
+void ABLCombatManager::AddActionToQueue(ABLCombatSlot* OwnerSlot, const TArray<ABLCombatSlot*>& TargetsSlots, const FCombatActionData& ActionData, bool bEnemyAction, bool bUseSlots)
 {
-	ActionQueue.Add(FActionQueue(OwnerSlot, TargetsSlots, ActionData, bEnemyAction, bSummon));
+	ActionQueue.Add(FActionQueue(OwnerSlot, TargetsSlots, ActionData, bEnemyAction, bUseSlots));
 }
 
 void ABLCombatManager::HandleActionsQueue()
@@ -382,7 +388,7 @@ void ABLCombatManager::HandleActionsQueue()
 	ActionQueue.RemoveAt(0);
 }
 
-void ABLCombatManager::DoAction(ABLCombatSlot* OwnerSlot, const TArray<ABLCombatSlot*>& TargetsSlots, const FCombatActionData& ActionData, bool bEnemyAction, bool bSummon)
+void ABLCombatManager::DoAction(ABLCombatSlot* OwnerSlot, const TArray<ABLCombatSlot*>& TargetsSlots, const FCombatActionData& ActionData, bool bEnemyAction, bool bUseSlots)
 {	
 	if (!OwnerSlot)
 	{
@@ -403,7 +409,7 @@ void ABLCombatManager::DoAction(ABLCombatSlot* OwnerSlot, const TArray<ABLCombat
 			Widget->ResetHeroCooldownBar(OwnerSlot->GetIndex());
 		}
 	}
-	OwnerSlot->DoAction(TargetsSlots, ActionData, this, bSummon);
+	OwnerSlot->DoAction(TargetsSlots, ActionData, this, bUseSlots);
 }
 
 ABLCombatSlot* ABLCombatManager::FindNewTargetSlot(bool bEnemyAction)
@@ -501,7 +507,6 @@ void ABLCombatManager::HandleEnemyAction(ABLCombatSlot* EnemySlot, FCombatAction
 
 			if (AvailableSlotsIndex.IsEmpty())
 			{
-				UE_LOG(LogTemp, Warning, TEXT("summon not"));
 				Targets.Add(FindNewTargetSlot(true));
 				ActionData = FCombatActionData(ECombatActionType::ATTACK, ECombatActionFlow::DEFAULT_MELEE, 0);
 				break;
@@ -590,7 +595,7 @@ void ABLCombatManager::ActionEnded(ABLCombatSlot* OwnerSlot, bool bWasEnemy)
 	if (!bWasEnemy)
 	{
 		Widget->StartHeroCooldownBar(OwnerSlot->GetIndex(), OwnerSlot->GetCooldown());
-		UpdateHeroMagicEnergy(OwnerSlot);
+		UpdateHeroMEWidget(OwnerSlot);
 	}
 }
 
@@ -680,23 +685,8 @@ void ABLCombatManager::UnPauseCooldowns()
 	}
 }
 
-void ABLCombatManager::ShowHeroActions(ABLCombatSlot* PlayerSlot)
-{
-	if (Widget)
-	{
-		Widget->SetCurrentHero(PlayerSlot->GetIndex());
-	}
-}
 
-void ABLCombatManager::HideHeroActions(ABLCombatSlot* PlayerSlot)
-{
-	if (Widget)
-	{
-		Widget->ResetCurrentHero(PlayerSlot->GetIndex());
-	}
-}
-
-void ABLCombatManager::UpdateHeroHealth(ABLCombatSlot* PlayerSlot)
+void ABLCombatManager::UpdateHeroHPWidget(ABLCombatSlot* PlayerSlot)
 {
 	if (Widget)
 	{
@@ -704,7 +694,7 @@ void ABLCombatManager::UpdateHeroHealth(ABLCombatSlot* PlayerSlot)
 	}
 }
 
-void ABLCombatManager::UpdateHeroMagicEnergy(ABLCombatSlot* PlayerSlot)
+void ABLCombatManager::UpdateHeroMEWidget(ABLCombatSlot* PlayerSlot)
 {
 	if (Widget)
 	{
@@ -804,12 +794,12 @@ void ABLCombatManager::HandleEndGame(bool bWonGame)
 
 		{
 			SetHeroesCurrentHP();
-			GI->AddCombatReward(GI->PostCombatData.Experience, GI->PostCombatData.Money, GI->PostCombatData.Items);
+			GI->AddCombatReward(GI->PostCombatData.Experience, GI->PostCombatData.Gold, GI->PostCombatData.Items);
 
 			if (WinWidgetClass)
 			{		
 				UBLWinCombatWidget* WinWidget = CreateWidget<UBLWinCombatWidget>(GetWorld(), WinWidgetClass);
-				WinWidget->SetData(GI->PostCombatData.Experience, GI->PostCombatData.Money, GI->PostCombatData.Items);
+				WinWidget->SetData(GI->PostCombatData.Experience, GI->PostCombatData.Gold, GI->PostCombatData.Items);
 				WinWidget->OnWinGame.BindUObject(this, &ABLCombatManager::ExitCombat);
 				WinWidget->AddToViewport();
 			}
@@ -845,7 +835,7 @@ void ABLCombatManager::BindPlayerDelegetes()
 		{
 			Slot->OnCharActionEnded.BindUObject(this, &ABLCombatManager::ActionEnded);
 			Slot->OnSelectedSlot.BindWeakLambda(this, [this, Slot](ABLCombatSlot* InSlot) { if (!CurrentPlayerSlot) ChoosePlayerSlot(Slot); });
-			Slot->OnCharHealthUpdate.BindUObject(this, &ABLCombatManager::UpdateHeroHealth);
+			Slot->OnCharHealthUpdate.BindUObject(this, &ABLCombatManager::UpdateHeroHPWidget);
 			Slot->OnCharDeath.BindUObject(this, &ABLCombatManager::CharacterDied);
 			Slot->OnEscapeCombat.BindUObject(this, &ABLCombatManager::RunAway);
 		}
@@ -862,14 +852,6 @@ void ABLCombatManager::BindEnemyDelegetes()
 			Slot->OnCharActionEnded.BindUObject(this, &ABLCombatManager::ActionEnded);
 			Slot->OnCharDeath.BindUObject(this, &ABLCombatManager::CharacterDied);
 		}
-	}
-}
-
-void ABLCombatManager::ShowDisplayWindow(const FText& InText, float ShowTime)
-{
-	if (Widget)
-	{
-		Widget->ShowWindowText(InText, ShowTime);
 	}
 }
 
@@ -893,13 +875,13 @@ void ABLCombatManager::ExitCombat()
 	{
 		CM->StartCameraFade(0.f, 1.f, 1.f, FLinearColor(0.f, 0.f, 0.f), false, true);
 		FTimerDelegate DelayDel;
-		DelayDel.BindWeakLambda(this, [this, GI]() { UGameplayStatics::OpenLevel(GetWorld(), GI->GetPostCombatMapName()); });
+		DelayDel.BindWeakLambda(this, [this, GI]() { UGameplayStatics::OpenLevelBySoftObjectPtr(GetWorld(), GI->GetPostCombatMapName()); });
 		FTimerHandle DelayTimer;
 		GetWorld()->GetTimerManager().SetTimer(DelayTimer, DelayDel, 1.5f, false);
 	}
 	else
 	{
-		UGameplayStatics::OpenLevel(GetWorld(), GI->GetPostCombatMapName());
+		UGameplayStatics::OpenLevelBySoftObjectPtr(GetWorld(), GI->GetPostCombatMapName());
 	}
 }
 
@@ -951,7 +933,7 @@ void ABLCombatManager::SetHeroesCurrentHP()
 		if (PlayerTeam.IsValidIndex(Index) && PlayerTeam[Index] && PlayerTeam[Index]->GetCharacter())
 		{
 			GI->SaveGameData.HeroesData.Heroes[Index].HeroAttributes.CurrentHP = PlayerTeam[Index]->GetCharacter()->GetCurrentHP() > PlayerTeam[Index]->GetCharacter()->GetMaxHP() * 0.7
-																? PlayerTeam[Index]->GetCharacter()->GetCurrentHP() : PlayerTeam[Index]->GetCharacter()->GetMaxHP() * 0.7;
+																				? PlayerTeam[Index]->GetCharacter()->GetCurrentHP() : PlayerTeam[Index]->GetCharacter()->GetMaxHP() * 0.7;
 		}
 	}
 }
@@ -962,7 +944,10 @@ void ABLCombatManager::ShowQuestText_Implementation()
 	if (GI && GI->CombatData.QuestDisplayTexts.IsValidIndex(QuestTextIndex))
 	{
 		const float ShowTime = QuestTextIndex == 0 ? 0.f : 4.f;
-		ShowDisplayWindow(GI->CombatData.QuestDisplayTexts[QuestTextIndex], ShowTime);
+		if (Widget)
+		{
+			Widget->ShowWindowText(GI->CombatData.QuestDisplayTexts[QuestTextIndex], ShowTime);
+		}
 		QuestTextIndex++;
 		if (QuestTextIndex == GI->CombatData.QuestDisplayTexts.Num())
 		{

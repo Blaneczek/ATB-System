@@ -132,15 +132,9 @@ private:
 	/** Unpauses the cooldowns of enemies and heroes */
 	void UnPauseCooldowns();
 
-	/** Shows actions of the selected hero */
-	void ShowHeroActions(ABLCombatSlot* PlayerSlot);
-
-	/** Hides actions of the selected  hero */
-	void HideHeroActions(ABLCombatSlot* PlayerSlot);
-
 	/** For combat widget */
-	void UpdateHeroHealth(ABLCombatSlot* PlayerSlot);
-	void UpdateHeroMagicEnergy(ABLCombatSlot* PlayerSlot);
+	void UpdateHeroHPWidget(ABLCombatSlot* PlayerSlot);
+	void UpdateHeroMEWidget(ABLCombatSlot* PlayerSlot);
 
 	/** Handles characters deaths */
 	void CharacterDied(ABLCombatSlot* Slot, bool bIsEnemy);
@@ -157,12 +151,9 @@ private:
 
 	void ExitCombat();
 
-	void ShowDisplayWindow(const FText& InText, float Time);
-
 	void SetHeroesCurrentHP();
 
 	void RunAway(bool bSuccessful);
-
 
 public:
 	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "BL|Combat")

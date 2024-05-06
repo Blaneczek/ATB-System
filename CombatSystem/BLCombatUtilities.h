@@ -482,17 +482,17 @@ struct FPostCombatData
 {
 	GENERATED_BODY()
 
-	/** Level to open after the fight. */
+	/** Map to open after the fight. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FName LevelName;
+	TSoftObjectPtr<UWorld> PostCombatMap;
 
 	/** Experience gained after winning fight. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Experience;
 
-	/** Money gained after winnging fight. */
+	/** Gold gained after winnging fight. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 Money;
+	int32 Gold;
 
 	/** Optional items gained after winning fight. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -511,16 +511,15 @@ struct FPostCombatData
 	bool bUseNewPlayerPosition;
 
 	FPostCombatData()
-		: Experience(0), Money(0), LevelSequence(nullptr), PlayerPosition(FVector(0.f, 0.f, 0.f)),
+		: PostCombatMap(nullptr), Experience(0), Gold(0), LevelSequence(nullptr), PlayerPosition(FVector(0.f, 0.f, 0.f)),
 		  bUseNewPlayerPosition(false)
 	{}
 
-	FPostCombatData(const FName& InName, int32 InExperience, int32 InMoney,
-	                const TArray<TSoftClassPtr<UBLItem>>& InItems
-	                , ULevelSequence* InLevelSequence = nullptr, bool InUseNewPlayerPosition = false)
+	FPostCombatData(TSoftObjectPtr<UWorld> InPostCombatMap, int32 InExperience, int32 InGold, const TArray<TSoftClassPtr<UBLItem>>& InItems
+	    , ULevelSequence* InLevelSequence = nullptr, bool InUseNewPlayerPosition = false)
 
-		: LevelName(InName), Experience(InExperience), Money(InMoney), Items(InItems)
-		  , LevelSequence(InLevelSequence), bUseNewPlayerPosition(InUseNewPlayerPosition)
+		: PostCombatMap(InPostCombatMap), Experience(InExperience), Gold(InGold), Items(InItems)
+		, LevelSequence(InLevelSequence), bUseNewPlayerPosition(InUseNewPlayerPosition)
 	{}
 };
 
@@ -529,38 +528,46 @@ struct FCombatData
 {
 	GENERATED_BODY()
 
+	/** Map on which the combat will take place.  */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSoftObjectPtr<UWorld> CombatMap;
+
+	/** Data asset with information about each enemy in team. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UBLEnemyDataAsset> EnemyData;
 
+	/** Material used to display the combat background. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UMaterialInstance> BackgroundMaterial;
 
+	/** Music played during the combat. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<USoundBase> CombatMusic;
 
+	/** Flag telling if Plyaer can use Run Away action (tries to escape combat). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bCanRunAway;
 
-	/** Optional */
+	/** Optional quests related. Temporary solution. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FText> QuestDisplayTexts;
 
-	/** Flag if player attacked first in Overworld  */
+	/** Flag telling if Player attacked first in Overworld. */
 	UPROPERTY()
 	bool bSneakAttack;
 
+	/** Tag used to set a alive/dead flag for the enemy in Overworld. */
 	UPROPERTY()
 	FName EnemyTag;
 
-
 	FCombatData()
-		: EnemyData(nullptr), BackgroundMaterial(nullptr), CombatMusic(nullptr), bCanRunAway(true), bSneakAttack(false)
+		: CombatMap(nullptr), EnemyData(nullptr), BackgroundMaterial(nullptr), CombatMusic(nullptr), bCanRunAway(true), bSneakAttack(false)
 	{}
 
-	FCombatData(TObjectPtr<UBLEnemyDataAsset> InEnemyData, UMaterialInstance* InBackgroundMaterial
+	FCombatData(TSoftObjectPtr<UWorld> InCombatMap, TObjectPtr<UBLEnemyDataAsset> InEnemyData, UMaterialInstance* InBackgroundMaterial
 	    , USoundBase* InCombatMusic, bool InCanRunAway, const TArray<FText>& InQuestDisplayTexts, bool InSneakAttack)
 
-		: EnemyData(InEnemyData), BackgroundMaterial(InBackgroundMaterial), CombatMusic(InCombatMusic)
+		: CombatMap(InCombatMap), EnemyData(InEnemyData), BackgroundMaterial(InBackgroundMaterial), CombatMusic(InCombatMusic)
 		, bCanRunAway(InCanRunAway), QuestDisplayTexts(InQuestDisplayTexts), bSneakAttack(InSneakAttack)
 	{}
 };

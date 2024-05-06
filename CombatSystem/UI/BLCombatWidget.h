@@ -43,6 +43,9 @@ public:
 	/** Adds cell with enemy to widget. */
 	void AddEnemy(int32 SlotIndex, const FString& EnemyName, int32 Level);
 
+	/** Removes cell with enemy in widget. */
+	void RemoveEnemy(int32 SlotIndex);
+
 	/** Populate actions */
 	void AddHeroActions(int32 SlotIndex, const FCombatCharData& BaseData, const FCombatActions& CombatActions, bool bCanRunAway);
 

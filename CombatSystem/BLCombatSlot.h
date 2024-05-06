@@ -20,6 +20,7 @@ DECLARE_DELEGATE_OneParam(FOnCharHealthUpdate, ABLCombatSlot* /*Slot*/);
 DECLARE_DELEGATE_TwoParams(FOnCharDeath, ABLCombatSlot* /*Slot*/, bool /*bIsEnemy*/);
 DECLARE_DELEGATE_TwoParams(FOnEnemyAction, ABLCombatSlot* /*Slot*/, FCombatActionData&& /*ActionData*/);
 DECLARE_DELEGATE_OneParam(FOnEscapeCombat, bool /*bSuccessful*/);
+DECLARE_DELEGATE_TwoParams(FOnCharDestroyed, int32 /*Index*/, bool /*bIsEnemy*/);
 
 UCLASS()
 class BLADEOFLEGEND_API ABLCombatSlot : public AActor
@@ -35,9 +36,6 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
 	UFUNCTION(BlueprintCallable)
 	ABLCombatCharacter* GetCharacter() const { return Character; };
 
@@ -54,9 +52,13 @@ public:
 	void SpawnEnemy(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& Actions, bool bSneakAttack);
 
 	void PauseCharCooldown();
+
 	void UnPauseCharCooldown();
 
-	void DoAction(const TArray<ABLCombatSlot*>& TargetsSlots, const FCombatActionData& ActionData, AActor* CombatManager, bool bSummon = false);
+	/** Passes all the necessary data about Action to the owned character. 
+	* @param bUseSlots - use or not slots as targets for action (e.g. if references to slots are needed for action).
+	*/
+	void DoAction(const TArray<ABLCombatSlot*>& TargetsSlots, const FCombatActionData& ActionData, AActor* CombatManager, bool bUseSlots = false);
 
 	/** Selected Target effect */
 	void SelectTarget(bool NewSelect);
@@ -70,26 +72,27 @@ public:
 	void DestroyCharacter();
 
 private:
-	UFUNCTION()
-	void EndCharCooldown();
-	UFUNCTION()
+	/** Called when the cooldown has ended. If hero, tries to select the slot. If enemy, calls OnEnemyAction delegate. */
+	void CharCooldownEnded();
+
+	/** Called when the Action has ended. */
 	void ActionEnded();
 
 	void StartCharCooldown();
 
-	UFUNCTION()
 	void HandleCharDeath();
-	UFUNCTION()
+
 	void UpdateCharHealth();
+
+	void EscapeCombat(bool bSuccessful);
 
 	/** Mouse hovered effect */
 	UFUNCTION()
 	void OnBeginMouseOver(UPrimitiveComponent* TouchedComponent);
+
 	UFUNCTION()
 	void OnEndMouseOver(UPrimitiveComponent* TouchedComponent);
 	/**/
-
-	void EscapeCombat(bool bSuccessful);
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
@@ -99,10 +102,11 @@ public:
 	TObjectPtr<UWidgetComponent> TargetPointer;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
-	TObjectPtr<USceneComponent> HelperScene;
+	TObjectPtr<USceneComponent> SpawnPoint;
 
 	UPROPERTY()
 	bool bCanDoAction;
+
 	UPROPERTY()
 	bool bClicked;
 
@@ -112,7 +116,8 @@ public:
 	FOnCharDeath OnCharDeath;
 	FOnEnemyAction OnEnemyAction;
 	FOnEscapeCombat OnEscapeCombat;
-	
+	FOnCharDestroyed OnCharDestroyed;
+
 private:
 	UPROPERTY()
 	bool bIsActive;

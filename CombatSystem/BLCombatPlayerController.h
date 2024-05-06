@@ -9,6 +9,7 @@
 class ABLCombatCamera;
 class UInputMappingContext;
 class UInputAction;
+class UUserWidget;
 
 DECLARE_DELEGATE_OneParam(FOnSlotClicked, AActor* /*ClickedActor*/);
 DECLARE_DELEGATE(FOnSlotRemoved);
@@ -30,8 +31,12 @@ public:
 private:
 	UFUNCTION()
 	void MouseLeftClick();
+
 	UFUNCTION()
 	void MouseRightClick();
+
+	UFUNCTION()
+	void PauseCombat();
 
 public:
 	FOnSlotClicked OnSlotClicked;
@@ -40,12 +45,19 @@ public:
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
 	TObjectPtr<UInputMappingContext> MappingContext;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
 	TObjectPtr<UInputAction> MouseLeftClickAction;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
 	TObjectPtr<UInputAction> MouseRightClickAction;
 
-private:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
+	TObjectPtr<UInputAction> PauseAction;
+
 	UPROPERTY(EditDefaultsOnly, Category = "BL|Combat")
 	TSubclassOf<ABLCombatCamera> CameraClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "BL|Combat")
+	TSubclassOf<UUserWidget> PauseWidgetClass;
 };

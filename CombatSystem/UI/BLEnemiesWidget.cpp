@@ -22,6 +22,11 @@ void UBLEnemiesWidget::AddEnemy(int32 Index, const FString& EnemyName, int32 Lev
 	}
 }
 
+void UBLEnemiesWidget::RemoveEnemy(int32 Index)
+{
+	EnemiesTileView->RemoveItem(EnemiesTileView->GetItemAt(Index));
+}
+
 void UBLEnemiesWidget::EnemyDied(int32 Index)
 {
 	UBLEnemyEntryWidget* EnemyWidget = Cast<UBLEnemyEntryWidget>(EnemiesTileView->GetEntryWidgetFromItem(EnemiesTileView->GetItemAt(Index)));

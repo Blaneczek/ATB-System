@@ -12,15 +12,15 @@
 ABLCombatSlot::ABLCombatSlot()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	Box = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
 	Box->SetupAttachment(RootComponent);
 	Box->SetBoxExtent(FVector(80.f, 80.f, 32.f));
 	Box->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
 
-	HelperScene = CreateDefaultSubobject<USceneComponent>(TEXT("Helper"));
-	HelperScene->SetupAttachment(Box);
+	SpawnPoint = CreateDefaultSubobject<USceneComponent>(TEXT("Helper"));
+	SpawnPoint->SetupAttachment(Box);
 
 	TargetPointer = CreateDefaultSubobject<UWidgetComponent>(TEXT("TargetPointer"));
 	TargetPointer->SetupAttachment(Box);
@@ -43,14 +43,6 @@ void ABLCombatSlot::BeginPlay()
 	Box->OnEndCursorOver.AddDynamic(this, &ABLCombatSlot::OnEndMouseOver);
 }
 
-// Called every frame
-void ABLCombatSlot::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
-
 float ABLCombatSlot::GetCooldown() const
 {
 	return GetCharacter() ? GetCharacter()->GetCooldown() : 0.f;
@@ -62,13 +54,11 @@ void ABLCombatSlot::SpawnHero(const FCombatCharData& BaseData, const FCombatActi
 	{
 		FActorSpawnParameters SpawnInfo;
 		SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		const FVector Location = FVector(GetActorLocation().X, GetActorLocation().Y + 50, GetActorLocation().Z);
-		const FRotator Rotation = GetActorRotation();
-		Character = GetWorld()->SpawnActor<ABLCombatCharacter>(BaseData.Class, HelperScene->GetComponentTransform(), SpawnInfo);
+		Character = GetWorld()->SpawnActor<ABLCombatCharacter>(BaseData.Class, SpawnPoint->GetComponentTransform(), SpawnInfo);
 		if (Character)
 		{
-			Character->SetData(BaseData, CombatActions, HelperScene->GetComponentTransform());
-			Character->OnEndCooldown.BindUObject(this, &ABLCombatSlot::EndCharCooldown);
+			Character->SetData(BaseData, CombatActions, SpawnPoint->GetComponentTransform());
+			Character->OnEndCooldown.BindUObject(this, &ABLCombatSlot::CharCooldownEnded);
 			Character->OnActionEnded.BindUObject(this, &ABLCombatSlot::ActionEnded);
 			Character->OnDeath.BindUObject(this, &ABLCombatSlot::HandleCharDeath);
 			Character->OnHealthUpdate.BindUObject(this, &ABLCombatSlot::UpdateCharHealth);	
@@ -90,13 +80,11 @@ void ABLCombatSlot::SpawnEnemy(const FCombatCharData& BaseData, const TArray<TSo
 	{
 		FActorSpawnParameters SpawnInfo;
 		SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		const FVector Location = FVector(GetActorLocation().X, GetActorLocation().Y + 50, GetActorLocation().Z);
-		const FRotator Rotation = GetActorRotation();
-		Character = GetWorld()->SpawnActor<ABLCombatCharacter>(BaseData.Class, HelperScene->GetComponentTransform(), SpawnInfo);
+		Character = GetWorld()->SpawnActor<ABLCombatCharacter>(BaseData.Class, SpawnPoint->GetComponentTransform(), SpawnInfo);
 		if (Character)
 		{
 			Character->SetData(BaseData, Actions);
-			Character->OnEndCooldown.BindUObject(this, &ABLCombatSlot::EndCharCooldown);
+			Character->OnEndCooldown.BindUObject(this, &ABLCombatSlot::CharCooldownEnded);
 			Character->OnActionEnded.BindUObject(this, &ABLCombatSlot::ActionEnded);
 			Character->OnDeath.BindUObject(this, &ABLCombatSlot::HandleCharDeath);
 			Character->OnHealthUpdate.BindUObject(this, &ABLCombatSlot::UpdateCharHealth);
@@ -127,11 +115,11 @@ void ABLCombatSlot::UnPauseCharCooldown()
 	}
 }
 
-void ABLCombatSlot::DoAction(const TArray<ABLCombatSlot*>& TargetsSlots, const FCombatActionData& ActionData, AActor* CombatManager, bool bSummon)
+void ABLCombatSlot::DoAction(const TArray<ABLCombatSlot*>& TargetsSlots, const FCombatActionData& ActionData, AActor* CombatManager, bool bUseSlots)
 {
-	if (bSummon)
+	if (bUseSlots)
 	{
-		Character->CreateAction(HelperScene->GetComponentLocation(), TargetsSlots, ActionData, CombatManager);
+		Character->CreateAction(SpawnPoint->GetComponentLocation(), TargetsSlots, ActionData, CombatManager);
 	}
 	else
 	{
@@ -141,9 +129,8 @@ void ABLCombatSlot::DoAction(const TArray<ABLCombatSlot*>& TargetsSlots, const F
 			Targets.Add(Slot->GetCharacter());
 		}
 
-		Character->CreateAction(HelperScene->GetComponentLocation(), Targets, ActionData, CombatManager);
-	}
-	
+		Character->CreateAction(SpawnPoint->GetComponentLocation(), Targets, ActionData, CombatManager);
+	}	
 }
 
 void ABLCombatSlot::SelectTarget(bool NewSelect)
@@ -200,20 +187,23 @@ void ABLCombatSlot::DestroyCharacter()
 	{
 		GetCharacter()->Destroy();
 	}
+
+	OnCharDestroyed.ExecuteIfBound(GetIndex(), IsEnemy());
 }
 
-void ABLCombatSlot::EndCharCooldown()
+void ABLCombatSlot::CharCooldownEnded()
 {
 	bCanDoAction = true;
-	if (bIsEnemy)
+	if (IsEnemy())
 	{
+		// To imitate the thinking process of enemies.
 		FTimerDelegate DelayDel;
 		FTimerHandle DelayTimer;
 		DelayDel.BindWeakLambda(this, [this]() 
 			{ 
 				OnEnemyAction.ExecuteIfBound(this, GetCharacter()->GetEnemyAction());
 			});
-		const float RandomDelay = FMath::RandRange(0.3f, 2.5f);
+		const float RandomDelay = FMath::RandRange(0.5f, 2.5f);
 		GetWorld()->GetTimerManager().SetTimer(DelayTimer, DelayDel, RandomDelay, false);	
 	}
 	else
@@ -224,7 +214,7 @@ void ABLCombatSlot::EndCharCooldown()
 
 void ABLCombatSlot::ActionEnded()
 {
-	Character->SetActorTransform(HelperScene->GetComponentTransform());
+	Character->SetActorTransform(SpawnPoint->GetComponentTransform());
 	if (bIsActive)
 	{
 		StartCharCooldown();
