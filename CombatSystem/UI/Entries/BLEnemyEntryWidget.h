@@ -26,6 +26,10 @@ public:
 	/** Greys the border when enemy died */
 	void GreyOutEnemy();
 
+public:
+	UPROPERTY()
+	int32 Index;
+
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
 	TObjectPtr<UBorder> Border;
@@ -35,4 +39,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FLinearColor DeathColor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FLinearColor DefaultColor;
 };

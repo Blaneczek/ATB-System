@@ -58,12 +58,13 @@ void UBLCombatWidget::AddHero(int32 SlotIndex, const FCombatCharData& BaseData, 
 
 void UBLCombatWidget::AddEnemy(int32 SlotIndex, const FString& EnemyName, int32 Level)
 {
+	UE_LOG(LogTemp, Warning, TEXT("asdadada"));
 	Enemies->AddEnemy(SlotIndex, EnemyName, Level);
 }
 
 void UBLCombatWidget::RemoveEnemy(int32 SlotIndex)
 {
-	Enemies->RemoveEnemy(SlotIndex);
+	//Enemies->RemoveEnemy(SlotIndex);
 }
 
 void UBLCombatWidget::AddHeroActions(int32 SlotIndex, const FCombatCharData& BaseData, const FCombatActions& CombatActions, bool bCanRunAway)
@@ -81,7 +82,6 @@ void UBLCombatWidget::SetCurrentHero(int32 SlotIndex)
 	Heroes->HighlightsHero(SlotIndex, true);
 	if (Actions.IsValidIndex(SlotIndex) && Actions[SlotIndex])
 	{
-		UE_LOG(LogTemp, Warning, TEXT("index: %s"), *FString::FromInt(SlotIndex));
 		ActionsSwitcher->SetActiveWidget(Actions[SlotIndex]);
 	}
 }

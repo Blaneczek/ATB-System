@@ -106,7 +106,7 @@ void ABLCombatManager::SetEnemyTeam()
 	{
 		if (EnemyTeam[Index] && Widget)
 		{
-			EnemyTeam[Index]->SpawnEnemy(Data->Enemies[Index].BaseData, Data->Enemies[Index].Actions, GI->CombatData.bSneakAttack);
+			EnemyTeam[Index]->SpawnEnemy(Data->Enemies[Index].BaseData, Data->Enemies[Index].Level, Data->Enemies[Index].Actions, GI->CombatData.bSneakAttack);
 			Widget->AddEnemy(EnemyTeam[Index]->GetIndex(), Data->Enemies[Index].BaseData.Name, Data->Enemies[Index].Level);
 		}
 	}	
@@ -520,9 +520,6 @@ void ABLCombatManager::HandleEnemyAction(ABLCombatSlot* EnemySlot, FCombatAction
 				}
 				const int32 RandomIndex = FMath::RandRange(0, AvailableSlotsIndex.Num() - 1);
 				Targets.Add(EnemyTeam[AvailableSlotsIndex[RandomIndex]]);
-				EnemyTeam[AvailableSlotsIndex[RandomIndex]]->OnEnemyAction.BindUObject(this, &ABLCombatManager::HandleEnemyAction);
-				EnemyTeam[AvailableSlotsIndex[RandomIndex]]->OnCharActionEnded.BindUObject(this, &ABLCombatManager::ActionEnded);
-				EnemyTeam[AvailableSlotsIndex[RandomIndex]]->OnCharDeath.BindUObject(this, &ABLCombatManager::CharacterDied);
 				AvailableSlotsIndex.RemoveAt(RandomIndex);
 			}
 			bUseSlots = true;
@@ -846,11 +843,13 @@ void ABLCombatManager::BindEnemyDelegetes()
 {
 	for (const auto& Slot : EnemyTeam)
 	{
-		if (Slot && Slot->IsActive())
+		if (Slot)
 		{
 			Slot->OnEnemyAction.BindUObject(this, &ABLCombatManager::HandleEnemyAction);
 			Slot->OnCharActionEnded.BindUObject(this, &ABLCombatManager::ActionEnded);
 			Slot->OnCharDeath.BindUObject(this, &ABLCombatManager::CharacterDied);
+			Slot->OnCharSpawned.BindWeakLambda(this, [this](int32 Index, const FString& Name, int32 Level) { if (Widget) Widget->AddEnemy(Index, Name, Level); });
+			Slot->OnCharDestroyed.BindWeakLambda(this, [this](int32 Index) { if (Widget) Widget->RemoveEnemy(Index); });
 		}
 	}
 }

@@ -74,7 +74,7 @@ void ABLCombatSlot::SpawnHero(const FCombatCharData& BaseData, const FCombatActi
 	}
 }
 
-void ABLCombatSlot::SpawnEnemy(const FCombatCharData& BaseData, const TArray<TSoftClassPtr<UBLAction>>& Actions, bool bSneakAttack)
+void ABLCombatSlot::SpawnEnemy(const FCombatCharData& BaseData, int32 Level, const TArray<TSoftClassPtr<UBLAction>>& Actions, bool bSneakAttack)
 {
 	if (BaseData.Class)
 	{
@@ -95,6 +95,9 @@ void ABLCombatSlot::SpawnEnemy(const FCombatCharData& BaseData, const TArray<TSo
 			// Cooldown will start after 1 sek
 			FTimerHandle CooldownTimer;
 			GetWorld()->GetTimerManager().SetTimer(CooldownTimer, this, &ABLCombatSlot::StartCharCooldown, 1.f, false);
+
+			UE_LOG(LogTemp, Warning, TEXT("ssssss"));
+			OnCharSpawned.ExecuteIfBound(GetIndex(), BaseData.Name, Level);
 		}
 	}
 }
@@ -186,9 +189,8 @@ void ABLCombatSlot::DestroyCharacter()
 	if (GetCharacter())
 	{
 		GetCharacter()->Destroy();
-	}
-
-	OnCharDestroyed.ExecuteIfBound(GetIndex(), IsEnemy());
+		OnCharDestroyed.ExecuteIfBound(GetIndex());
+	}	
 }
 
 void ABLCombatSlot::CharCooldownEnded()

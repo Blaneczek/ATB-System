@@ -13,16 +13,20 @@ struct FEnemiesSpawnData
 	GENERATED_BODY()
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
+	int32 Level;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
 	FCombatCharData BaseData;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
 	TArray<TSoftClassPtr<UBLAction>> Actions;
 
 	FEnemiesSpawnData()
+		: Level(1)
 	{}
 
-	FEnemiesSpawnData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InActions)
-		: BaseData(InBaseData), Actions(InActions)
+	FEnemiesSpawnData(int32 InLevel, const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InActions)
+		: Level(InLevel), BaseData(InBaseData), Actions(InActions)
 	{}
 };
 

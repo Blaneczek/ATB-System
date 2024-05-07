@@ -158,6 +158,7 @@ private:
 public:
 	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "BL|Combat")
 	TArray<TObjectPtr<ABLCombatSlot>> PlayerTeam;
+
 	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "BL|Combat")
 	TArray<TObjectPtr<ABLCombatSlot>> EnemyTeam;
 

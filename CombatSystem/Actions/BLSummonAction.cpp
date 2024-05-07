@@ -42,7 +42,7 @@ void UBLSummonAction::ExecuteAction(ABLCombatCharacter* Owner, const TArray<ABLC
 		{
 			Slot->DestroyCharacter();
 			const int32 Random = FMath::RandRange(0, EnemiesToSpawn.Num() - 1);
-			Slot->SpawnEnemy(EnemiesToSpawn[Random].BaseData, EnemiesToSpawn[Random].Actions, false);
+			Slot->SpawnEnemy(EnemiesToSpawn[Random].BaseData, EnemiesToSpawn[Random].Level, EnemiesToSpawn[Random].Actions, false);
 		}
 	}
 	OnEndExecution.ExecuteIfBound();

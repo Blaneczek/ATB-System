@@ -23,4 +23,5 @@ class BLADEOFLEGEND_API IBLWindowDisplayInterface
 public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void ShowQuestText();
+
 };
