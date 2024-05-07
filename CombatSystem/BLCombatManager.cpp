@@ -82,7 +82,7 @@ void ABLCombatManager::SetPlayerTeam()
 		if (PlayerTeam[Index] && Widget)
 		{
 			PlayerTeam[Index]->SpawnHero(CharBaseData, GI->SaveGameData.HeroesData.Heroes[Index].CombatActions, GI->CombatData.bSneakAttack);
-			GI->CombatData.bSneakAttack ? Widget->AddHero(PlayerTeam[Index]->GetIndex(), CharBaseData, 0.1f) : Widget->AddHero(PlayerTeam[Index]->GetIndex(), CharBaseData);
+			GI->CombatData.bSneakAttack ? Widget->AddHero(PlayerTeam[Index]->GetIndex(), CharBaseData, true) : Widget->AddHero(PlayerTeam[Index]->GetIndex(), CharBaseData, false);
 			Widget->AddHeroActions(PlayerTeam[Index]->GetIndex(), CharBaseData, GI->SaveGameData.HeroesData.Heroes[Index].CombatActions, GI->CombatData.bCanRunAway);
 		}
 	}
@@ -107,7 +107,7 @@ void ABLCombatManager::SetEnemyTeam()
 		if (EnemyTeam[Index] && Widget)
 		{
 			EnemyTeam[Index]->SpawnEnemy(Data->Enemies[Index].BaseData, Data->Enemies[Index].Level, Data->Enemies[Index].Actions, GI->CombatData.bSneakAttack);
-			Widget->AddEnemy(EnemyTeam[Index]->GetIndex(), Data->Enemies[Index].BaseData.Name, Data->Enemies[Index].Level);
+			Widget->AddEnemy(EnemyTeam[Index]->GetIndex(), Data->Enemies[Index].BaseData.Name, Data->Enemies[Index].Level, Data->Enemies[Index].BaseData.Cooldown);
 		}
 	}	
 }
@@ -403,11 +403,8 @@ void ABLCombatManager::DoAction(ABLCombatSlot* OwnerSlot, const TArray<ABLCombat
 	{
 		Widget->PauseCooldownBars(true);
 		Widget->ShowActionTextDisplay(true);
-		if (!bEnemyAction)
-		{
-			Widget->ResetHeroCooldownBar(OwnerSlot->GetIndex());
-		}
 	}
+
 	OwnerSlot->DoAction(TargetsSlots, ActionData, this, bUseSlots);
 }
 
@@ -571,6 +568,7 @@ void ABLCombatManager::HandleEnemyAction(ABLCombatSlot* EnemySlot, FCombatAction
 		default: break;
 	}
 
+	Widget->ResetEnemyCooldownBar(EnemySlot->GetIndex());
 	AddActionToQueue(EnemySlot, Targets, ActionData, true, bUseSlots);
 }
 
@@ -587,7 +585,11 @@ void ABLCombatManager::ActionEnded(ABLCombatSlot* OwnerSlot, bool bWasEnemy)
 	Widget->PauseCooldownBars(false);
 	Widget->ShowActionTextDisplay(false);
 
-	if (!bWasEnemy)
+	if (bWasEnemy)
+	{
+		Widget->StartEnemyCooldownBar(OwnerSlot->GetIndex(), OwnerSlot->GetCooldown());
+	}
+	else
 	{
 		Widget->StartHeroCooldownBar(OwnerSlot->GetIndex(), OwnerSlot->GetCooldown());
 		UpdateHeroMEWidget(OwnerSlot);
@@ -846,7 +848,7 @@ void ABLCombatManager::BindEnemyDelegetes()
 			Slot->OnEnemyAction.BindUObject(this, &ABLCombatManager::HandleEnemyAction);
 			Slot->OnCharActionEnded.BindUObject(this, &ABLCombatManager::ActionEnded);
 			Slot->OnCharDeath.BindUObject(this, &ABLCombatManager::CharacterDied);
-			Slot->OnCharSpawned.BindWeakLambda(this, [this](int32 Index, const FString& Name, int32 Level) { if (Widget) Widget->AddEnemy(Index, Name, Level); });
+			Slot->OnCharSpawned.BindWeakLambda(this, [this](int32 Index, const FString& Name, int32 Level, float Cooldown) { if (Widget) Widget->AddEnemy(Index, Name, Level, Cooldown); });
 			Slot->OnCharDestroyed.BindWeakLambda(this, [this](int32 Index) { if (Widget) Widget->RemoveEnemy(Index); });
 		}
 	}

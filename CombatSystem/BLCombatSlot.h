@@ -21,7 +21,7 @@ DECLARE_DELEGATE_TwoParams(FOnCharDeath, ABLCombatSlot* /*Slot*/, bool /*bIsEnem
 DECLARE_DELEGATE_TwoParams(FOnEnemyAction, ABLCombatSlot* /*Slot*/, FCombatActionData&& /*ActionData*/);
 DECLARE_DELEGATE_OneParam(FOnEscapeCombat, bool /*bSuccessful*/);
 DECLARE_DELEGATE_OneParam(FOnCharDestroyed, int32 /*Index*/);
-DECLARE_DELEGATE_ThreeParams(FOnCharSpawned, int32 /*Index*/, const FString& /*Name*/, int32 /*Level*/);
+DECLARE_DELEGATE_FourParams(FOnCharSpawned, int32 /*Index*/, const FString& /*Name*/, int32 /*Level*/, float /*Cooldown*/);
 
 UCLASS()
 class BLADEOFLEGEND_API ABLCombatSlot : public AActor

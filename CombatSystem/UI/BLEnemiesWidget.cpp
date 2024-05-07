@@ -35,9 +35,48 @@ void UBLEnemiesWidget::RemoveEnemy(int32 Index)
 	}
 }
 
+void UBLEnemiesWidget::PauseAllCooldownBars(bool bNewPause)
+{
+	TArray<UUserWidget*> Enemies = EnemiesTileView->GetDisplayedEntryWidgets();
+	for (const auto Enemy : Enemies)
+	{
+		UBLEnemyEntryWidget* EnemyWidget = Cast<UBLEnemyEntryWidget>(Enemy);
+		if (EnemyWidget && !EnemyWidget->IsDead())
+		{
+			bNewPause ? EnemyWidget->PauseCooldownBar() : EnemyWidget->UnPauseCooldownBar();
+		}
+	}
+}
+
+void UBLEnemiesWidget::StartEnemyCooldownBar(int32 Index, float Cooldown)
+{
+	for (const auto Enemy : EnemiesTileView->GetDisplayedEntryWidgets())
+	{
+		UBLEnemyEntryWidget* EnemyWidget = Cast<UBLEnemyEntryWidget>(Enemy);
+		if (EnemyWidget && EnemyWidget->Index == Index)
+		{
+			EnemyWidget->StartCooldownBar(Cooldown);
+			return;
+		}
+	}
+}
+
+void UBLEnemiesWidget::ResetEnemyCooldownBar(int32 Index)
+{
+	for (const auto Enemy : EnemiesTileView->GetDisplayedEntryWidgets())
+	{
+		UBLEnemyEntryWidget* EnemyWidget = Cast<UBLEnemyEntryWidget>(Enemy);
+		if (EnemyWidget && EnemyWidget->Index == Index)
+		{
+			EnemyWidget->ResetCooldownBar();
+			return;
+		}
+	}
+}
+
 void UBLEnemiesWidget::EnemyDied(int32 Index)
 {
-	for (auto Enemy: EnemiesTileView->GetDisplayedEntryWidgets())
+	for (const auto Enemy: EnemiesTileView->GetDisplayedEntryWidgets())
 	{
 		UBLEnemyEntryWidget* EnemyWidget = Cast<UBLEnemyEntryWidget>(Enemy);
 		if (EnemyWidget && EnemyWidget->Index == Index)

@@ -96,8 +96,7 @@ void ABLCombatSlot::SpawnEnemy(const FCombatCharData& BaseData, int32 Level, con
 			FTimerHandle CooldownTimer;
 			GetWorld()->GetTimerManager().SetTimer(CooldownTimer, this, &ABLCombatSlot::StartCharCooldown, 1.f, false);
 
-			UE_LOG(LogTemp, Warning, TEXT("ssssss"));
-			OnCharSpawned.ExecuteIfBound(GetIndex(), BaseData.Name, Level);
+			OnCharSpawned.ExecuteIfBound(GetIndex(), BaseData.Name, Level, BaseData.Cooldown);
 		}
 	}
 }

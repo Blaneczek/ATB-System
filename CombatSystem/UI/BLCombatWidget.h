@@ -34,14 +34,13 @@ protected:
 	virtual void NativeOnInitialized() override;
 
 public:
-	/** Adds row with hero to widget. */
-	void AddHero(int32 SlotIndex, const FCombatCharData& BaseData);
-
-	/** Adds row with hero to widget. A version if a sneaky attack was used. */
-	void AddHero(int32 SlotIndex, const FCombatCharData& BaseData, float SneakyCooldown);
+	/** Adds row with hero to widget.
+	* @param bSneakAttack - if sneak attack was used in overworld
+	*/
+	void AddHero(int32 SlotIndex, const FCombatCharData& BaseData, bool bSneakAttack);
 
 	/** Adds cell with enemy to widget. */
-	void AddEnemy(int32 SlotIndex, const FString& EnemyName, int32 Level);
+	void AddEnemy(int32 SlotIndex, const FString& EnemyName, int32 Level, float Cooldown);
 
 	/** Removes cell with enemy in widget. */
 	void RemoveEnemy(int32 SlotIndex);
@@ -69,6 +68,12 @@ public:
 
 	/** Resets hero's cooldown bar to zero. */
 	void ResetHeroCooldownBar(int32 SlotIndex);
+
+	/** Starts filling from zero enemy's cooldown bar. */
+	void StartEnemyCooldownBar(int32 SlotIndex, float Cooldown);
+
+	/** Resets enemy's cooldown bar to zero. */
+	void ResetEnemyCooldownBar(int32 SlotIndex);
 
 	void UpdateHeroHealth(int32 SlotIndex, float MaxHP, float CurrentHP);
 

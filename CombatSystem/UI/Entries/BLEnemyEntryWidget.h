@@ -9,6 +9,7 @@
 
 class UBorder;
 class UTextBlock;
+class UBLCooldownBarWidget;
 
 /**
  * 
@@ -26,6 +27,14 @@ public:
 	/** Greys the border when enemy died */
 	void GreyOutEnemy();
 
+	/** Controls CooldownBarWidget */
+	void StartCooldownBar(float Cooldown);
+	void PauseCooldownBar();
+	void UnPauseCooldownBar();
+	void ResetCooldownBar();
+
+	bool IsDead() const { return bDied; };
+
 public:
 	UPROPERTY()
 	int32 Index;
@@ -42,4 +51,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FLinearColor DefaultColor;
+
+	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
+	TObjectPtr<UBLCooldownBarWidget> CooldownBar;
+
+	bool bDied = false;
 };
