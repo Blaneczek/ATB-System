@@ -14,14 +14,11 @@ void UBLEnemiesWidget::NativeConstruct()
 
 void UBLEnemiesWidget::AddEnemy(int32 Index, const FString& EnemyName, int32 Level)
 {
-	RemoveEnemy(Index);
-
 	UBLEnemyEntryData* Enemy = NewObject<UBLEnemyEntryData>();
 	if (Enemy)
 	{
 		Enemy->Init(Index, FText::FromString(EnemyName), Level);
 		EnemiesTileView->AddItem(Enemy);
-		UE_LOG(LogTemp, Warning, TEXT("added"));
 	}
 }
 
@@ -32,7 +29,6 @@ void UBLEnemiesWidget::RemoveEnemy(int32 Index)
 		UBLEnemyEntryData* Enemy = Cast<UBLEnemyEntryData>(Item);
 		if (Enemy && Enemy->Index == Index)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("delete"));
 			EnemiesTileView->RemoveItem(Item);
 			return;
 		}

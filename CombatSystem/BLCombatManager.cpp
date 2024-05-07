@@ -401,7 +401,6 @@ void ABLCombatManager::DoAction(ABLCombatSlot* OwnerSlot, const TArray<ABLCombat
 
 	if (Widget)
 	{
-		Widget->SetIsActionVisibility(ESlateVisibility::Visible);
 		Widget->PauseCooldownBars(true);
 		Widget->ShowActionTextDisplay(true);
 		if (!bEnemyAction)
@@ -586,7 +585,6 @@ void ABLCombatManager::ActionEnded(ABLCombatSlot* OwnerSlot, bool bWasEnemy)
 	}
 
 	Widget->PauseCooldownBars(false);
-	Widget->SetIsActionVisibility(ESlateVisibility::Hidden);
 	Widget->ShowActionTextDisplay(false);
 
 	if (!bWasEnemy)

@@ -38,6 +38,9 @@ private:
 	UFUNCTION()
 	void PauseCombat();
 
+	UFUNCTION()
+	void SpeedUpGame(bool bSpeedUp);
+
 public:
 	FOnSlotClicked OnSlotClicked;
 	FOnSlotRemoved OnSlotRemoved;
@@ -55,9 +58,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
 	TObjectPtr<UInputAction> PauseAction;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
+	TObjectPtr<UInputAction> SpeedUpAction;
+
 	UPROPERTY(EditDefaultsOnly, Category = "BL|Combat")
 	TSubclassOf<ABLCombatCamera> CameraClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "BL|Combat")
 	TSubclassOf<UUserWidget> PauseWidgetClass;
+
+
 };

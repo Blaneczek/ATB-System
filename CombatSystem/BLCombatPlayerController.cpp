@@ -45,6 +45,8 @@ void ABLCombatPlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(MouseLeftClickAction, ETriggerEvent::Triggered, this, &ABLCombatPlayerController::MouseLeftClick);
 		EnhancedInputComponent->BindAction(MouseRightClickAction, ETriggerEvent::Triggered, this, &ABLCombatPlayerController::MouseRightClick);
 		EnhancedInputComponent->BindAction(PauseAction, ETriggerEvent::Triggered, this, &ABLCombatPlayerController::PauseCombat);
+		EnhancedInputComponent->BindAction(SpeedUpAction, ETriggerEvent::Triggered, this, &ABLCombatPlayerController::SpeedUpGame, true);
+		EnhancedInputComponent->BindAction(SpeedUpAction, ETriggerEvent::Completed, this, &ABLCombatPlayerController::SpeedUpGame, false);
 	}
 }
 
@@ -66,6 +68,11 @@ void ABLCombatPlayerController::PauseCombat()
 		UGameplayStatics::SetGamePaused(GetWorld(),true);
 		PauseWidget->AddToViewport();
 	}
+}
+
+void ABLCombatPlayerController::SpeedUpGame(bool bSpeedUp)
+{
+	bSpeedUp ? UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 3.f) : UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.f);
 }
 
 void ABLCombatPlayerController::MouseLeftClick()

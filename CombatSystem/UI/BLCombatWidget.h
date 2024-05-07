@@ -70,9 +70,6 @@ public:
 	/** Resets hero's cooldown bar to zero. */
 	void ResetHeroCooldownBar(int32 SlotIndex);
 
-	/** Handle "ACTION" text widget visibility. It is displayed when the action is executed. */
-	void SetIsActionVisibility(ESlateVisibility InVisibility);
-
 	void UpdateHeroHealth(int32 SlotIndex, float MaxHP, float CurrentHP);
 
 	void UpdateHeroMagicEnergy(int32 SlotIndex, float MaxME, float CurrentME);

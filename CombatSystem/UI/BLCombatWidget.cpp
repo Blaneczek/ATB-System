@@ -58,13 +58,12 @@ void UBLCombatWidget::AddHero(int32 SlotIndex, const FCombatCharData& BaseData, 
 
 void UBLCombatWidget::AddEnemy(int32 SlotIndex, const FString& EnemyName, int32 Level)
 {
-	UE_LOG(LogTemp, Warning, TEXT("asdadada"));
 	Enemies->AddEnemy(SlotIndex, EnemyName, Level);
 }
 
 void UBLCombatWidget::RemoveEnemy(int32 SlotIndex)
 {
-	//Enemies->RemoveEnemy(SlotIndex);
+	Enemies->RemoveEnemy(SlotIndex);
 }
 
 void UBLCombatWidget::AddHeroActions(int32 SlotIndex, const FCombatCharData& BaseData, const FCombatActions& CombatActions, bool bCanRunAway)
@@ -127,11 +126,6 @@ void UBLCombatWidget::StartHeroCooldownBar(int32 SlotIndex, float Cooldown)
 void UBLCombatWidget::ResetHeroCooldownBar(int32 SlotIndex)
 {
 	Heroes->ResetHeroCooldownBar(SlotIndex);
-}
-
-void UBLCombatWidget::SetIsActionVisibility(ESlateVisibility InVisibility)
-{
-	//
 }
 
 void UBLCombatWidget::UpdateHeroHealth(int32 SlotIndex, float MaxHP, float CurrentHP)
