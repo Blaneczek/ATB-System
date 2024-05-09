@@ -1,15 +1,14 @@
 // Copyright (c) 2023 Smoking Carrots. All rights reserved.
 
 
-#include "BLSummonAction.h"
+#include "BLMultipleInPlaceAction.h"
 #include "PaperZDAnimInstance.h"
 #include "PaperZDAnimationComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Characters/BLCombatCharacter.h"
 #include "Characters/BLActionComponent.h"
-#include "BLCombatSlot.h"
 
-void UBLSummonAction::ActivateAction(UBLActionComponent* OwnerComponent)
+void UBLMultipleInPlaceAction::ActivateAction(UBLActionComponent* OwnerComponent)
 {
 	if (!OwnerComponent || !OwnerChar)
 	{
@@ -29,7 +28,7 @@ void UBLSummonAction::ActivateAction(UBLActionComponent* OwnerComponent)
 	}
 }
 
-void UBLSummonAction::ExecuteAction(const TArray<ABLCombatSlot*>& Targets)
+void UBLMultipleInPlaceAction::ExecuteAction(const TArray<ABLCombatSlot*>& Targets)
 {
 	if (Targets.IsEmpty())
 	{
@@ -37,15 +36,6 @@ void UBLSummonAction::ExecuteAction(const TArray<ABLCombatSlot*>& Targets)
 		return;
 	}
 
-	for (auto& Slot : Targets)
-	{
-		if (Slot)
-		{
-			Slot->DestroyCharacter();
-			const int32 Random = FMath::RandRange(0, EnemiesToSpawn.Num() - 1);
-			Slot->SpawnEnemy(EnemiesToSpawn[Random].BaseData, EnemiesToSpawn[Random].Level, EnemiesToSpawn[Random].Actions, false);
-			ActionCalculations(Slot, CombatManager);
-		}
-	}
+	ActionCalculationsMultiAtOnce(Targets, CombatManager);
 	OnEndExecution.ExecuteIfBound();
 }

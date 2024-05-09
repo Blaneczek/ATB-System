@@ -2,37 +2,25 @@
 
 
 #include "BLAction.h"
+#include "Characters/BLActionComponent.h"
 #include "Characters/BLCombatCharacter.h"
 
-void UBLAction::OnCreateAction(ABLCombatCharacter* Owner, AActor* InCombatManager)
+void UBLAction::OnCreateAction(UBLActionComponent* OwnerComponent, ABLCombatCharacter* Owner, AActor* InCombatManager)
 {
-	if (Owner)
+	if (OwnerComponent && Owner)
 	{
 		CombatManager = InCombatManager;
+		OwnerChar = Owner;
 
-		ActivateAction(Owner);
+		ActivateAction(OwnerComponent);
 
 		if (TurnsCost > 0)
 		{
-			Owner->StartActionCooldown(TurnsCost);
+			OwnerChar->StartActionTurnsCooldown(TurnsCost);
 		}
 	}
 }
 
-void UBLAction::OnCreateAction(ABLCombatCharacter* Owner, AActor* InCombatManager, const TArray<ABLCombatSlot*>& Targets)
-{
-	if (Owner)
-	{
-		CombatManager = InCombatManager;
-
-		ActivateAction(Owner, Targets);
-
-		if (TurnsCost > 0)
-		{
-			Owner->StartActionCooldown(TurnsCost);
-		}
-	}
-}
 
 
 

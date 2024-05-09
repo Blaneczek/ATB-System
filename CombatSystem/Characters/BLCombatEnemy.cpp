@@ -4,7 +4,7 @@
 #include "BLCombatEnemy.h"
 #include "Actions/BLAction.h"
 
-void ABLCombatEnemy::SneakAttack()
+void ABLCombatEnemy::SneakAttackStatus()
 {
 	const float DMG = BaseData.MaxHP * 0.1;
 
@@ -42,11 +42,10 @@ FCombatActionData ABLCombatEnemy::GetEnemyAction()
 	UBLAction* Action = Cast<UBLAction>(AttackActions[AvailableActions[RandomIndex]].LoadSynchronous()->GetDefaultObject());
 	if (Action)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("index: %s"), *FString::FromInt(AvailableActions[RandomIndex]));
 		if (Action->TurnsCost > 0)
 		{
 			ActionsCooldown.Add(AvailableActions[RandomIndex], Action->TurnsCost);
-		}	
+		}
 		return FCombatActionData(ECombatActionType::ATTACK, Action->Flow, AvailableActions[RandomIndex], ECrystalColor::NONE, 0.f, Action->TargetsNumber);
 	}
 

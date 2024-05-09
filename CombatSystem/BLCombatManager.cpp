@@ -568,7 +568,6 @@ void ABLCombatManager::HandleEnemyAction(ABLCombatSlot* EnemySlot, FCombatAction
 		default: break;
 	}
 
-	Widget->ResetEnemyCooldownBar(EnemySlot->GetIndex());
 	AddActionToQueue(EnemySlot, Targets, ActionData, true, bUseSlots);
 }
 
@@ -585,11 +584,7 @@ void ABLCombatManager::ActionEnded(ABLCombatSlot* OwnerSlot, bool bWasEnemy)
 	Widget->PauseCooldownBars(false);
 	Widget->ShowActionTextDisplay(false);
 
-	if (bWasEnemy)
-	{
-		Widget->StartEnemyCooldownBar(OwnerSlot->GetIndex(), OwnerSlot->GetCooldown());
-	}
-	else
+	if (!bWasEnemy)
 	{
 		Widget->StartHeroCooldownBar(OwnerSlot->GetIndex(), OwnerSlot->GetCooldown());
 		UpdateHeroMEWidget(OwnerSlot);
@@ -832,7 +827,7 @@ void ABLCombatManager::BindPlayerDelegetes()
 		{
 			Slot->OnCharActionEnded.BindUObject(this, &ABLCombatManager::ActionEnded);
 			Slot->OnSelectedSlot.BindWeakLambda(this, [this, Slot](ABLCombatSlot* InSlot) { if (!CurrentPlayerSlot) ChoosePlayerSlot(Slot); });
-			Slot->OnCharHealthUpdate.BindUObject(this, &ABLCombatManager::UpdateHeroHPWidget);
+			Slot->OnCharHealthUpdate.BindWeakLambda(this, [this, Slot]() { if (Widget) Widget->UpdateHeroHealth(Slot->GetIndex(), Slot->GetCharacter()->GetMaxHP(), Slot->GetCharacter()->GetCurrentHP()); });
 			Slot->OnCharDeath.BindUObject(this, &ABLCombatManager::CharacterDied);
 			Slot->OnEscapeCombat.BindUObject(this, &ABLCombatManager::RunAway);
 		}
@@ -848,6 +843,7 @@ void ABLCombatManager::BindEnemyDelegetes()
 			Slot->OnEnemyAction.BindUObject(this, &ABLCombatManager::HandleEnemyAction);
 			Slot->OnCharActionEnded.BindUObject(this, &ABLCombatManager::ActionEnded);
 			Slot->OnCharDeath.BindUObject(this, &ABLCombatManager::CharacterDied);
+			Slot->OnCharHealthUpdate.BindWeakLambda(this, [this, Slot]() { if (Widget) Widget->UpdateEnemyHealth(Slot->GetIndex(), Slot->GetCharacter()->GetCurrentHP(), Slot->GetCharacter()->GetMaxHP()); });
 			Slot->OnCharSpawned.BindWeakLambda(this, [this](int32 Index, const FString& Name, int32 Level, float Cooldown) { if (Widget) Widget->AddEnemy(Index, Name, Level, Cooldown); });
 			Slot->OnCharDestroyed.BindWeakLambda(this, [this](int32 Index) { if (Widget) Widget->RemoveEnemy(Index); });
 		}
@@ -859,7 +855,6 @@ void ABLCombatManager::ExitCombat()
 	UBLGameInstance* GI = Cast<UBLGameInstance>(GetGameInstance());
 	if (!GI)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("ABLCombatManager::ExitCombat | GameInstance is nullptr"));
 		return;
 	}
 

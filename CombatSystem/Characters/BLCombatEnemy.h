@@ -15,7 +15,7 @@ class BLADEOFLEGEND_API ABLCombatEnemy : public ABLCombatCharacter
 	GENERATED_BODY()
 
 public:
-	virtual void SneakAttack() override;
+	virtual void SneakAttackStatus() override;
 
 	virtual FCombatActionData GetEnemyAction() override;
 

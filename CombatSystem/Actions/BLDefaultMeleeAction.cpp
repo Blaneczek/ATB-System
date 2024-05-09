@@ -2,23 +2,25 @@
 
 
 #include "BLDefaultMeleeAction.h"
+#include "Characters/BLActionComponent.h"
 #include "Characters/BLCombatCharacter.h"
 #include "PaperZDAnimInstance.h"
 #include "PaperZDAnimationComponent.h"
 #include "Kismet/GameplayStatics.h"
 
-void UBLDefaultMeleeAction::ActivateAction(ABLCombatCharacter* Owner)
+void UBLDefaultMeleeAction::ActivateAction(UBLActionComponent* OwnerComponent)
 {
-	if (Owner)
+	if (OwnerComponent && OwnerChar)
 	{
-		Owner->DefaultMeleeAction();
-		Owner->SetCurrentME(FMath::Clamp((Owner->GetCurrentME() - MECost), 0.f, Owner->GetMaxME()));
+		OwnerComponent->DefaultMeleeAction();
+
+		OwnerChar->SetCurrentME(FMath::Clamp((OwnerChar->GetCurrentME() - MECost), 0.f, OwnerChar->GetMaxME()));
 	}
 }
 
-void UBLDefaultMeleeAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharacter* Target)
+void UBLDefaultMeleeAction::ExecuteAction(const TArray<ABLCombatSlot*>& Targets)
 {
-	if (!Owner || !Target)
+	if (!OwnerChar || !Targets.IsValidIndex(0) || !Targets[0])
 	{
 		OnEndExecution.ExecuteIfBound();
 		return;
@@ -28,12 +30,12 @@ void UBLDefaultMeleeAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCh
 	{
 		FZDOnAnimationOverrideEndSignature EndAnimDel;
 		EndAnimDel.BindWeakLambda(this, [this](bool bResult) { OnEndExecution.ExecuteIfBound(); });
-		Owner->GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(ActionAnim, "DefaultSlot", 1.f, 0.0f, EndAnimDel);
-		ActionCalculations(Owner, Target, CombatManager);
+		OwnerChar->GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(ActionAnim, "DefaultSlot", 1.f, 0.0f, EndAnimDel);
+		ActionCalculations(Targets[0], CombatManager);
 	}
 	else
 	{
-		ActionCalculations(Owner, Target, CombatManager);
+		ActionCalculations(Targets[0], CombatManager);
 		OnEndExecution.ExecuteIfBound();
 	}
 }

@@ -3,13 +3,14 @@
 
 #include "BLMultipleDefaultRangeAction.h"
 #include "Characters/BLCombatCharacter.h"
+#include "Characters/BLActionComponent.h"
 #include "PaperZDAnimInstance.h"
 #include "PaperZDAnimationComponent.h"
 #include "Kismet/GameplayStatics.h"
 
-void UBLMultipleDefaultRangeAction::ActivateAction(ABLCombatCharacter* Owner)
+void UBLMultipleDefaultRangeAction::ActivateAction(UBLActionComponent* OwnerComponent)
 {
-	if (!Owner)
+	if (!OwnerComponent || !OwnerChar)
 	{
 		OnEndExecution.ExecuteIfBound();
 		return;
@@ -18,26 +19,26 @@ void UBLMultipleDefaultRangeAction::ActivateAction(ABLCombatCharacter* Owner)
 	if (ActionAnim)
 	{ 			
 		FZDOnAnimationOverrideEndSignature EndAnimDel;
-		EndAnimDel.BindWeakLambda(this, [this, Owner](bool bResult) { Owner->MultipleDefaultRangeAction(ProjectileClass, ProjectileSprite); });
-		Owner->GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(ActionAnim, "DefaultSlot", 1.f, 0.0f, EndAnimDel);
+		EndAnimDel.BindWeakLambda(this, [this, OwnerComponent](bool bResult) { OwnerComponent->MultipleDefaultRangeAction(ProjectileClass, ProjectileSprite); });
+		OwnerChar->GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(ActionAnim, "DefaultSlot", 1.f, 0.0f, EndAnimDel);
 	}
 	else
 	{
-		Owner->MultipleDefaultRangeAction(ProjectileClass, ProjectileSprite);
+		OwnerComponent->MultipleDefaultRangeAction(ProjectileClass, ProjectileSprite);
 	}
 
-	Owner->SetCurrentME(FMath::Clamp((Owner->GetCurrentME() - MECost), 0.f, Owner->GetMaxME()));
+	OwnerChar->SetCurrentME(FMath::Clamp((OwnerChar->GetCurrentME() - MECost), 0.f, OwnerChar->GetMaxME()));
 }
 
-void UBLMultipleDefaultRangeAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharacter* Target)
+void UBLMultipleDefaultRangeAction::ExecuteAction(ABLCombatSlot* Target)
 {
-	if (!Owner || !Target)
+	if (!Target)
 	{
 		OnEndExecution.ExecuteIfBound();
 		return;
 	}
 
-	ActionCalculations(Owner, Target, CombatManager);
+	ActionCalculations(Target, CombatManager);
 	FTimerHandle Delay;
 	FTimerDelegate DelayDel;
 	DelayDel.BindWeakLambda(this, [this]() { OnEndExecution.ExecuteIfBound(); });

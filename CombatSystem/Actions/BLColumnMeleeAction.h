@@ -15,10 +15,6 @@ class BLADEOFLEGEND_API UBLColumnMeleeAction : public UBLAction
 	GENERATED_BODY()
 
 public:
-	void ActivateAction(ABLCombatCharacter* Owner) override;
-	void ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharacter* Target) override;
-
-private:
-	/** To track when the last target in column will get hit by action and then end action*/
-	bool bEndAction = true;
+	void ActivateAction(UBLActionComponent* OwnerComponent) override;
+	void ExecuteAction(const TArray<ABLCombatSlot*>& Targets) override;
 };

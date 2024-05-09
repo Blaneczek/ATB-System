@@ -3,22 +3,23 @@
 
 #include "BLColumnMeleeAction.h"
 #include "Characters/BLCombatCharacter.h"
+#include "Characters/BLActionComponent.h"
 #include "PaperZDAnimInstance.h"
 #include "PaperZDAnimationComponent.h"
 #include "Kismet/GameplayStatics.h"
 
-void UBLColumnMeleeAction::ActivateAction(ABLCombatCharacter* Owner)
+void UBLColumnMeleeAction::ActivateAction(UBLActionComponent* OwnerComponent)
 {
-	if (Owner)
+	if (OwnerComponent && OwnerChar)
 	{
-		Owner->ColumnMeleeAction();
-		Owner->SetCurrentME(FMath::Clamp((Owner->GetCurrentME() - MECost), 0.f, Owner->GetMaxME()));
+		OwnerComponent->ColumnMeleeAction();
+		OwnerChar->SetCurrentME(FMath::Clamp((OwnerChar->GetCurrentME() - MECost), 0.f, OwnerChar->GetMaxME()));
 	}
 }
 
-void UBLColumnMeleeAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharacter* Target)
+void UBLColumnMeleeAction::ExecuteAction(const TArray<ABLCombatSlot*>& Targets)
 {
-	if (!Owner || !Target && bEndAction)
+	if (Targets.IsEmpty() || !OwnerChar)
 	{
 		OnEndExecution.ExecuteIfBound();
 		return;
@@ -26,19 +27,14 @@ void UBLColumnMeleeAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCha
 
 	if (ActionAnim)
 	{
-		if (bEndAction)
-		{
-			FZDOnAnimationOverrideEndSignature EndAnimDel;
-			EndAnimDel.BindWeakLambda(this, [this](bool bResult) { OnEndExecution.ExecuteIfBound(); });
-			Owner->GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(ActionAnim, "DefaultSlot", 1.f, 0.0f, EndAnimDel);
-		}
-		ActionCalculations(Owner, Target, CombatManager);
+		FZDOnAnimationOverrideEndSignature EndAnimDel;
+		EndAnimDel.BindWeakLambda(this, [this](bool bResult) { OnEndExecution.ExecuteIfBound(); });
+		OwnerChar->GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(ActionAnim, "DefaultSlot", 1.f, 0.0f, EndAnimDel);
+		ActionCalculationsMultiAtOnce(Targets, CombatManager);
 	}
 	else
 	{
-		ActionCalculations(Owner, Target, CombatManager);
+		ActionCalculationsMultiAtOnce(Targets, CombatManager);
 		OnEndExecution.ExecuteIfBound();
 	}
-
-	bEndAction = false;
 }

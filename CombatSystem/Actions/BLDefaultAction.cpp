@@ -3,34 +3,36 @@
 
 #include "BLDefaultAction.h"
 #include "Characters/BLCombatCharacter.h"
+#include "Characters/BLActionComponent.h"
 #include "PaperZDAnimInstance.h"
 #include "PaperZDAnimationComponent.h"
 #include "Kismet/GameplayStatics.h"
 
-void UBLDefaultAction::ActivateAction(ABLCombatCharacter* Owner)
+void UBLDefaultAction::ActivateAction(UBLActionComponent* OwnerComponent)
 {
-	if (Owner)
+	if (OwnerComponent && OwnerChar)
 	{
-		Owner->DefaultAction();	
-		Owner->SetCurrentME(FMath::Clamp((Owner->GetCurrentME() - MECost), 0.f, Owner->GetMaxME()));
+		OwnerComponent->DefaultAction();	
+		OwnerChar->SetCurrentME(FMath::Clamp((OwnerChar->GetCurrentME() - MECost), 0.f, OwnerChar->GetMaxME()));
 	}		
 }
 
-void UBLDefaultAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharacter* Target)
+void UBLDefaultAction::ExecuteAction(ABLCombatSlot* Target)
 {
-	if (!Owner)
+	// Target is null, action performed on OwnerChar
+	if (!OwnerChar)
 	{
 		OnEndExecution.ExecuteIfBound();
 		return;
 	}
 
-	ActionCalculations(Owner, Owner, CombatManager);
+	ActionCalculations(Target, CombatManager);
 
 	if (ActionAnim)
 	{
 		FZDOnAnimationOverrideEndSignature EndAnimDel;
 		EndAnimDel.BindWeakLambda(this, [this](bool bResult) { OnEndExecution.ExecuteIfBound(); });
-		Owner->GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(ActionAnim, "DefaultSlot", 1.f, 0.0f, EndAnimDel);
+		OwnerChar->GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(ActionAnim, "DefaultSlot", 1.f, 0.0f, EndAnimDel);
 	}
 	else
 	{

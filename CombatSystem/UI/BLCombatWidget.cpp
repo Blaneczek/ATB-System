@@ -50,12 +50,6 @@ void UBLCombatWidget::AddHero(int32 SlotIndex, const FCombatCharData& BaseData, 
 void UBLCombatWidget::AddEnemy(int32 SlotIndex, const FString& EnemyName, int32 Level, float Cooldown)
 {
 	Enemies->AddEnemy(SlotIndex, EnemyName, Level);
-
-	// Cooldown bar will start after 1 sek.
-	FTimerDelegate CooldownDel;
-	CooldownDel.BindUObject(this, &UBLCombatWidget::StartEnemyCooldownBar, SlotIndex, Cooldown);
-	FTimerHandle CooldownTimer;
-	GetWorld()->GetTimerManager().SetTimer(CooldownTimer, CooldownDel, 1.f, false);
 }
 
 void UBLCombatWidget::RemoveEnemy(int32 SlotIndex)
@@ -113,7 +107,6 @@ void UBLCombatWidget::EnemyDied(int32 SlotIndex)
 void UBLCombatWidget::PauseCooldownBars(bool bNewPause)
 {
 	Heroes->PauseAllCooldownBars(bNewPause);
-	Enemies->PauseAllCooldownBars(bNewPause);
 }
 
 void UBLCombatWidget::StartHeroCooldownBar(int32 SlotIndex, float Cooldown)
@@ -126,16 +119,6 @@ void UBLCombatWidget::ResetHeroCooldownBar(int32 SlotIndex)
 	Heroes->ResetHeroCooldownBar(SlotIndex);
 }
 
-void UBLCombatWidget::StartEnemyCooldownBar(int32 SlotIndex, float Cooldown)
-{
-	Enemies->StartEnemyCooldownBar(SlotIndex, Cooldown);
-}
-
-void UBLCombatWidget::ResetEnemyCooldownBar(int32 SlotIndex)
-{
-	Enemies->ResetEnemyCooldownBar(SlotIndex);
-}
-
 void UBLCombatWidget::UpdateHeroHealth(int32 SlotIndex, float MaxHP, float CurrentHP)
 {
 	Heroes->UpdateHeroHP(SlotIndex, MaxHP, CurrentHP);
@@ -144,6 +127,11 @@ void UBLCombatWidget::UpdateHeroHealth(int32 SlotIndex, float MaxHP, float Curre
 void UBLCombatWidget::UpdateHeroMagicEnergy(int32 SlotIndex, float MaxME, float CurrentME)
 {
 	Heroes->UpdateHeroME(SlotIndex, MaxME, CurrentME);
+}
+
+void UBLCombatWidget::UpdateEnemyHealth(int32 SlotIndex, float CurrentHP, float MaxHP)
+{
+	Enemies->UpdateEnemyHP(SlotIndex, CurrentHP, MaxHP);
 }
 
 void UBLCombatWidget::HideActions()

@@ -35,40 +35,14 @@ void UBLEnemiesWidget::RemoveEnemy(int32 Index)
 	}
 }
 
-void UBLEnemiesWidget::PauseAllCooldownBars(bool bNewPause)
-{
-	TArray<UUserWidget*> Enemies = EnemiesTileView->GetDisplayedEntryWidgets();
-	for (const auto Enemy : Enemies)
-	{
-		UBLEnemyEntryWidget* EnemyWidget = Cast<UBLEnemyEntryWidget>(Enemy);
-		if (EnemyWidget && !EnemyWidget->IsDead())
-		{
-			bNewPause ? EnemyWidget->PauseCooldownBar() : EnemyWidget->UnPauseCooldownBar();
-		}
-	}
-}
-
-void UBLEnemiesWidget::StartEnemyCooldownBar(int32 Index, float Cooldown)
+void UBLEnemiesWidget::UpdateEnemyHP(int32 Index, float CurrentHP, float MaxHP)
 {
 	for (const auto Enemy : EnemiesTileView->GetDisplayedEntryWidgets())
 	{
 		UBLEnemyEntryWidget* EnemyWidget = Cast<UBLEnemyEntryWidget>(Enemy);
 		if (EnemyWidget && EnemyWidget->Index == Index)
 		{
-			EnemyWidget->StartCooldownBar(Cooldown);
-			return;
-		}
-	}
-}
-
-void UBLEnemiesWidget::ResetEnemyCooldownBar(int32 Index)
-{
-	for (const auto Enemy : EnemiesTileView->GetDisplayedEntryWidgets())
-	{
-		UBLEnemyEntryWidget* EnemyWidget = Cast<UBLEnemyEntryWidget>(Enemy);
-		if (EnemyWidget && EnemyWidget->Index == Index)
-		{
-			EnemyWidget->ResetCooldownBar();
+			EnemyWidget->UpdateHP(CurrentHP, MaxHP);
 			return;
 		}
 	}

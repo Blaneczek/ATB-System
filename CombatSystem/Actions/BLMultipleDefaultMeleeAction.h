@@ -15,6 +15,6 @@ class BLADEOFLEGEND_API UBLMultipleDefaultMeleeAction : public UBLAction
 	GENERATED_BODY()
 
 public:
-	void ActivateAction(ABLCombatCharacter* Owner) override;
-	void ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharacter* Target) override;
+	void ActivateAction(UBLActionComponent* OwnerComponent) override;
+	void ExecuteAction(ABLCombatSlot* Target) override;
 };

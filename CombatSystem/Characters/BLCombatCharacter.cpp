@@ -1,6 +1,5 @@
 // Copyright (c) 2023 Smoking Carrots. All rights reserved.
 
-
 #include "BLCombatCharacter.h"
 #include "PaperFlipbookComponent.h"
 #include "PaperZDAnimationComponent.h"
@@ -19,6 +18,7 @@
 #include "BladeOfLegend/DAWID/Items/BLCombatItem.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "BLCombatSlot.h"
+#include "BLActionComponent.h"
 
 ABLCombatCharacter::ABLCombatCharacter()
 {
@@ -28,21 +28,19 @@ ABLCombatCharacter::ABLCombatCharacter()
 	StatusDisplay = CreateDefaultSubobject<UWidgetComponent>(TEXT("Bleeding Display"));
 	StatusDisplay->SetupAttachment(PaperFlipbook);
 
+	ActionComponent = CreateDefaultSubobject<UBLActionComponent>(TEXT("Action manager"));
+
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
 	bDead = false;
-	AIC = nullptr;
-	CurrentAction = nullptr;
 	Movement->MaxWalkSpeed = 900.f;
-	ProjectileTargetsNum = 0;
-	ProjectileTargetIndex = 0;
 }
 
 void ABLCombatCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	AIC = Cast<AAIController>(GetController());
+	ActionComponent->OnActionFinished.BindWeakLambda(this, [this]() { OnActionEnded.ExecuteIfBound(); });
 }
 
 void ABLCombatCharacter::Tick(float DeltaTime)
@@ -50,20 +48,7 @@ void ABLCombatCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData, const FCombatActions& InCombatActions, const FTransform& InSlotTransform)
-{
-	SetData(InBaseData, InCombatActions.AttackActions);
-
-	DefendAction = InCombatActions.DefendAction;
-	CrystalActions = InCombatActions.CrystalActions;
-	SpecialActions = InCombatActions.SpecialActions;
-	ItemActions = InCombatActions.ItemActions;
-	RunAwayAction = InCombatActions.RunAwayAction;
-
-	SlotTransform = InSlotTransform;
-}
-
-void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InActions)
+void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData)
 {
 	BaseData = InBaseData;
 	CurrentHP = BaseData.CurrentHP;
@@ -73,404 +58,36 @@ void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData, const TArray
 	CurrentDodge = BaseData.BaseDodge;
 	CurrentAttackDMG = BaseData.BaseAttackDMG;
 
-	AttackActions = InActions;
-
 	PaperFlipbook->SetFlipbook(BaseData.Sprite);
+}
+
+void ABLCombatCharacter::SetHeroData(const FCombatCharData& InBaseData, const FCombatActions& InCombatActions)
+{
+	SetData(InBaseData);
+
+	ActionComponent->SetActions(InCombatActions);
 
 	// PURE VIRTUAL FUNCTION CALL BUG
 	//GetAnimationComponent()->SetAnimInstanceClass(BaseData.AnimInstanceClass);
 }
 
 
-void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, const TArray<ABLCombatCharacter*>& Targets, const FCombatActionData& ActionData, AActor* CombatManager)
+void ABLCombatCharacter::SetEnemyData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InActions)
 {
-	ClickedActionEntry = Cast<UBLActionEntryData>(ActionData.ActionEntry);
+	SetData(InBaseData);
 
-	switch (ActionData.Type)
-	{
-		case ECombatActionType::ATTACK:
-		{
-			if (!AttackActions.IsValidIndex(ActionData.Index))
-			{							
-				break;
-			}
-			SlotLocation = OwnerSlotLocation;
-			TargetCharacters = Targets;
+	// For enemies to choose actions
+	AttackActions = InActions;
+	ActionComponent->SetActions(InActions);
 
-			CurrentAction = NewObject<UBLAction>(this, AttackActions[ActionData.Index].LoadSynchronous());
-			if (CurrentAction)
-			{
-				CurrentAction->OnCreateAction(this, CombatManager);
-			}
-			else
-			{
-				break;
-			}
-			return;
-		}
-		case ECombatActionType::DEFEND:
-		{
-			CurrentAction = NewObject<UBLAction>(this, DefendAction.LoadSynchronous());
-			if (CurrentAction)
-			{
-				CurrentAction->OnCreateAction(this, CombatManager);
-			}
-			else
-			{
-				break;
-			}
-			return;
-		}
-		case ECombatActionType::CRYSTAL_SKILL:
-		{
-			if (ActionData.CrystalColor != ECrystalColor::NONE && !CrystalActions.Find(ActionData.CrystalColor)->Skills.IsValidIndex(ActionData.Index))
-			{
-				break;
-			}
-
-			SlotLocation = OwnerSlotLocation;
-			TargetCharacters = Targets;
-
-			CurrentAction = NewObject<UBLAction>(this, CrystalActions.Find(ActionData.CrystalColor)->Skills[ActionData.Index].LoadSynchronous());
-			if (CurrentAction)
-			{
-				CurrentAction->OnCreateAction(this, CombatManager);
-			}
-			else
-			{
-				break;
-			}
-			return;
-		}
-		case ECombatActionType::SPECIAL_SKILL:
-		{
-			if (!SpecialActions.IsValidIndex(ActionData.Index))
-			{
-				break;
-			}
-
-			SlotLocation = OwnerSlotLocation;
-			TargetCharacters = Targets;
-
-			CurrentAction = NewObject<UBLAction>(this, SpecialActions[ActionData.Index].LoadSynchronous());
-			if (CurrentAction)
-			{
-				CurrentAction->OnCreateAction(this, CombatManager);
-			}
-			else
-			{
-				break;
-			}
-			return;
-		}
-		case ECombatActionType::ITEM:
-		{
-			if (!ItemActions.IsValidIndex(ActionData.Index))
-			{
-				break;
-			}
-
-			SlotLocation = OwnerSlotLocation;
-			TargetCharacters = Targets;
-
-			// Deleting used item
-			UBLItemEntryData* ItemEntry = Cast<UBLItemEntryData>(ActionData.ActionEntry);
-			if (ItemEntry)
-			{
-				ItemEntry->OnDeleteFromList.ExecuteIfBound(ItemEntry->Index);
-			}
-			else
-			{
-				break;
-			}
-
-			UBLCombatItem* Item = Cast<UBLCombatItem>(ItemActions[ActionData.Index].LoadSynchronous()->GetDefaultObject());
-			if (!Item) break;
-
-			CurrentAction = NewObject<UBLAction>(this, Item->Action);
-			if (CurrentAction)
-			{
-				CurrentAction->OnCreateAction(this, CombatManager);
-			}
-			else
-			{
-				break;
-			}
-			return;
-		}
-		case ECombatActionType::RUN_AWAY:
-		{
-			// 30% chance for escape
-			const int32 Random = FMath::RandRange(1, 100);
-			if (Random <= 30)
-			{
-				OnEscape.ExecuteIfBound(true);
-			}
-			else
-			{
-				OnEscape.ExecuteIfBound(false);
-				EndAction(true);
-			}
-			return;
-		}
-	}
-
-	// if something went wrong, end Action
-	EndAction(true);
+	// PURE VIRTUAL FUNCTION CALL BUG
+	//GetAnimationComponent()->SetAnimInstanceClass(BaseData.AnimInstanceClass);
 }
-
 
 void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, const TArray<ABLCombatSlot*>& Targets, const FCombatActionData& ActionData, AActor* CombatManager)
 {
 	ClickedActionEntry = Cast<UBLActionEntryData>(ActionData.ActionEntry);
-	switch (ActionData.Type)
-	{
-		case ECombatActionType::ATTACK:
-		{
-			if (!AttackActions.IsValidIndex(ActionData.Index))
-			{
-				break;
-			}
-			SlotLocation = OwnerSlotLocation;
-			CurrentAction = NewObject<UBLAction>(this, AttackActions[ActionData.Index].LoadSynchronous());
-			if (CurrentAction)
-			{
-				CurrentAction->OnCreateAction(this, CombatManager, Targets);
-			}
-			else
-			{
-				break;
-			}
-			return;
-		}
-		case ECombatActionType::CRYSTAL_SKILL:
-		{
-			if (ActionData.CrystalColor != ECrystalColor::NONE && !CrystalActions.Find(ActionData.CrystalColor)->Skills.IsValidIndex(ActionData.Index))
-			{
-				break;
-			}
-
-			SlotLocation = OwnerSlotLocation;
-
-			CurrentAction = NewObject<UBLAction>(this, CrystalActions.Find(ActionData.CrystalColor)->Skills[ActionData.Index].LoadSynchronous());
-			if (CurrentAction)
-			{
-				CurrentAction->OnCreateAction(this, CombatManager, Targets);
-			}
-			else
-			{
-				break;
-			}
-			return;
-		}
-		case ECombatActionType::SPECIAL_SKILL:
-		{
-			if (!SpecialActions.IsValidIndex(ActionData.Index))
-			{
-				break;
-			}
-			SlotLocation = OwnerSlotLocation;
-			CurrentAction = NewObject<UBLAction>(this, SpecialActions[ActionData.Index].LoadSynchronous());
-			if (CurrentAction)
-			{
-				CurrentAction->OnCreateAction(this, CombatManager, Targets);
-			}
-			else
-			{
-				break;
-			}
-			return;
-		}
-		default: break;
-	}
-
-	// if something went wrong, end Action
-	EndAction(true);
-}
-
-void ABLCombatCharacter::DefaultAction()
-{
-	if (IsValid(CurrentAction))
-	{
-		CurrentAction->OnEndExecution.BindWeakLambda(this, [this](){ EndAction(true); });
-		CurrentAction->ExecuteAction(this, nullptr);		
-	}
-	else
-	{
-		EndAction(true);
-	}
-}
-
-void ABLCombatCharacter::DefaultMeleeAction()
-{
-	if (!IsValid(AIC) || !TargetCharacters.IsValidIndex(0) || !TargetCharacters[0])
-	{
-		EndAction(true);
-		return;
-	}
-
-	AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLCombatCharacter::ReachedActionDestination);
-	const FVector& Location = TargetCharacters[0]->GetActorLocation() + (TargetCharacters[0]->GetActorForwardVector() * 40);
-	AIC->MoveToLocation(Location, 5.f);
-}
-
-void ABLCombatCharacter::DefaultRangeAction(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite)
-{
-	ProjectileTargetsNum = 0;
-	if (ProjectileClass && ProjectileSprite && TargetCharacters.IsValidIndex(0) && TargetCharacters[0])
-	{
-		FActorSpawnParameters SpawnInfo;
-		SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		const FVector& Location = GetActorLocation() + FVector(0.f, -30.f, 0.f);
-		const FRotator& Rotation = GetActorRotation();
-		ABLRangeProjectile* Projectile = GetWorld()->SpawnActor<ABLRangeProjectile>(ProjectileClass, Location, Rotation, SpawnInfo);
-		if (Projectile)
-		{		
-			Projectile->SetData(ProjectileSprite);
-			Projectile->OnReachedDestination.BindUObject(this, &ABLCombatCharacter::ReachedActionDestination);
-			Projectile->FlyToTarget(TargetCharacters[0]);
-			++ProjectileTargetsNum;
-		}
-		else
-		{
-			EndAction(true);
-		}
-	}
-	else
-	{
-		EndAction(true);
-	}
-}
-
-void ABLCombatCharacter::MultipleDefaultMeleeAction()
-{
-	if (!IsValid(AIC) || !TargetCharacters.IsValidIndex(0) || !TargetCharacters[0])
-	{
-		EndAction(true);
-		return;
-	}
-
-	AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLCombatCharacter::ReachedActionDestination, 0);
-	const FVector& Location = TargetCharacters[0]->GetActorLocation() + (TargetCharacters[0]->GetActorForwardVector() * 40);
-	AIC->MoveToLocation(Location, 5.f);
-}
-
-void ABLCombatCharacter::MultipleDefaultRangeAction(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite)
-{
-	ProjectileTargetsNum = 0;
-	if (ProjectileClass && ProjectileSprite)
-	{		
-		ProjectileTargetIndex = 0;
-		ProjectileTargetsNum = TargetCharacters.Num();
-		FTimerDelegate SpawnDel;
-		SpawnDel.BindUObject(this, &ABLCombatCharacter::SpawnProjectile, ProjectileClass, ProjectileSprite);
-		GetWorld()->GetTimerManager().SetTimer(ProjectileSpawnTimer, SpawnDel, 0.3f, true);
-	}
-	else
-	{
-		EndAction(true);
-	}
-}
-
-void ABLCombatCharacter::ColumnMeleeAction()
-{
-	if (!IsValid(AIC) || !TargetCharacters.IsValidIndex(0) || !TargetCharacters[0])
-	{
-		EndAction(true);
-		return;
-	}
-
-	AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLCombatCharacter::ReachedActionDestination);
-	AIC->MoveToActor(TargetCharacters[0], 30.f);
-}
-
-void ABLCombatCharacter::BounceRangeAction(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite)
-{
-	ProjectileTargetIndex = 1;
-	if (ProjectileClass && ProjectileSprite && TargetCharacters.IsValidIndex(0))
-	{
-		FActorSpawnParameters SpawnInfo;
-		SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		const FVector& Location = GetActorLocation() + FVector(0.f, -30.f, 0.f);
-		const FRotator& Rotation = GetActorRotation();
-		ABLRangeProjectile* Projectile = GetWorld()->SpawnActor<ABLRangeProjectile>(ProjectileClass, Location, Rotation, SpawnInfo);
-		if (Projectile)
-		{
-			Projectile->SetData(ProjectileSprite);
-			if (TargetCharacters.IsValidIndex(ProjectileTargetIndex))
-			{
-				Projectile->OnReachedDestination.BindWeakLambda(this, [this, Projectile]()
-					{
-						ReachedActionDestination(Projectile, 0);
-					});
-				Projectile->FlyToTargetBounce(TargetCharacters[0]);
-			}
-			else
-			{
-				Projectile->OnReachedDestination.BindUObject(this, &ABLCombatCharacter::ReachedActionDestination);
-				Projectile->FlyToTarget(TargetCharacters[0]);
-			}			
-		}
-		else
-		{
-			EndAction(true);
-		}
-	}
-	else
-	{
-		EndAction(true);
-	}
-}
-
-void ABLCombatCharacter::SummonAction(const TArray<ABLCombatSlot*>& Targets)
-{
-	if (IsValid(CurrentAction))
-	{
-		CurrentAction->OnEndExecution.BindWeakLambda(this, [this]() { EndAction(true); });
-		CurrentAction->ExecuteAction(this, Targets);
-	}
-	else
-	{
-		EndAction(true);
-	}
-}
-
-void ABLCombatCharacter::SpawnEffectsAllAction(const TArray<ABLCombatSlot*>& Targets, TSubclassOf<APaperZDCharacter> EffectClass, UPaperFlipbook* Effect)
-{
-	if (IsValid(CurrentAction))	
-	{	
-		for (auto& Slot : Targets)
-		{
-			if (EffectClass && Slot)
-			{
-				FActorSpawnParameters SpawnInfo;
-				SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-				const FVector Location = FVector(GetActorLocation().X, GetActorLocation().Y + 50, GetActorLocation().Z);
-				const FRotator Rotation = GetActorRotation();
-				APaperZDCharacter* EffectChar = GetWorld()->SpawnActor<APaperZDCharacter>(EffectClass, Slot->GetActorTransform(), SpawnInfo);
-				if (EffectChar)
-				{
-					EffectChar->GetSprite()->SetFlipbook(Effect);
-				}
-			}		
-		}
-
-		CurrentAction->OnEndExecution.BindWeakLambda(this, [this]() { EndAction(true); });
-		CurrentAction->ExecuteAction(this, Targets);
-	}
-	else
-	{
-		EndAction(true);
-	}
-}
-
-void ABLCombatCharacter::StartActionCooldown(int32 TurnsCost)
-{
-	if (ClickedActionEntry)
-	{
-		ClickedActionEntry->bCanBeUsed = false;
-		ActionsTurnsCooldown.Add(ClickedActionEntry, TurnsCost);
-	}
+	ActionComponent->CreateAction(OwnerSlotLocation, Targets, ActionData, CombatManager);
 }
 
 float ABLCombatCharacter::CalculateElementsMultipliers(ECombatElementType DamageElementType, ECombatElementType CharacterElementType, bool& OutIsHeal)
@@ -518,163 +135,9 @@ void ABLCombatCharacter::StartCooldown()
 
 void ABLCombatCharacter::EndCooldown()
 {
-	TargetCharacters.Empty();
-
 	HandleTurnsCooldown();
 
 	OnEndCooldown.ExecuteIfBound();
-}
-
-void ABLCombatCharacter::EndAction(bool bResult)
-{
-	if (CurrentAction)
-	{
-		CurrentAction->ConditionalBeginDestroy();
-		CurrentAction = nullptr;
-	}	
-	OnActionEnded.ExecuteIfBound();
-}
-
-void ABLCombatCharacter::ReachedActionDestination(FAIRequestID RequestID, const FPathFollowingResult& Result)
-{
-	if (!IsValid(AIC) || !IsValid(CurrentAction))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("ABLCombatCharacter::ReachedActionDestination | early return"));
-		AIC->MoveToLocation(SlotLocation, 5.f);
-		EndAction(true);
-		return;
-	}
-	
-	AIC->GetPathFollowingComponent()->OnRequestFinished.RemoveAll(this);
-	AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLCombatCharacter::ReachedSlotLocation);
-
-	CurrentAction->OnEndExecution.BindWeakLambda(this, [this](){ AIC->MoveToLocation(SlotLocation, 5.f); });
-	for (ABLCombatCharacter* Target : TargetCharacters)
-	{
-		CurrentAction->ExecuteAction(this, Target);
-	}	
-}
-
-void ABLCombatCharacter::ReachedActionDestination(FAIRequestID RequestID, const FPathFollowingResult& Result, int32 TargetIndex)
-{
-	if (!IsValid(AIC) || !IsValid(CurrentAction))
-	{
-		AIC->MoveToLocation(SlotLocation, 5.f);
-		EndAction(true);
-		return;
-	}
-
-	AIC->GetPathFollowingComponent()->OnRequestFinished.RemoveAll(this);
-
-	if (TargetCharacters.IsValidIndex(TargetIndex + 1) && TargetCharacters[TargetIndex + 1] && TargetCharacters[TargetIndex + 1]->GetCurrentHP() > 0)
-	{
-		AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLCombatCharacter::ReachedActionDestination, TargetIndex + 1);
-		const FVector& Location = TargetCharacters[TargetIndex + 1]->GetActorLocation() + (TargetCharacters[TargetIndex + 1]->GetActorForwardVector() * 50);
-		CurrentAction->OnEndExecution.BindWeakLambda(this, [this, Location]() { AIC->MoveToLocation(Location, 5.f); });
-	}
-	else
-	{
-		AIC->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &ABLCombatCharacter::ReachedSlotLocation);
-		CurrentAction->OnEndExecution.BindWeakLambda(this, [this]() { AIC->MoveToLocation(SlotLocation, 5.f); });	
-	}
-
-	CurrentAction->ExecuteAction(this, TargetCharacters[TargetIndex]);
-}
-
-void ABLCombatCharacter::ReachedActionDestination()
-{
-	if (!IsValid(CurrentAction) || !TargetCharacters.IsValidIndex(0) || !TargetCharacters[0])
-	{
-		EndAction(true);
-		return;
-	}
-
-	CurrentAction->OnEndExecution.BindWeakLambda(this, [this]() { EndAction(true); });	
-	CurrentAction->ExecuteAction(this, TargetCharacters[0]);
-}
-
-void ABLCombatCharacter::ReachedActionDestination(int32 Index, bool bLastProjectile)
-{
-	if (!IsValid(CurrentAction) || !TargetCharacters.IsValidIndex(Index) || !TargetCharacters[Index])
-	{
-		EndAction(true);
-		return;
-	}
-
-	if (bLastProjectile)
-	{
-		CurrentAction->OnEndExecution.BindWeakLambda(this, [this]() { EndAction(true); });
-	}
-
-	CurrentAction->ExecuteAction(this, TargetCharacters[Index]);
-}
-
-void ABLCombatCharacter::ReachedActionDestination(ABLRangeProjectile* Projectile, int32 Index)
-{
-	if (!IsValid(CurrentAction) || !TargetCharacters.IsValidIndex(Index) || !TargetCharacters[Index] || !IsValid(Projectile))
-	{
-		EndAction(true);
-		return;
-	}
-	
-	if (!TargetCharacters[Index]->IsDead())
-	{
-		CurrentAction->ExecuteAction(this, TargetCharacters[Index]);
-		
-	}
-
-	if (TargetCharacters.IsValidIndex(Index + 1))
-	{
-		Projectile->OnReachedDestination.BindWeakLambda(this, [this, Index, Projectile]()
-			{
-				ReachedActionDestination(Projectile, Index + 1);
-			});
-		Projectile->FlyToTargetBounce(TargetCharacters[Index + 1]);
-	}
-	else
-	{
-		Projectile->Destroy();
-		EndAction(true);
-	}
-}
-
-void ABLCombatCharacter::ReachedSlotLocation(FAIRequestID RequestID, const FPathFollowingResult& Result)
-{
-	if (IsValid(AIC))
-	{		
-		AIC->GetPathFollowingComponent()->OnRequestFinished.RemoveAll(this);		
-	}
-	EndAction(true);
-}
-
-void ABLCombatCharacter::SpawnProjectile(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite)
-{
-	if (TargetCharacters.IsValidIndex(ProjectileTargetIndex))
-	{
-		FActorSpawnParameters SpawnInfo;
-		SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		ABLRangeProjectile* Projectile = GetWorld()->SpawnActor<ABLRangeProjectile>(ProjectileClass, GetActorLocation(), GetActorRotation(), SpawnInfo);
-		if (Projectile)
-		{
-			bool bLast = TargetCharacters.Num() - 1 == ProjectileTargetIndex ? true : false;
-			Projectile->SetData(ProjectileSprite);
-			Projectile->OnReachedDestination.BindUObject(this, &ABLCombatCharacter::ReachedActionDestination, ProjectileTargetIndex, bLast);
-			Projectile->FlyToTarget(TargetCharacters[ProjectileTargetIndex]);
-		}
-		else
-		{
-			EndAction(true);
-			return;
-		}
-		ProjectileTargetIndex++;
-	}
-	else
-	{
-		if (GetWorld()->GetTimerManager().IsTimerActive(ProjectileSpawnTimer))
-		{
-			GetWorld()->GetTimerManager().ClearTimer(ProjectileSpawnTimer);
-		}	
-	}
 }
 
 void ABLCombatCharacter::GiveStatus(ECombatStatusType Status, int32 Turns)
@@ -806,14 +269,6 @@ void ABLCombatCharacter::RemoveStatus(ECombatStatusType Status)
 	SetStatusDisplayVisibility(Status, false);
 }
 
-void ABLCombatCharacter::RemoveStatuses(TArray<ECombatStatusType> StatusesToDelete)
-{
-	for (const auto& Status : StatusesToDelete)
-	{
-		RemoveStatus(Status);
-	}
-}
-
 void ABLCombatCharacter::HandleStatuses()
 {
 	TArray<ECombatStatusType> StatusesToDelete;
@@ -848,9 +303,16 @@ void ABLCombatCharacter::HandleStatuses()
 
 	TakeSimpleDamage(SimpleDMG);
 
+	// Remove statuses after action with 1 sec delay (it looks better).
 	FTimerHandle RemoveDelay;
 	FTimerDelegate RemoveDel;
-	RemoveDel.BindUObject(this, &ABLCombatCharacter::RemoveStatuses, StatusesToDelete);
+	RemoveDel.BindWeakLambda(this, [this, StatusesToDelete]()
+		{
+			for (const auto& Status : StatusesToDelete)
+			{
+				RemoveStatus(Status);
+			}
+		});
 	GetWorld()->GetTimerManager().SetTimer(RemoveDelay, RemoveDel, 1.f, false);
 }
 

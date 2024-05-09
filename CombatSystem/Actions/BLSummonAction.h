@@ -39,8 +39,8 @@ class BLADEOFLEGEND_API UBLSummonAction : public UBLAction
 	GENERATED_BODY()
 
 public:
-	void ActivateAction(ABLCombatCharacter* Owner, const TArray<ABLCombatSlot*>& Targets) override;
-	void ExecuteAction(ABLCombatCharacter* Owner, const TArray<ABLCombatSlot*>& Targets) override;
+	void ActivateAction(UBLActionComponent* OwnerComponent) override;
+	void ExecuteAction(const TArray<ABLCombatSlot*>& Targets) override;
 
 public:
 

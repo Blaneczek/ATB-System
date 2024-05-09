@@ -18,8 +18,8 @@ class BLADEOFLEGEND_API UBLBounceRangeAction : public UBLAction
 	GENERATED_BODY()
 
 public:
-	void ActivateAction(ABLCombatCharacter* Owner) override;
-	void ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharacter* Target) override;
+	void ActivateAction(UBLActionComponent* OwnerComponent) override;
+	void ExecuteAction(ABLCombatSlot* Target) override;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")

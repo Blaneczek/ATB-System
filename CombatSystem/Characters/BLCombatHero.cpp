@@ -4,9 +4,18 @@
 #include "BLCombatHero.h"
 #include "UI/Entries/BLActionEntryData.h"
 
-void ABLCombatHero::SneakAttack()
+void ABLCombatHero::SneakAttackStatus()
 {
 	GiveStatus(ECombatStatusType::SNEAK, 1);
+}
+
+void ABLCombatHero::StartActionTurnsCooldown(int32 TurnsCost)
+{
+	if (ClickedActionEntry)
+	{
+		ClickedActionEntry->bCanBeUsed = false;
+		ActionsTurnsCooldown.Add(ClickedActionEntry, TurnsCost);
+	}
 }
 
 void ABLCombatHero::HandleTurnsCooldown()

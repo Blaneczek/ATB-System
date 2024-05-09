@@ -16,7 +16,7 @@ class UBLActionEntryData;
 
 DECLARE_DELEGATE_OneParam(FOnSelectedSlot, ABLCombatSlot* /*Slot*/);
 DECLARE_DELEGATE_TwoParams(FOnCharActionEnded, ABLCombatSlot* /*Slot*/, bool /*bIsEnemy*/);
-DECLARE_DELEGATE_OneParam(FOnCharHealthUpdate, ABLCombatSlot* /*Slot*/);
+DECLARE_DELEGATE(FOnCharHealthUpdate);
 DECLARE_DELEGATE_TwoParams(FOnCharDeath, ABLCombatSlot* /*Slot*/, bool /*bIsEnemy*/);
 DECLARE_DELEGATE_TwoParams(FOnEnemyAction, ABLCombatSlot* /*Slot*/, FCombatActionData&& /*ActionData*/);
 DECLARE_DELEGATE_OneParam(FOnEscapeCombat, bool /*bSuccessful*/);

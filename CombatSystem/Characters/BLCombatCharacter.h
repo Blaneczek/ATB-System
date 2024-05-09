@@ -6,7 +6,6 @@
 #include "BladeOfLegend/AREK/Character/BLBaseChar.h"
 #include "BLCombatUtilities.h"
 #include "AIController.h"
-#include "Actions/BLActionsInterface.h"
 #include "BLCombatCharacter.generated.h"
 
 class USphereComponent;
@@ -17,6 +16,7 @@ class ABLRangeProjectile;
 class UBLAction;
 class UBLActionEntryData;
 class ABLCombatSlot;
+class UBLActionComponent;
 
 DECLARE_DELEGATE(FOnEndCooldown);
 DECLARE_DELEGATE(FOnActionEnded);
@@ -39,14 +39,59 @@ public:
 
 	virtual void Tick(float DeltaTime);
 
-	void SetData(const FCombatCharData& InBaseData, const FCombatActions& InCombatActions, const FTransform& InSlotTransform);
-	void SetData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InActions);
+	void SetData(const FCombatCharData& InBaseData);
 
+	void SetHeroData(const FCombatCharData& InBaseData, const FCombatActions& InCombatActions);
+	
+	void SetEnemyData(const FCombatCharData& InBaseData, const TArray<TSoftClassPtr<UBLAction>>& InActions);
+
+	/** Manages the situation when a character is hit by an action. */
 	UFUNCTION(BlueprintCallable, meta = (AutoCreateRefTerm = "InStatuses"))
 	virtual void HandleHitByAction(ABLCombatCharacter* Attacker, float Damage, ECombatElementType DamageElementType, bool bMagical, const TArray<FCombatStatus>& InStatuses);
 
+	/** Handles the situation where Action damage will be converted into healing or used action with heal*/
+	UFUNCTION(BlueprintCallable)
+	void HandleHealHit(float Damage, float HealMultiplier, ECombatElementType HealElementType);	
+
+	void CreateAction(const FVector& OwnerSlotLocation, const TArray<ABLCombatSlot*>& Targets, const FCombatActionData& ActionData, AActor* CombatManager);
+
 	UFUNCTION()
 	void StartCooldown();
+	/** Hero's Actions turns cooldown */
+	virtual void StartActionTurnsCooldown(int32 TurnsCost) {};
+
+	/*********************
+	*	   STATUSES
+	**********************/
+
+	/** Adds given status to Statuses map for a certain number of turns and performs status effect if it is immediate. */
+	UFUNCTION(BlueprintCallable)
+	void GiveStatus(ECombatStatusType Status, int32 Turns);
+
+	/** Removes given status from Statuses map and removes status effect if it was previously applied. */
+	UFUNCTION(BlueprintCallable)
+	void RemoveStatus(ECombatStatusType Status);
+
+	/**
+	 * Adds/Removes given status icon. Implementable in blueprint.
+	 * @param bNewVisibility: true - add, false - remove
+	 */
+	UFUNCTION(BlueprintImplementableEvent, meta = (AutoCreateRefTerm = "Status"))
+	void SetStatusDisplayVisibility(ECombatStatusType Status, bool bNewVisibility);
+	
+	virtual void SneakAttackStatus() {};
+
+	/***********************************************************************************************/
+
+
+	/** Shows taken dmg/healed value in widget. Implementable in character blueprint.*/
+	UFUNCTION(BlueprintImplementableEvent)
+	void DisplayTextDMG(float DMG, bool bHeal, ECombatElementType DMGElement, bool bDodge = false);
+
+	virtual FCombatActionData GetEnemyAction() { return FCombatActionData(); }
+
+	UFUNCTION(BlueprintCallable)
+	bool IsDefendIdle() const{ return bDefendIdle; }
 
 	const FTimerHandle& GetCooldownTimer() const { return CooldownTimer; };
 
@@ -98,109 +143,26 @@ public:
 	UFUNCTION(BlueprintCallable)
 	TSubclassOf<UPaperZDAnimInstance> GetCombatAnimClass() const { return BaseData.AnimInstanceClass; };
 
-	void CreateAction(const FVector& OwnerSlotLocation, const TArray<ABLCombatCharacter*>& Targets, const FCombatActionData& ActionData, AActor* CombatManager);
-
-	void CreateAction(const FVector& OwnerSlotLocation, const TArray<ABLCombatSlot*>& Targets, const FCombatActionData& ActionData, AActor* CombatManager);
-
-	/********************* 
-	*  ACTION FLOW TYPES 
-	**********************/
-
-	/** Action is executing in place, no targets */
-	void DefaultAction();
-
-	/** Character runs up to the target and executes action */
-	void DefaultMeleeAction();
-
-	/** Character creates a projectile that flies to the target and executes action */
-	void DefaultRangeAction(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite);
-
-	/** Character runs up to the targets one by one and executes action for every target */
-	void MultipleDefaultMeleeAction();
-
-	/** Character creates multiple projectiles that fly to the targets and execute action */
-	void MultipleDefaultRangeAction(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite);
-
-	/** Character runs up to the column and executes action for every target in column */
-	void ColumnMeleeAction();
-
-	/** Character runs up to the column and executes action for every target in column */
-	void BounceRangeAction(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite);
-
-	void SummonAction(const TArray<ABLCombatSlot*>& Targets);
-
-	void SpawnEffectsAllAction(const TArray<ABLCombatSlot*>& Targets, TSubclassOf<APaperZDCharacter> EffectClass, UPaperFlipbook* Effect);
-	/***********************************************************************************************/
-
-	/** Special actions turns cooldown */
-	void StartActionCooldown(int32 TurnsCost);
-
-	/** Shows taken dmg/healed value*/
-	UFUNCTION(BlueprintImplementableEvent)
-	void DisplayTextDMG(float DMG, bool bHeal, ECombatElementType DMGElement, bool bDodge = false);
-
-	UFUNCTION(BlueprintCallable)
-	void GiveStatus(ECombatStatusType Status, int32 Turns);
-
-	/**
-	* Adds/Removes given status icon
-	* @param bNewVisibility: true - add, false - remove
-	*/
-	UFUNCTION(BlueprintImplementableEvent, meta = (AutoCreateRefTerm = "Status"))
-	void SetStatusDisplayVisibility(ECombatStatusType Status, bool bNewVisibility);
-
-	/** Removes given status from Statuses */
-	UFUNCTION()
-	void RemoveStatus(ECombatStatusType Status);
-
-	UFUNCTION()
-	void RemoveStatuses(TArray<ECombatStatusType> StatusesToDelete);
-
-	virtual void SneakAttack() {};
-
-	/** Handles the situation where Action damage will be converted into healing or used action with heal*/
-	UFUNCTION(BlueprintCallable)
-	void HandleHealHit(float Damage, float HealMultiplier, ECombatElementType HealElementType);
-
-	virtual FCombatActionData GetEnemyAction() { return FCombatActionData(); }
-
-
-	UFUNCTION(BlueprintCallable)
-	bool IsDefendIdle() const{ return bDefendIdle; }
-
 protected:
-	void TakeSimpleDamage(float Damage);
-
 	virtual void HandleTurnsCooldown() {};
 
+	/** Applies simple damage that doesn't need to be calculated. */
+	void TakeSimpleDamage(float Damage);
+
 private:
+	/** 
+	 * Calculates the damage multiplier depending on the combination of elements. 
+	 * @param OutIsHeal - if elements are of the same type, it will heal the character (except NONE-NONE). 
+	 */
 	float CalculateElementsMultipliers(ECombatElementType DamageElementType, ECombatElementType CharacterElementType, bool& OutIsHeal);
 
 	UFUNCTION()
 	void EndCooldown();
-	UFUNCTION()
-	void EndAction(bool bResult);
 
-	/** For DefaultMelee and ColumnMelee action flow*/
-	void ReachedActionDestination(FAIRequestID RequestID, const FPathFollowingResult& Result);
-
-	/** For MultipleMelee action flow */
-	void ReachedActionDestination(FAIRequestID RequestID, const FPathFollowingResult& Result, int32 TargetIndex);
-
-	/** For DeafultRange action flow */
-	void ReachedActionDestination();
-
-	/** For MultipleRange action flow */
-	void ReachedActionDestination(int32 Index, bool bLastProjectile);
-
-	/** For BounceRange action flow */
-	void ReachedActionDestination(ABLRangeProjectile* Projectile, int32 Index);
-
-	/** Back to the owner slot after action */
-	void ReachedSlotLocation(FAIRequestID RequestID, const FPathFollowingResult& Result);
-
-	void SpawnProjectile(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite);
-
+	/** 
+	 * Checks whether any of the statuses are ready to be removed.
+	 * Executes the status effect, if it is executed every turn. 
+	 */
 	void HandleStatuses();
 
 	/** Handles the situation where Action deals damage to a character */
@@ -215,23 +177,6 @@ public:
 	FOnHealthUpdate OnHealthUpdate;
 	FOnDeath OnDeath;
 	FOnEscape OnEscape;
-
-	UPROPERTY()
-	TArray<TSoftClassPtr<UBLAction>> AttackActions;
-
-	UPROPERTY()
-	TSoftClassPtr<UBLAction> DefendAction;
-	UPROPERTY()
-	TMap<ECrystalColor, FCrystalSkills> CrystalActions;
-
-	UPROPERTY()
-	TArray<TSoftClassPtr<UBLAction>> SpecialActions;
-
-	UPROPERTY()
-	TArray<TSoftClassPtr<UBLCombatItem>> ItemActions;
-
-	UPROPERTY()
-	TSoftClassPtr<UBLAction> RunAwayAction;
 
 protected:
 	/** If idle Death animation should be played */
@@ -275,38 +220,15 @@ protected:
 	TMap<ECombatStatusType, int32> Statuses;
 
 	UPROPERTY()
-	TMap<TObjectPtr<UBLActionEntryData>, int32> ActionsTurnsCooldown;
-
-	/// 
-	UPROPERTY()
 	bool bDefendIdle = false;
-
-private:
-	UPROPERTY()
-	TObjectPtr<AAIController> AIC;
-
-	UPROPERTY()
-	TArray<TObjectPtr<ABLCombatCharacter>> TargetCharacters;
-
-	/** Pointer to created Action to prevent GC while it is still running. Nulled after end of action */
-	UPROPERTY()
-	TObjectPtr<UBLAction> CurrentAction;
-
-	UPROPERTY()
-	FVector SlotLocation;
-
-	UPROPERTY()
-	FTransform SlotTransform;
 
 	UPROPERTY()
 	TObjectPtr<UBLActionEntryData> ClickedActionEntry;
 
-	/** Counter for multiple projectiles to know when ends action*/
+	/* For enemies to choose actions */
 	UPROPERTY()
-	int32 ProjectileTargetsNum;
+	TArray<TSoftClassPtr<UBLAction>> AttackActions;
 
 	UPROPERTY()
-	int32 ProjectileTargetIndex;
-
-	FTimerHandle ProjectileSpawnTimer;
+	TObjectPtr<UBLActionComponent> ActionComponent;
 };

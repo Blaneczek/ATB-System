@@ -3,39 +3,41 @@
 
 #include "BLBounceRangeAction.h"
 #include "Characters/BLCombatCharacter.h"
+#include "Characters/BLActionComponent.h"
 #include "PaperZDAnimInstance.h"
 #include "PaperZDAnimationComponent.h"
 #include "Kismet/GameplayStatics.h"
 
-void UBLBounceRangeAction::ActivateAction(ABLCombatCharacter* Owner)
+void UBLBounceRangeAction::ActivateAction(UBLActionComponent* OwnerComponent)
 {
-	if (!Owner)
+	if (!OwnerComponent || !OwnerChar)
 	{
 		OnEndExecution.ExecuteIfBound();
 		return;
 	}
-	Owner->SetCurrentME(FMath::Clamp((Owner->GetCurrentME() - MECost), 0.f, Owner->GetMaxME()));
+
+	OwnerChar->SetCurrentME(FMath::Clamp((OwnerChar->GetCurrentME() - MECost), 0.f, OwnerChar->GetMaxME()));
 
 	if (ActionAnim)
 	{		
 		FZDOnAnimationOverrideEndSignature EndAnimDel;
-		EndAnimDel.BindWeakLambda(this, [this, Owner](bool bResult) { Owner->BounceRangeAction(ProjectileClass, ProjectileSprite); });
-		Owner->GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(ActionAnim, "DefaultSlot", 1.f, 0.0f, EndAnimDel);
+		EndAnimDel.BindWeakLambda(this, [this, OwnerComponent](bool bResult) { OwnerComponent->BounceRangeAction(ProjectileClass, ProjectileSprite); });
+		OwnerChar->GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(ActionAnim, "DefaultSlot", 1.f, 0.0f, EndAnimDel);
 	}
 	else
 	{
-		Owner->BounceRangeAction(ProjectileClass, ProjectileSprite);
+		OwnerComponent->BounceRangeAction(ProjectileClass, ProjectileSprite);
 	}
 }
 
-void UBLBounceRangeAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharacter* Target)
+void UBLBounceRangeAction::ExecuteAction(ABLCombatSlot* Target)
 {
-	if (!Owner || !Target)
+	if (!Target)
 	{
 		OnEndExecution.ExecuteIfBound();
 		return;
 	}
 
-	ActionCalculations(Owner, Target, CombatManager);
+	ActionCalculations(Target, CombatManager);
 	OnEndExecution.ExecuteIfBound();
 }

@@ -4,11 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
-#include "BLActionsInterface.h"
 #include "BLCombatUtilities.h"
 #include "BLAction.generated.h"
 
 class ABLCombatCharacter;
+class UBLActionComponent;
 class UPaperZDAnimSequence;
 class ABLCombatManager;
 
@@ -23,20 +23,21 @@ class BLADEOFLEGEND_API UBLAction : public UObject
 	GENERATED_BODY()
 	
 public:
-	virtual void OnCreateAction(ABLCombatCharacter* Owner, AActor* InCombatManager);
-	virtual void OnCreateAction(ABLCombatCharacter* Owner, AActor* InCombatManager, const TArray<class ABLCombatSlot*>& Targets);
-	virtual void ActivateAction(ABLCombatCharacter* Owner) {};
-	virtual void ActivateAction(ABLCombatCharacter* Owner, const TArray<ABLCombatSlot*>& Targets) {};
-	virtual void ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharacter* Target) {};
-	virtual void ExecuteAction(ABLCombatCharacter* Owner, const TArray<ABLCombatSlot*>& Targets) {};
+	virtual void OnCreateAction(UBLActionComponent* OwnerComponent, ABLCombatCharacter* Owner, AActor* InCombatManager);
+
+	virtual void ActivateAction(UBLActionComponent* OwnerComponent) {};
+
+	virtual void ExecuteAction(ABLCombatSlot* Target) {};
+
+	virtual void ExecuteAction(const TArray<ABLCombatSlot*>& Targets) {};
 
 protected:
 	/** Use in blueprints. Each action is of a different class, so each action may have a different use when executed */
 	UFUNCTION(BlueprintImplementableEvent)
-	void ActionCalculations(ABLCombatCharacter* Owner, ABLCombatCharacter* Target, AActor* InCombatManager);
+	void ActionCalculations(ABLCombatSlot* Target, AActor* InCombatManager);
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void ActionCalculationsMultiAtOnce(ABLCombatCharacter* Owner, const TArray<ABLCombatSlot*>& Targets, AActor* InCombatManager);
+	void ActionCalculationsMultiAtOnce(const TArray<ABLCombatSlot*>& Targets, AActor* InCombatManager);
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
 	FText Name;
@@ -72,6 +73,11 @@ public:
 	/** To call interface functions in CombatManager */
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat")
 	TObjectPtr<AActor> CombatManager;
+
+	/** To call interface functions in CombatManager */
+	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat")
+	TObjectPtr<ABLCombatCharacter> OwnerChar;
+
 
 	/** Called when the action is completed */
 	FOnEndExecution OnEndExecution;

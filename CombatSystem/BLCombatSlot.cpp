@@ -57,7 +57,7 @@ void ABLCombatSlot::SpawnHero(const FCombatCharData& BaseData, const FCombatActi
 		Character = GetWorld()->SpawnActor<ABLCombatCharacter>(BaseData.Class, SpawnPoint->GetComponentTransform(), SpawnInfo);
 		if (Character)
 		{
-			Character->SetData(BaseData, CombatActions, SpawnPoint->GetComponentTransform());
+			Character->SetHeroData(BaseData, CombatActions);
 			Character->OnEndCooldown.BindUObject(this, &ABLCombatSlot::CharCooldownEnded);
 			Character->OnActionEnded.BindUObject(this, &ABLCombatSlot::ActionEnded);
 			Character->OnDeath.BindUObject(this, &ABLCombatSlot::HandleCharDeath);
@@ -65,7 +65,7 @@ void ABLCombatSlot::SpawnHero(const FCombatCharData& BaseData, const FCombatActi
 			Character->OnEscape.BindUObject(this, &ABLCombatSlot::EscapeCombat);	
 			bIsActive = true;
 
-			if (bSneakAttack) Character->SneakAttack();
+			if (bSneakAttack) Character->SneakAttackStatus();
 
 			// Cooldown will start after 1 sek
 			FTimerHandle CooldownTimer;
@@ -83,14 +83,14 @@ void ABLCombatSlot::SpawnEnemy(const FCombatCharData& BaseData, int32 Level, con
 		Character = GetWorld()->SpawnActor<ABLCombatCharacter>(BaseData.Class, SpawnPoint->GetComponentTransform(), SpawnInfo);
 		if (Character)
 		{
-			Character->SetData(BaseData, Actions);
+			Character->SetEnemyData(BaseData, Actions);
 			Character->OnEndCooldown.BindUObject(this, &ABLCombatSlot::CharCooldownEnded);
 			Character->OnActionEnded.BindUObject(this, &ABLCombatSlot::ActionEnded);
 			Character->OnDeath.BindUObject(this, &ABLCombatSlot::HandleCharDeath);
 			Character->OnHealthUpdate.BindUObject(this, &ABLCombatSlot::UpdateCharHealth);
 			bIsActive = true;
 
-			if (bSneakAttack) Character->SneakAttack();
+			if (bSneakAttack) Character->SneakAttackStatus();
 
 			// Cooldown will start after 1 sek
 			FTimerHandle CooldownTimer;
@@ -119,20 +119,7 @@ void ABLCombatSlot::UnPauseCharCooldown()
 
 void ABLCombatSlot::DoAction(const TArray<ABLCombatSlot*>& TargetsSlots, const FCombatActionData& ActionData, AActor* CombatManager, bool bUseSlots)
 {
-	if (bUseSlots)
-	{
-		Character->CreateAction(SpawnPoint->GetComponentLocation(), TargetsSlots, ActionData, CombatManager);
-	}
-	else
-	{
-		TArray<ABLCombatCharacter*> Targets;
-		for (const auto* Slot : TargetsSlots)
-		{
-			Targets.Add(Slot->GetCharacter());
-		}
-
-		Character->CreateAction(SpawnPoint->GetComponentLocation(), Targets, ActionData, CombatManager);
-	}	
+	Character->CreateAction(SpawnPoint->GetComponentLocation(), TargetsSlots, ActionData, CombatManager);
 }
 
 void ABLCombatSlot::SelectTarget(bool NewSelect)
@@ -242,7 +229,7 @@ void ABLCombatSlot::HandleCharDeath()
 
 void ABLCombatSlot::UpdateCharHealth()
 {
-	OnCharHealthUpdate.ExecuteIfBound(this);
+	OnCharHealthUpdate.ExecuteIfBound();
 }
 
 void ABLCombatSlot::OnBeginMouseOver(UPrimitiveComponent* TouchedComponent)

@@ -3,13 +3,14 @@
 
 #include "BLDefaultRangeAction.h"
 #include "Characters/BLCombatCharacter.h"
+#include "Characters/BLActionComponent.h"
 #include "PaperZDAnimInstance.h"
 #include "PaperZDAnimationComponent.h"
 #include "Kismet/GameplayStatics.h"
 
-void UBLDefaultRangeAction::ActivateAction(ABLCombatCharacter* Owner)
+void UBLDefaultRangeAction::ActivateAction(UBLActionComponent* OwnerComponent)
 {
-	if (!Owner)
+	if (!OwnerComponent || !OwnerChar)
 	{
 		OnEndExecution.ExecuteIfBound();
 		return;
@@ -17,22 +18,22 @@ void UBLDefaultRangeAction::ActivateAction(ABLCombatCharacter* Owner)
 
 	if (ActionAnim)
 	{	
-		Owner->GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(ActionAnim);
+		OwnerChar->GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(ActionAnim);
 	}
 
-	Owner->SetCurrentME(FMath::Clamp((Owner->GetCurrentME() - MECost), 0.f, Owner->GetMaxME()));
-	Owner->DefaultRangeAction(ProjectileClass, ProjectileSprite);
+	OwnerChar->SetCurrentME(FMath::Clamp((OwnerChar->GetCurrentME() - MECost), 0.f, OwnerChar->GetMaxME()));
+	OwnerComponent->DefaultRangeAction(ProjectileClass, ProjectileSprite);
 }
 
-void UBLDefaultRangeAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharacter* Target)
+void UBLDefaultRangeAction::ExecuteAction(ABLCombatSlot* Target)
 {
-	if (!Owner || !Target)
+	if (!Target)
 	{
 		OnEndExecution.ExecuteIfBound();
 		return;
 	}
 
-	ActionCalculations(Owner, Target, CombatManager);
+	ActionCalculations(Target, CombatManager);
 	FTimerHandle Delay;
 	FTimerDelegate DelayDel;
 	DelayDel.BindWeakLambda(this, [this]() { OnEndExecution.ExecuteIfBound(); });

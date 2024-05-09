@@ -69,15 +69,11 @@ public:
 	/** Resets hero's cooldown bar to zero. */
 	void ResetHeroCooldownBar(int32 SlotIndex);
 
-	/** Starts filling from zero enemy's cooldown bar. */
-	void StartEnemyCooldownBar(int32 SlotIndex, float Cooldown);
-
-	/** Resets enemy's cooldown bar to zero. */
-	void ResetEnemyCooldownBar(int32 SlotIndex);
-
 	void UpdateHeroHealth(int32 SlotIndex, float MaxHP, float CurrentHP);
 
 	void UpdateHeroMagicEnergy(int32 SlotIndex, float MaxME, float CurrentME);
+
+	void UpdateEnemyHealth(int32 SlotIndex, float CurrentHP, float MaxHP);
 
 	void HideActions();
 

@@ -10,6 +10,7 @@
 class UBorder;
 class UTextBlock;
 class UBLCooldownBarWidget;
+class UProgressBar;
 
 /**
  * 
@@ -27,13 +28,7 @@ public:
 	/** Greys the border when enemy died */
 	void GreyOutEnemy();
 
-	/** Controls CooldownBarWidget */
-	void StartCooldownBar(float Cooldown);
-	void PauseCooldownBar();
-	void UnPauseCooldownBar();
-	void ResetCooldownBar();
-
-	bool IsDead() const { return bDied; };
+	void UpdateHP(float CurrentHP, float MaxHP);
 
 public:
 	UPROPERTY()
@@ -53,7 +48,5 @@ protected:
 	FLinearColor DefaultColor;
 
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
-	TObjectPtr<UBLCooldownBarWidget> CooldownBar;
-
-	bool bDied = false;
+	TObjectPtr<UProgressBar> HPBar;
 };

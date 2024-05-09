@@ -3,22 +3,24 @@
 
 #include "BLMultipleDefaultMeleeAction.h"
 #include "Characters/BLCombatCharacter.h"
+#include "BLCombatSlot.h"
+#include "Characters/BLActionComponent.h"
 #include "PaperZDAnimInstance.h"
 #include "PaperZDAnimationComponent.h"
 #include "Kismet/GameplayStatics.h"
 
-void UBLMultipleDefaultMeleeAction::ActivateAction(ABLCombatCharacter* Owner)
+void UBLMultipleDefaultMeleeAction::ActivateAction(UBLActionComponent* OwnerComponent)
 {
-	if (Owner)
+	if (OwnerComponent && OwnerChar)
 	{
-		Owner->MultipleDefaultMeleeAction();
-		Owner->SetCurrentME(FMath::Clamp((Owner->GetCurrentME() - MECost), 0.f, Owner->GetMaxME()));
+		OwnerComponent->MultipleDefaultMeleeAction();
+		OwnerChar->SetCurrentME(FMath::Clamp((OwnerChar->GetCurrentME() - MECost), 0.f, OwnerChar->GetMaxME()));
 	}
 }
 
-void UBLMultipleDefaultMeleeAction::ExecuteAction(ABLCombatCharacter* Owner, ABLCombatCharacter* Target)
+void UBLMultipleDefaultMeleeAction::ExecuteAction(ABLCombatSlot* Target)
 {
-	if (!Owner || !Target || Target->GetCurrentHP() <= 0)
+	if (!OwnerChar || !Target || Target->GetCharacter()->IsDead())
 	{
 		OnEndExecution.ExecuteIfBound();
 		return;
@@ -28,12 +30,12 @@ void UBLMultipleDefaultMeleeAction::ExecuteAction(ABLCombatCharacter* Owner, ABL
 	{
 		FZDOnAnimationOverrideEndSignature EndAnimDel;
 		EndAnimDel.BindWeakLambda(this, [this](bool bResult) { OnEndExecution.ExecuteIfBound(); });
-		Owner->GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(ActionAnim, "DefaultSlot", 1.f, 0.0f, EndAnimDel);
-		ActionCalculations(Owner, Target, CombatManager);
+		OwnerChar->GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(ActionAnim, "DefaultSlot", 1.f, 0.0f, EndAnimDel);
+		ActionCalculations(Target, CombatManager);
 	}
 	else
 	{
-		ActionCalculations(Owner, Target, CombatManager);
+		ActionCalculations(Target, CombatManager);
 		OnEndExecution.ExecuteIfBound();
 	}
 }

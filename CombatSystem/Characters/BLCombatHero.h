@@ -15,9 +15,14 @@ class BLADEOFLEGEND_API ABLCombatHero : public ABLCombatCharacter
 	GENERATED_BODY()
 
 public:
-	virtual void SneakAttack() override;
+	virtual void SneakAttackStatus() override;
+
+	virtual void  StartActionTurnsCooldown(int32 TurnsCost) override;
 
 protected:
 	virtual void HandleTurnsCooldown() override;
 
+private:
+	UPROPERTY()
+	TMap<TObjectPtr<UBLActionEntryData>, int32> ActionsTurnsCooldown;
 };

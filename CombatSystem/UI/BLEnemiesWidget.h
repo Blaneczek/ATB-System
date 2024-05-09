@@ -29,15 +29,7 @@ public:
 	/** Removes item from TileView */
 	void RemoveEnemy(int32 Index);
  
-	/**
-	* Pause/unpause all cooldown bars
-	* @param bNewPause true - pause, false - unpause
-	*/
-	void PauseAllCooldownBars(bool bNewPause);
-
-	void StartEnemyCooldownBar(int32 Index, float Cooldown);
-
-	void ResetEnemyCooldownBar(int32 Index);
+	void UpdateEnemyHP(int32 Index, float CurrentHP, float MaxHP);
 
 protected:
 	/** TileView with the enemies who will take part in the Combat */

@@ -4,18 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "BLAction.h"
-#include "BLDefaultMeleeAction.generated.h"
+#include "BLMultipleInPlaceAction.generated.h"
 
 /**
  * 
  */
 UCLASS(Blueprintable)
-class BLADEOFLEGEND_API UBLDefaultMeleeAction : public UBLAction
+class BLADEOFLEGEND_API UBLMultipleInPlaceAction : public UBLAction
 {
 	GENERATED_BODY()
 
 public:
 	void ActivateAction(UBLActionComponent* OwnerComponent) override;
-	void ExecuteAction(const TArray<ABLCombatSlot*>& Targets) override;
-
+	void ExecuteAction( const TArray<ABLCombatSlot*>& Targets) override;
 };

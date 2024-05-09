@@ -6,13 +6,13 @@
 #include "Components/Border.h"
 #include "BLEnemyEntryData.h"
 #include "UI/BLCooldownBarWidget.h"
+#include "Components/ProgressBar.h"
 
 void UBLEnemyEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 {
 	UBLEnemyEntryData* Item = Cast<UBLEnemyEntryData>(ListItemObject);
 	if (Item)
 	{
-		bDied = false;
 		Index = Item->Index;
 		FFormatNamedArguments Args;
 		Args.Add(TEXT("NAME"), Item->Name);
@@ -25,32 +25,10 @@ void UBLEnemyEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 void UBLEnemyEntryWidget::GreyOutEnemy()
 {
 	Border->SetBrushColor(DeathColor);
-	bDied = true;
 }
 
-void UBLEnemyEntryWidget::StartCooldownBar(float Cooldown)
+void UBLEnemyEntryWidget::UpdateHP(float CurrentHP, float MaxHP)
 {
-	if (bDied) return;
-
-	CooldownBar->StartCooldown(Cooldown);
-}
-
-void UBLEnemyEntryWidget::PauseCooldownBar()
-{
-	CooldownBar->PauseCooldown();
-}
-
-void UBLEnemyEntryWidget::UnPauseCooldownBar()
-{
-	if (bDied)
-	{
-		ResetCooldownBar();
-		return;
-	}
-	CooldownBar->UnPauseCooldown();
-}
-
-void UBLEnemyEntryWidget::ResetCooldownBar()
-{
-	CooldownBar->ResetCooldown();
+	const float Percent = CurrentHP / MaxHP;
+	HPBar->SetPercent(Percent);
 }
