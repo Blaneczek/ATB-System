@@ -19,6 +19,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "BLCombatSlot.h"
 #include "BLActionComponent.h"
+#include "BLStatusesComponent.h"
 
 ABLCombatCharacter::ABLCombatCharacter()
 {
@@ -29,6 +30,7 @@ ABLCombatCharacter::ABLCombatCharacter()
 	StatusDisplay->SetupAttachment(PaperFlipbook);
 
 	ActionComponent = CreateDefaultSubobject<UBLActionComponent>(TEXT("Action manager"));
+	StatusesComponent = CreateDefaultSubobject<UBLStatusesComponent>(TEXT("Statuses manager"));
 
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
@@ -128,7 +130,7 @@ float ABLCombatCharacter::CalculateElementsMultipliers(ECombatElementType Damage
 
 void ABLCombatCharacter::StartCooldown()
 {
-	HandleStatuses();
+	StatusesComponent->HandleStatuses();
 
 	GetWorld()->GetTimerManager().SetTimer(CooldownTimer, this, &ABLCombatCharacter::EndCooldown, CurrentCooldown, false);
 }
@@ -142,178 +144,12 @@ void ABLCombatCharacter::EndCooldown()
 
 void ABLCombatCharacter::GiveStatus(ECombatStatusType Status, int32 Turns)
 {
-	if (Statuses.Contains(Status))
-	{
-		Statuses[Status] = Turns;
-		return;
-	}
-
-	Statuses.Add(Status, Turns);
-	switch (Status)
-	{
-		case ECombatStatusType::STUNNED:
-		{
-			CurrentCooldown += BaseData.Cooldown;
-			break;
-		}
-		case ECombatStatusType::BLINDING:
-		{
-			CurrentCooldown += BaseData.Cooldown * 0.5f;
-			break;
-		}
-		case ECombatStatusType::SPEEDUP:
-		{
-			CurrentCooldown -= BaseData.Cooldown * 0.5f;
-			break;
-		}
-		case ECombatStatusType::INSPIRATION:
-		{
-			CurrentCooldown -= BaseData.Cooldown * 0.3f;
-			break;
-		}
-		case ECombatStatusType::SHIELD:
-		{
-			bDefendIdle = true;
-			CurrentDefense += BaseData.BaseDefense * 3.f;
-			break;
-		}
-		case ECombatStatusType::SNEAK:
-		{
-			CurrentCooldown = 0.1f;
-			break;
-		}
-		case ECombatStatusType::INVISIBILITY:
-		{
-			CurrentDodge = 50.f;
-			PaperFlipbook->SetSpriteColor(FLinearColor(PaperFlipbook->GetSpriteColor().R, PaperFlipbook->GetSpriteColor().G, PaperFlipbook->GetSpriteColor().B, 0.6f));
-			break;
-		}
-		case ECombatStatusType::DMG_BOOST:
-		{
-			CurrentAttackDMG = BaseData.BaseAttackDMG * 1.1f;
-			break;
-		}
-		case ECombatStatusType::ASTRAL_PROTECTION:
-		{
-			CurrentDefense += BaseData.BaseDefense * 3.f;
-			bMagicImmunity = true;
-			break;
-		}
-		default: break;
-	}
-
-	SetStatusDisplayVisibility(Status, true);
+	StatusesComponent->GiveStatus(Status, Turns);
 }
 
 void ABLCombatCharacter::RemoveStatus(ECombatStatusType Status)
 {
-	if (!Statuses.Contains(Status))
-	{
-		return;
-	}
-
-	Statuses.Remove(Status);
-	switch (Status)
-	{
-		case ECombatStatusType::STUNNED:
-		{
-			CurrentCooldown -= BaseData.Cooldown;
-			break;
-		}
-		case ECombatStatusType::BLINDING:
-		{
-			CurrentCooldown -= BaseData.Cooldown * 0.5f;
-			break;
-		}
-		case ECombatStatusType::SPEEDUP:
-		{
-			CurrentCooldown += BaseData.Cooldown * 0.7f;
-			break;
-		}
-		case ECombatStatusType::INSPIRATION:
-		{
-			CurrentCooldown += BaseData.Cooldown * 0.3f;
-			break;
-		}
-		case ECombatStatusType::SHIELD:
-		{
-			bDefendIdle = false;
-			CurrentDefense -= BaseData.BaseDefense * 3.f;
-			break;
-		}
-		case ECombatStatusType::SNEAK:
-		{
-			CurrentCooldown = BaseData.Cooldown;
-			break;
-		}
-		case ECombatStatusType::INVISIBILITY:
-		{
-			CurrentDodge = BaseData.BaseDodge;
-			PaperFlipbook->SetSpriteColor(FLinearColor(PaperFlipbook->GetSpriteColor().R, PaperFlipbook->GetSpriteColor().G, PaperFlipbook->GetSpriteColor().B, 1.f));
-			break;
-		}
-		case ECombatStatusType::DMG_BOOST:
-		{
-			CurrentAttackDMG = BaseData.BaseAttackDMG;
-			break;
-		}
-		case ECombatStatusType::ASTRAL_PROTECTION:
-		{
-			CurrentDefense -= BaseData.BaseDefense * 3.f;
-			bMagicImmunity = false;
-			break;
-		}
-		default: break;
-	}
-
-	SetStatusDisplayVisibility(Status, false);
-}
-
-void ABLCombatCharacter::HandleStatuses()
-{
-	TArray<ECombatStatusType> StatusesToDelete;
-
-	float SimpleDMG = 0.f;
-
-	for (auto& Status : Statuses)
-	{
-		switch (Status.Key)
-		{
-			case ECombatStatusType::BLEEDING:
-			case ECombatStatusType::POISONING:
-			{
-				SimpleDMG += BaseData.MaxHP * 0.05f;
-				break;
-			}
-			case ECombatStatusType::FLAMING:
-			{
-				SimpleDMG += BaseData.MaxHP * 0.1f;
-				break;
-			}
-			default: break;
-		}
-
-		Status.Value--;	
-
-		if (Status.Value == 0)
-		{
-			StatusesToDelete.Add(Status.Key);
-		}
-	}
-
-	TakeSimpleDamage(SimpleDMG);
-
-	// Remove statuses after action with 1 sec delay (it looks better).
-	FTimerHandle RemoveDelay;
-	FTimerDelegate RemoveDel;
-	RemoveDel.BindWeakLambda(this, [this, StatusesToDelete]()
-		{
-			for (const auto& Status : StatusesToDelete)
-			{
-				RemoveStatus(Status);
-			}
-		});
-	GetWorld()->GetTimerManager().SetTimer(RemoveDelay, RemoveDel, 1.f, false);
+	StatusesComponent->RemoveStatus(Status);
 }
 
 void ABLCombatCharacter::TakeSimpleDamage(float Damage)
@@ -342,9 +178,9 @@ void ABLCombatCharacter::TakeSimpleDamage(float Damage)
 	}
 }
 
-void ABLCombatCharacter::HandleHealHit(float Damage, float HealMultiplier, ECombatElementType HealElementType)
+void ABLCombatCharacter::HandleHealHit(float Heal, float HealMultiplier, ECombatElementType HealElementType)
 {
-	const float HealValue = Damage * HealMultiplier;
+	const float HealValue = Heal * HealMultiplier;
 	CurrentHP = FMath::Clamp((CurrentHP + HealValue), 0, BaseData.MaxHP);
 	DisplayTextDMG(HealValue, true, HealElementType);
 	OnHealthUpdate.ExecuteIfBound();
@@ -378,7 +214,7 @@ void ABLCombatCharacter::HandleDamageHit(ABLCombatCharacter* Attacker, float Dam
 	float DMGValue = (Damage * DMGMultiplier) * (1.f - ((NewDefense / 1000) * 5));
 
 	// If attack is physical and Attacker has Poisoning status, dmg is decreased by 20%
-	if (!bMagicalAction && Attacker->Statuses.Contains(ECombatStatusType::POISONING))
+	if (!bMagicalAction && Attacker->StatusesComponent->Statuses.Contains(ECombatStatusType::POISONING))
 	{
 		// Clamp because Defense can be higher than Damage, so that Damage is not negative
 		DMGValue = FMath::Clamp(FMath::RoundHalfFromZero(DMGValue * 0.8f), 0, FMath::RoundHalfFromZero(DMGValue));
@@ -397,29 +233,6 @@ void ABLCombatCharacter::HandleDamageHit(ABLCombatCharacter* Attacker, float Dam
 	if (BaseData.TakeDMGAnim && GetAnimInstance() && !bDefendIdle)
 	{
 		GetAnimationComponent()->GetAnimInstance()->PlayAnimationOverride(BaseData.TakeDMGAnim);
-	}
-}
-
-void ABLCombatCharacter::HandleHitStatuses(ABLCombatCharacter* Attacker, const TArray<FCombatStatus>& InStatuses, bool bMagicalAction)
-{
-	// Temp array to add weapon and action statuses (weapon status only if its physical action)
-	TArray<FCombatStatus> AllStatuses = InStatuses;
-	if (!bMagicalAction)
-	{
-		AllStatuses.Add(Attacker->GetWeaponStatus());
-	}
-
-	for (const auto& Status : AllStatuses)
-	{
-		if (BaseData.StatusesImmunity.Contains(Status.Status))
-		{
-			continue;
-		}
-		const int32 ApplicationChance = FMath::RandRange(1, 100);
-		if (ApplicationChance <= Status.ApplicationChance)
-		{
-			GiveStatus(Status.Status, Status.Turns);
-		}
 	}
 }
 
@@ -444,7 +257,7 @@ void ABLCombatCharacter::HandleHitByAction(ABLCombatCharacter* Attacker, float D
 		HandleDamageHit(Attacker, Damage, DMGMultiplier, DamageElement, bMagical);
 	}
 
-	HandleHitStatuses(Attacker, InStatuses, bMagical);
+	StatusesComponent->HandleHitStatuses(Attacker, InStatuses, bMagical);
 
 	if (CurrentHP <= 0.f)
 	{

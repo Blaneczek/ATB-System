@@ -17,6 +17,7 @@ class UBLAction;
 class UBLActionEntryData;
 class ABLCombatSlot;
 class UBLActionComponent;
+class UBLStatusesComponent;
 
 DECLARE_DELEGATE(FOnEndCooldown);
 DECLARE_DELEGATE(FOnActionEnded);
@@ -51,26 +52,30 @@ public:
 
 	/** Handles the situation where Action damage will be converted into healing or used action with heal*/
 	UFUNCTION(BlueprintCallable)
-	void HandleHealHit(float Damage, float HealMultiplier, ECombatElementType HealElementType);	
+	void HandleHealHit(float Heal, float HealMultiplier, ECombatElementType HealElementType);	
 
 	void CreateAction(const FVector& OwnerSlotLocation, const TArray<ABLCombatSlot*>& Targets, const FCombatActionData& ActionData, AActor* CombatManager);
 
 	UFUNCTION()
 	void StartCooldown();
+
 	/** Hero's Actions turns cooldown */
 	virtual void StartActionTurnsCooldown(int32 TurnsCost) {};
 
-	/*********************
-	*	   STATUSES
-	**********************/
-
-	/** Adds given status to Statuses map for a certain number of turns and performs status effect if it is immediate. */
+	/** Calls component function. */
 	UFUNCTION(BlueprintCallable)
 	void GiveStatus(ECombatStatusType Status, int32 Turns);
 
-	/** Removes given status from Statuses map and removes status effect if it was previously applied. */
+	/** Calls component function. */
 	UFUNCTION(BlueprintCallable)
 	void RemoveStatus(ECombatStatusType Status);
+
+	virtual void SneakAttackStatus() {};
+
+	virtual void HandleTurnsCooldown() {};
+
+	/** Applies simple damage that doesn't need to be calculated. */
+	void TakeSimpleDamage(float Damage);
 
 	/**
 	 * Adds/Removes given status icon. Implementable in blueprint.
@@ -78,15 +83,13 @@ public:
 	 */
 	UFUNCTION(BlueprintImplementableEvent, meta = (AutoCreateRefTerm = "Status"))
 	void SetStatusDisplayVisibility(ECombatStatusType Status, bool bNewVisibility);
-	
-	virtual void SneakAttackStatus() {};
-
-	/***********************************************************************************************/
-
 
 	/** Shows taken dmg/healed value in widget. Implementable in character blueprint.*/
 	UFUNCTION(BlueprintImplementableEvent)
 	void DisplayTextDMG(float DMG, bool bHeal, ECombatElementType DMGElement, bool bDodge = false);
+
+
+	/***********************************************************************************************/
 
 	virtual FCombatActionData GetEnemyAction() { return FCombatActionData(); }
 
@@ -143,11 +146,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	TSubclassOf<UPaperZDAnimInstance> GetCombatAnimClass() const { return BaseData.AnimInstanceClass; };
 
-protected:
-	virtual void HandleTurnsCooldown() {};
-
-	/** Applies simple damage that doesn't need to be calculated. */
-	void TakeSimpleDamage(float Damage);
+	UPaperFlipbookComponent* GetPaperFlipbook() const { return PaperFlipbook; };
 
 private:
 	/** 
@@ -159,17 +158,8 @@ private:
 	UFUNCTION()
 	void EndCooldown();
 
-	/** 
-	 * Checks whether any of the statuses are ready to be removed.
-	 * Executes the status effect, if it is executed every turn. 
-	 */
-	void HandleStatuses();
-
 	/** Handles the situation where Action deals damage to a character */
 	void HandleDamageHit(ABLCombatCharacter* Attacker, float Damage, float DMGMultiplier, ECombatElementType DamageElementType, bool bMagicalAction);
-
-	/** Adds all statuses from Action and weapon that will be successively applied */
-	void HandleHitStatuses(ABLCombatCharacter* Attacker, const TArray<FCombatStatus>& InStatuses, bool bMagicalAction);
 
 public:
 	FOnEndCooldown OnEndCooldown;
@@ -178,7 +168,6 @@ public:
 	FOnDeath OnDeath;
 	FOnEscape OnEscape;
 
-protected:
 	/** If idle Death animation should be played */
 	UPROPERTY()
 	bool bDead;
@@ -207,6 +196,10 @@ protected:
 	UPROPERTY()
 	float CurrentAttackDMG;
 
+	UPROPERTY()
+	bool bDefendIdle = false;
+
+protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")
 	TObjectPtr<UWidgetComponent> DMGDisplay;
 
@@ -217,18 +210,15 @@ protected:
 	FTimerHandle CooldownTimer;
 
 	UPROPERTY()
-	TMap<ECombatStatusType, int32> Statuses;
-
-	UPROPERTY()
-	bool bDefendIdle = false;
-
-	UPROPERTY()
 	TObjectPtr<UBLActionEntryData> ClickedActionEntry;
 
 	/* For enemies to choose actions */
 	UPROPERTY()
 	TArray<TSoftClassPtr<UBLAction>> AttackActions;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<UBLActionComponent> ActionComponent;
+
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<UBLStatusesComponent> StatusesComponent;
 };
