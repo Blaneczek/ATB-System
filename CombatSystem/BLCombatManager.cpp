@@ -229,7 +229,7 @@ void ABLCombatManager::HandleSlotClicked(AActor* Slot)
 					}
 					return;
 				}
-				case ECombatActionFlow::SPAWN_EFFECT_ALL:
+				case ECombatActionFlow::WHOLE_TEAM_IN_PLACE:
 				{
 					if (CurrentSlot->IsEnemy())
 					{	
@@ -489,7 +489,7 @@ void ABLCombatManager::HandleEnemyAction(ABLCombatSlot* EnemySlot, FCombatAction
 			}
 			break;
 		}
-		case ECombatActionFlow::SUMMON:
+		case ECombatActionFlow::SUMMON_ALLIES:
 		{
 			TArray<int32> AvailableSlotsIndex;
 			for (auto& Slot : EnemyTeam)
@@ -553,7 +553,7 @@ void ABLCombatManager::HandleEnemyAction(ABLCombatSlot* EnemySlot, FCombatAction
 			bUseSlots = true;
 			break;
 		}
-		case ECombatActionFlow::SPAWN_EFFECT_ALL:
+		case ECombatActionFlow::WHOLE_TEAM_IN_PLACE:
 		{
 			for (auto& Slot : PlayerTeam)
 			{

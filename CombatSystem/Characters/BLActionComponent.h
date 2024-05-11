@@ -14,6 +14,7 @@ class ABLCombatSlot;
 class APaperZDCharacter;
 
 DECLARE_DELEGATE(FOnActionFinished);
+DECLARE_DELEGATE_OneParam(FOnEscapeAction, bool /*bSuccessful*/);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class BLADEOFLEGEND_API UBLActionComponent : public UActorComponent
@@ -58,10 +59,7 @@ public:
 	void BounceRangeAction(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite);
 
 	/** Character in place executes an action for each target. */
-	void MultipleInPlaceAction();
-
-	/** Character in place creates an effect over each team member (enemies or heroes) and executes an action for each. */
-	void WholeTeamInPlaceAction(TSubclassOf<APaperZDCharacter> EffectClass);
+	void MultipleInPlaceAction(TSubclassOf<APaperZDCharacter> EffectClass);
 
 	/***********************************************************************************************/
 		
@@ -103,6 +101,7 @@ public:
 
 public:
 	FOnActionFinished OnActionFinished;
+	FOnEscapeAction OnEscapeAction;
 
 	UPROPERTY()
 	TArray<TSoftClassPtr<UBLAction>> AttackActions;

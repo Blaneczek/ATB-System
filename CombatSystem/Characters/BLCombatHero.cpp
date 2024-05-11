@@ -27,14 +27,10 @@ void ABLCombatHero::HandleTurnsCooldown()
 		if (Action.Key->bCanBeUsed) continue;
 
 		--Action.Value;
-		FFormatNamedArguments Args;
-		Args.Add(TEXT("Name"), Action.Key->TempName);
-		Args.Add(TEXT("Turns"), Action.Value);
-		const FText NewName = FText::Format(FText::FromString("{Name} Cd:{Turns}t"), Args);
-		Action.Key->ChangeName(NewName);
+		Action.Key->ChangeName(Action.Value);
 		if (Action.Value <= 0)
 		{
-			Action.Key->ChangeName(Action.Key->TempName);
+			Action.Key->ChangeNameToDefault();
 			Action.Key->bCanBeUsed = true;
 			ActionsToDelete.Add(Action.Key);
 		}

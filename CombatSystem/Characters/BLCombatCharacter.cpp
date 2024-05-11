@@ -43,6 +43,7 @@ void ABLCombatCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	ActionComponent->OnActionFinished.BindWeakLambda(this, [this]() { OnActionEnded.ExecuteIfBound(); });
+	ActionComponent->OnEscapeAction.BindWeakLambda(this, [this](bool bSuccessful) {OnEscape.ExecuteIfBound(bSuccessful); });
 }
 
 void ABLCombatCharacter::Tick(float DeltaTime)
@@ -61,16 +62,16 @@ void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData)
 	CurrentAttackDMG = BaseData.BaseAttackDMG;
 
 	PaperFlipbook->SetFlipbook(BaseData.Sprite);
+	
+	// PURE VIRTUAL FUNCTION CALL BUG
+	//GetAnimationComponent()->SetAnimInstanceClass(BaseData.AnimInstanceClass);
 }
 
 void ABLCombatCharacter::SetHeroData(const FCombatCharData& InBaseData, const FCombatActions& InCombatActions)
 {
 	SetData(InBaseData);
 
-	ActionComponent->SetActions(InCombatActions);
-
-	// PURE VIRTUAL FUNCTION CALL BUG
-	//GetAnimationComponent()->SetAnimInstanceClass(BaseData.AnimInstanceClass);
+	ActionComponent->SetActions(InCombatActions);	
 }
 
 
@@ -81,9 +82,6 @@ void ABLCombatCharacter::SetEnemyData(const FCombatCharData& InBaseData, const T
 	// For enemies to choose actions
 	AttackActions = InActions;
 	ActionComponent->SetActions(InActions);
-
-	// PURE VIRTUAL FUNCTION CALL BUG
-	//GetAnimationComponent()->SetAnimInstanceClass(BaseData.AnimInstanceClass);
 }
 
 void ABLCombatCharacter::CreateAction(const FVector& OwnerSlotLocation, const TArray<ABLCombatSlot*>& Targets, const FCombatActionData& ActionData, AActor* CombatManager)

@@ -17,27 +17,6 @@ class BLADEOFLEGEND_API UBLHeroDataAsset : public UDataAsset
 	GENERATED_BODY()
 
 public:
-	// To auto calculate CurrentHP, test it more in future
-	//virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-	
-	/** Takes data from the hero (stats) and calculates the variables needed for combat */
-	FCombatCharData CalculateBaseCombatData(int32 Index);
-
-	/** Adds to data asset reward from won combat */
-	void AddCombatReward(int32 InExperience, int32 InMoney, const TArray<TSoftClassPtr<UBLItem>>& InItems);
-
-	UFUNCTION(BlueprintCallable)
-	float GetMaxHP(int32 Index) const;
-
-	UFUNCTION(BlueprintCallable)
-	float GetMaxME(int32 Index) const;
-
-	void LevelUP();
-
-	const TArray<FLevelUPData>& GetLevelUPData() const { return LevelUPData; }
-
-	bool IsLevelUP() const { return bLevelUP; }
-
 	UFUNCTION(BlueprintCallable)
 	FHeroDataAssetData GetDataAssetAsStruct();
 

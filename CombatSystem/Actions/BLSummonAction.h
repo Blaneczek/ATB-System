@@ -6,6 +6,7 @@
 #include "Actions/BLAction.h"
 #include "BLSummonAction.generated.h"
 
+class APaperZDCharacter;
 
 USTRUCT(BlueprintType)
 struct FEnemiesSpawnData
@@ -43,6 +44,8 @@ public:
 	void ExecuteAction(const TArray<ABLCombatSlot*>& Targets) override;
 
 public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
+	TSubclassOf<APaperZDCharacter> EffectClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
 	TArray<FEnemiesSpawnData> EnemiesToSpawn;

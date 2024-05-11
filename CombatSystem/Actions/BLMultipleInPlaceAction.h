@@ -6,6 +6,8 @@
 #include "BLAction.h"
 #include "BLMultipleInPlaceAction.generated.h"
 
+class APaperZDCharacter;
+
 /**
  * 
  */
@@ -16,5 +18,9 @@ class BLADEOFLEGEND_API UBLMultipleInPlaceAction : public UBLAction
 
 public:
 	void ActivateAction(UBLActionComponent* OwnerComponent) override;
-	void ExecuteAction( const TArray<ABLCombatSlot*>& Targets) override;
+	void ExecuteAction(const TArray<ABLCombatSlot*>& Targets) override;
+
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
+	TSubclassOf<APaperZDCharacter> EffectClass;
 };

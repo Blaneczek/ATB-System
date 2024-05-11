@@ -20,96 +20,97 @@ class UBLArmorItem;
 class UBLHelmetItem;
 class UPaperSprite;
 
+/** Action types that the player can use in combat. */
 UENUM(BlueprintType)
 enum class ECombatActionType : uint8
 {
-	NONE UMETA(DisplayName = "None"),
-	ATTACK UMETA(DisplayName = "Attack"),
-	DEFEND UMETA(DisplayName = "Defend"),
-	CRYSTAL_SKILL UMETA(DisplayName = "Crystal skill"),
-	SPECIAL_SKILL UMETA(DisplayName = "Special skill"),
-	ITEM UMETA(DisplayName = "Item"),
-	RUN_AWAY UMETA(DisplayName = "Run away")
+	NONE			UMETA(DisplayName = "None"),
+	ATTACK			UMETA(DisplayName = "Attack"),
+	DEFEND			UMETA(DisplayName = "Defend"),
+	CRYSTAL_SKILL	UMETA(DisplayName = "Crystal skill"),
+	SPECIAL_SKILL	UMETA(DisplayName = "Special skill"),
+	ITEM			UMETA(DisplayName = "Item"),
+	RUN_AWAY		UMETA(DisplayName = "Run away")
 };
 
 UENUM(BlueprintType)
 enum class ECombatActionFlow : uint8
 {
-	NONE UMETA(DisplayName = "None"),
-	DEFAULT UMETA(DisplayName = "Default"),
-	DEFAULT_MELEE UMETA(DisplayName = "Default melee"),
-	DEFAULT_RANGE UMETA(DisplayName = "Default range"),
-	MULTIPLE_MELEE UMETA(DisplayName = "Multiple melee"),
-	MULTIPLE_RANGE UMETA(DisplayName = "Multiple range"),
-	COLUMN_MELEE UMETA(DisplayName = "Column melee"),
-	BOUNCE_RANGE UMETA(DisplayName = "Bounce range"),
-	SUMMON	UMETA(DisplayName = "Summon"),
-	KILL_ALLIES	UMETA(DisplayName = "Kill allies"),
-	SPAWN_EFFECT_ALL UMETA(DisplayName = "Spawn effect all")
+	NONE				UMETA(DisplayName = "None"),
+	DEFAULT				UMETA(DisplayName = "Default"),
+	DEFAULT_MELEE		UMETA(DisplayName = "Default melee"),
+	DEFAULT_RANGE		UMETA(DisplayName = "Default range"),
+	MULTIPLE_MELEE		UMETA(DisplayName = "Multiple melee"),
+	MULTIPLE_RANGE		UMETA(DisplayName = "Multiple range"),
+	COLUMN_MELEE		UMETA(DisplayName = "Column melee"),
+	BOUNCE_RANGE		UMETA(DisplayName = "Bounce range"),
+	SUMMON_ALLIES	    UMETA(DisplayName = "Summon allies"),
+	KILL_ALLIES			UMETA(DisplayName = "Kill allies"),
+	WHOLE_TEAM_IN_PLACE UMETA(DisplayName = "Whole team in place")
 };
 
 UENUM(BlueprintType)
 enum class ECombatElementType : uint8
 {
-	FIRE UMETA(DisplayName = "Fire"),
-	WATER UMETA(DisplayName = "Water"),
-	EARTH UMETA(DisplayName = "Earth"),
-	WIND UMETA(DisplayName = "Wind"),
-	ICE UMETA(DisplayName = "Ice"),
+	FIRE	UMETA(DisplayName = "Fire"),
+	WATER	UMETA(DisplayName = "Water"),
+	EARTH	UMETA(DisplayName = "Earth"),
+	WIND	UMETA(DisplayName = "Wind"),
+	ICE		UMETA(DisplayName = "Ice"),
 	THUNDER UMETA(DisplayName = "Thunder"),
-	ACID UMETA(DisplayName = "Acid"),
-	DARK UMETA(DisplayName = "Dark"),
-	WHITE UMETA(DisplayName = "White"),
-	NONE UMETA(DisplayName = "None")
+	ACID	UMETA(DisplayName = "Acid"),
+	DARK	UMETA(DisplayName = "Dark"),
+	WHITE	UMETA(DisplayName = "White"),
+	NONE	UMETA(DisplayName = "None")
 };
 
 UENUM(BlueprintType)
 enum class ECrystalColor : uint8
 {
-	NONE UMETA(DisplayName = "None"),
-	RED UMETA(DisplayName = "RED"),
-	PURPLE UMETA(DisplayName = "PURPLE"),
-	WHITE UMETA(DisplayName = "WHITE")
+	NONE	UMETA(DisplayName = "None"),
+	RED		UMETA(DisplayName = "RED"),
+	PURPLE	UMETA(DisplayName = "PURPLE"),
+	WHITE	UMETA(DisplayName = "WHITE")
 };
 
 UENUM(BlueprintType)
 enum class ECombatStatusType : uint8
 {
-	NONE UMETA(DisplayName = "None"),
-	BLEEDING UMETA(DisplayName = "Bleeding"),
-	POISONING UMETA(DisplayName = "Poisoning"),
-	BLOODLUST UMETA(DisplayName = "Bloodlust"),
-	STUNNED UMETA(DisplayName = "Stunned"),
-	BLINDING UMETA(DisplayName = "Blinding"),
-	SPEEDUP UMETA(DisplayName = "Speedup"),
-	INSPIRATION UMETA(DisplayName = "Inspiration"),
-	FLAMING UMETA(DisplayName = "Flaming"),
-	SHIELD UMETA(DisplayName = "Shield"),
-	INVISIBILITY UMETA(DisplayName = "Invisibility"),
-	SNEAK UMETA(DisplayName = "Sneak attack"),
-	DMG_BOOST UMETA(DisplayName = "DMG boost"),
-	ASTRAL_PROTECTION UMETA(DisplayName = "Astral protection")
+	NONE				UMETA(DisplayName = "None"),
+	BLEEDING			UMETA(DisplayName = "Bleeding"),
+	POISONING			UMETA(DisplayName = "Poisoning"),
+	BLOODLUST			UMETA(DisplayName = "Bloodlust"),
+	STUNNED				UMETA(DisplayName = "Stunned"),
+	BLINDING			UMETA(DisplayName = "Blinding"),
+	SPEEDUP				UMETA(DisplayName = "Speedup"),
+	INSPIRATION			UMETA(DisplayName = "Inspiration"),
+	FLAMING				UMETA(DisplayName = "Flaming"),
+	SHIELD				UMETA(DisplayName = "Shield"),
+	INVISIBILITY		UMETA(DisplayName = "Invisibility"),
+	SNEAK				UMETA(DisplayName = "Sneak attack"),
+	DMG_BOOST			UMETA(DisplayName = "DMG boost"),
+	ASTRAL_PROTECTION	UMETA(DisplayName = "Astral protection")
 };
 
 
 UENUM(BlueprintType)
 enum class EItemType: uint8
 {
-	NONE UMETA(DisplayName = "None"),
-	WEAPON UMETA(DisplayName = "Weapon"),
-	ARMOR UMETA(DisplayName = "Armor"),
-	HELMET UMETA(DisplayName = "Helmet"),
-	USABLE UMETA(DisplayName = "Helmet"),
-	JUNK UMETA(DisplayName = "Junk")
+	NONE	UMETA(DisplayName = "None"),
+	WEAPON	UMETA(DisplayName = "Weapon"),
+	ARMOR	UMETA(DisplayName = "Armor"),
+	HELMET	UMETA(DisplayName = "Helmet"),
+	USABLE	UMETA(DisplayName = "Helmet"),
+	JUNK	UMETA(DisplayName = "Junk")
 };
 
 UENUM(BlueprintType)
 enum class EItemClass : uint8
 {
-	NONE UMETA(DisplayName = "None"),
+	NONE	UMETA(DisplayName = "None"),
 	Warrior UMETA(DisplayName = "Warrior"),
-	ARCHER UMETA(DisplayName = "Archer"),
-	MAGE UMETA(DisplayName = "Mage")
+	ARCHER	UMETA(DisplayName = "Archer"),
+	MAGE	UMETA(DisplayName = "Mage")
 
 	/// others
 };
@@ -118,9 +119,9 @@ enum class EItemClass : uint8
 UENUM(BlueprintType)
 enum class EHero : uint8
 {
-	NONE UMETA(DisplayName = "None"),
-	KROLTH UMETA(DisplayName = "Krolth"),
-	CARDIE UMETA(DisplayName = "Cardie")
+	NONE	UMETA(DisplayName = "None"),
+	KROLTH	UMETA(DisplayName = "Krolth"),
+	CARDIE	UMETA(DisplayName = "Cardie")
 };
 
 USTRUCT(BlueprintType)

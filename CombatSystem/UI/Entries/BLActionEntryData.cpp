@@ -16,8 +16,18 @@ void UBLActionEntryData::Init(int32 InIndex, const FText& InName, ECombatActionF
 	TempName = InName;
 }
 
-void UBLActionEntryData::ChangeName(const FText& NewName)
+void UBLActionEntryData::ChangeName(int32 TurnNum)
 {
+	FFormatNamedArguments Args;
+	Args.Add(TEXT("Name"), TempName);
+	Args.Add(TEXT("Turns"), TurnNum);
+	const FText NewName = FText::Format(FText::FromString("{Name} Cd:{Turns}t"), Args);
 	Name = NewName;
+	OnNameChange.ExecuteIfBound(this);
+}
+
+void UBLActionEntryData::ChangeNameToDefault()
+{
+	Name = TempName;
 	OnNameChange.ExecuteIfBound(this);
 }

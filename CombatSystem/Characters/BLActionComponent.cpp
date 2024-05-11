@@ -90,9 +90,6 @@ void UBLActionComponent::CreateAction(const FVector& OwnerSlotLocation, const TA
 				break;
 			}
 
-			SlotLocation = OwnerSlotLocation;
-			TargetSlots = Targets;
-
 			CurrentAction = NewObject<UBLAction>(this, CrystalActions.Find(ActionData.CrystalColor)->Skills[ActionData.Index].LoadSynchronous());
 			if (CurrentAction)
 			{
@@ -111,9 +108,6 @@ void UBLActionComponent::CreateAction(const FVector& OwnerSlotLocation, const TA
 				break;
 			}
 
-			SlotLocation = OwnerSlotLocation;
-			TargetSlots = Targets;
-
 			CurrentAction = NewObject<UBLAction>(this, SpecialActions[ActionData.Index].LoadSynchronous());
 			if (CurrentAction)
 			{
@@ -131,9 +125,6 @@ void UBLActionComponent::CreateAction(const FVector& OwnerSlotLocation, const TA
 			{
 				break;
 			}
-
-			SlotLocation = OwnerSlotLocation;
-			TargetSlots = Targets;
 
 			// Deleting used item
 			UBLItemEntryData* ItemEntry = Cast<UBLItemEntryData>(ActionData.ActionEntry);
@@ -166,11 +157,11 @@ void UBLActionComponent::CreateAction(const FVector& OwnerSlotLocation, const TA
 			const int32 Random = FMath::RandRange(1, 100);
 			if (Random <= 30)
 			{
-				//OnEscape.ExecuteIfBound(true);
+				OnEscapeAction.ExecuteIfBound(true);
 			}
 			else
 			{
-				//OnEscape.ExecuteIfBound(false);
+				OnEscapeAction.ExecuteIfBound(false);
 				EndAction(true);
 			}
 			return;
@@ -316,20 +307,7 @@ void UBLActionComponent::BounceRangeAction(TSubclassOf<ABLRangeProjectile> Proje
 	}
 }
 
-void UBLActionComponent::MultipleInPlaceAction()
-{
-	if (IsValid(CurrentAction))
-	{
-		CurrentAction->OnEndExecution.BindWeakLambda(this, [this]() { EndAction(true); });
-		CurrentAction->ExecuteAction(TargetSlots);
-	}
-	else
-	{
-		EndAction(true);
-	}
-}
-
-void UBLActionComponent::WholeTeamInPlaceAction(TSubclassOf<APaperZDCharacter> EffectClass)
+void UBLActionComponent::MultipleInPlaceAction(TSubclassOf<APaperZDCharacter> EffectClass)
 {
 	if (IsValid(CurrentAction))
 	{

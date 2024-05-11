@@ -21,7 +21,11 @@ public:
 	/** Sets the data needed for UI */
 	void Init(int32 InIndex, const FText& InName, ECombatActionFlow InActionFlow, ECrystalColor InCrystalColor = ECrystalColor::NONE, float InMECost = 0.f, int32 InTurnsCost = 0, int32 InTargetsNum = 1);
 
-	void ChangeName(const FText& NewName);
+	/** If action is on turn cooldown, adds the number of remaining turns to the action name. */
+	void ChangeName(int32 TurnNum);
+
+	/** Goes back to default action name. */
+	void ChangeNameToDefault();
 
 public:
 	UPROPERTY()
@@ -39,10 +43,8 @@ public:
 	UPROPERTY()
 	ECombatActionFlow ActionFlow;
 
-
 	UPROPERTY()
 	bool bCanBeUsed{ true };
-
 	UPROPERTY()
 	FText TempName;
 

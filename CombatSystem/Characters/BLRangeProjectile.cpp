@@ -26,13 +26,6 @@ void ABLRangeProjectile::BeginPlay()
 	
 }
 
-// Called every frame
-void ABLRangeProjectile::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
 void ABLRangeProjectile::SetData(UPaperFlipbook* ProjectileSprite)
 {
 	PaperFlipbook->SetFlipbook(ProjectileSprite);
