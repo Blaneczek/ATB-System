@@ -136,6 +136,7 @@ struct FCrystalSkills
 	{}
 
 	FCrystalSkills(const TArray<TSoftClassPtr<UBLAction>>& InSkills)
+
 		: Skills(InSkills)
 	{}
 };
@@ -208,20 +209,18 @@ struct FLevelUPData
 	UPROPERTY()
 	TObjectPtr<UPaperSprite> CrystalSprite;
 
-
 	FLevelUPData()
-		: Strength(0.f), Agility(0.f), Wisdom(0.f), Endurance(0.f)
-		, CrystalStrength(0.f), CrystalAgility(0.f), CrystalWisdom(0.f)
+		: Strength(0.f), Agility(0.f), Wisdom(0.f), Endurance(0.f), CrystalStrength(0.f), CrystalAgility(0.f), CrystalWisdom(0.f)
 		, CrystalEndurance(0.f), CrystalColor(ECrystalColor::NONE), bNewSkill(false), CrystalSprite(nullptr)
 	{}
 
 	FLevelUPData(float InStrength, float InAgility, float InWisdom, float InEndurance, float InCrystalStrength
-	             , float InCrystalAgility, float InCrystalWisdom, float InCrystalEndurance
-	             , ECrystalColor InCrystalColor, bool bInNewSkill, const FText& InSkillName, UPaperSprite* InCrystalSprite)
+		, float InCrystalAgility, float InCrystalWisdom, float InCrystalEndurance, ECrystalColor InCrystalColor
+		, bool bInNewSkill, const FText& InSkillName, UPaperSprite* InCrystalSprite)
 
-		: Strength(InStrength), Agility(InAgility), Wisdom(InWisdom), Endurance(InEndurance)
-		  , CrystalStrength(InCrystalStrength), CrystalAgility(InCrystalAgility), CrystalWisdom(InCrystalWisdom), CrystalEndurance(InCrystalEndurance)
-		  , CrystalColor(InCrystalColor), bNewSkill(bInNewSkill), SkillName(InSkillName), CrystalSprite(InCrystalSprite)
+		: Strength(InStrength), Agility(InAgility), Wisdom(InWisdom), Endurance(InEndurance), CrystalStrength(InCrystalStrength)
+		, CrystalAgility(InCrystalAgility), CrystalWisdom(InCrystalWisdom), CrystalEndurance(InCrystalEndurance), CrystalColor(InCrystalColor)
+		, bNewSkill(bInNewSkill), SkillName(InSkillName), CrystalSprite(InCrystalSprite)
 	{}
 };
 
@@ -374,29 +373,22 @@ struct FCombatCharData
 	FText SpecialActionsName;
 
 	FCombatCharData()
-		: Class(nullptr), MaxHP(0.f), MaxME(0.f), CurrentHP(0.f), CurrentME(0.f)
-		  , BaseAttackDMG(0.f), BaseDefense(0.f), BaseDodge(0.f), Cooldown(0.f), Strength(0.f)
-		  , Agility(0.f), Wisdom(0.f), Endurance(0.f), Pierce(0.f), Element(ECombatElementType::NONE)
-		  , WeaponElement(ECombatElementType::NONE), WeaponStatus(FCombatStatus())
-		  , Sprite(nullptr), AnimInstanceClass(nullptr), TakeDMGAnim(nullptr)
+		: Class(nullptr), MaxHP(0.f), MaxME(0.f), CurrentHP(0.f), CurrentME(0.f), BaseAttackDMG(0.f), BaseDefense(0.f)
+		, BaseDodge(0.f), Cooldown(0.f), Strength(0.f), Agility(0.f), Wisdom(0.f), Endurance(0.f), Pierce(0.f)
+		, Element(ECombatElementType::NONE), WeaponElement(ECombatElementType::NONE), WeaponStatus(FCombatStatus())
+		, Sprite(nullptr), AnimInstanceClass(nullptr), TakeDMGAnim(nullptr)
 	{}
 
-	FCombatCharData(const FString& InName, TSubclassOf<ABLCombatCharacter> InClass, float InMaxHP
-	                , float InMaxME, float InCurrentHP, float InCurrentME, float InAttackDMG, float InBaseDefense
-	                , float InBaseDodge, float InCooldown, float InStrength, float InAgility, float InWisdom,
-	                float InEndurance
-	                , float InPierce, ECombatElementType InElement, ECombatElementType InWeaponElement
-	                , const TSet<ECombatStatusType>& InStatusesImmunity, const FCombatStatus& InWeaponStatus
-	                , UPaperFlipbook* InSprite, TSubclassOf<UPaperZDAnimInstance> InAnimClass,
-	                UPaperZDAnimSequence* InTakeDMGAnim
-	                , const FText& InSpecialActionsName)
+	FCombatCharData(const FString& InName, TSubclassOf<ABLCombatCharacter> InClass, float InMaxHP, float InMaxME, float InCurrentHP
+		, float InCurrentME, float InAttackDMG, float InBaseDefense, float InBaseDodge, float InCooldown, float InStrength
+		, float InAgility, float InWisdom, float InEndurance, float InPierce, ECombatElementType InElement, ECombatElementType InWeaponElement
+		, const TSet<ECombatStatusType>& InStatusesImmunity, const FCombatStatus& InWeaponStatus, UPaperFlipbook* InSprite
+		, TSubclassOf<UPaperZDAnimInstance> InAnimClass, UPaperZDAnimSequence* InTakeDMGAnim, const FText& InSpecialActionsName)
 
-		: Name(InName), Class(InClass), MaxHP(InMaxHP), MaxME(InMaxME), CurrentHP(InCurrentHP), CurrentME(InCurrentME)
-		  , BaseAttackDMG(InAttackDMG), BaseDefense(InBaseDefense), BaseDodge(InBaseDodge), Cooldown(InCooldown)
-		  , Strength(InStrength), Agility(InAgility), Wisdom(InWisdom), Endurance(InEndurance), Pierce(InPierce)
-		  , Element(InElement), WeaponElement(InWeaponElement), StatusesImmunity(InStatusesImmunity)
-		  , WeaponStatus(InWeaponStatus), Sprite(InSprite), AnimInstanceClass(InAnimClass)
-		  , TakeDMGAnim(InTakeDMGAnim), SpecialActionsName(InSpecialActionsName)
+		: Name(InName), Class(InClass), MaxHP(InMaxHP), MaxME(InMaxME), CurrentHP(InCurrentHP), CurrentME(InCurrentME), BaseAttackDMG(InAttackDMG)
+		, BaseDefense(InBaseDefense), BaseDodge(InBaseDodge), Cooldown(InCooldown), Strength(InStrength), Agility(InAgility), Wisdom(InWisdom)
+		, Endurance(InEndurance), Pierce(InPierce), Element(InElement), WeaponElement(InWeaponElement), StatusesImmunity(InStatusesImmunity)
+		, WeaponStatus(InWeaponStatus), Sprite(InSprite), AnimInstanceClass(InAnimClass), TakeDMGAnim(InTakeDMGAnim), SpecialActionsName(InSpecialActionsName)
 	{}
 };
 
@@ -428,15 +420,13 @@ struct FCombatActionData
 
 	FCombatActionData()
 		: Type(ECombatActionType::NONE), Flow(ECombatActionFlow::NONE), Index(0), CrystalColor(ECrystalColor::NONE)
-		  , MECost(0.f), TargetsNum(1), ActionEntry(nullptr)
+		, MECost(0.f), TargetsNum(1), ActionEntry(nullptr)
 	{}
 
-	FCombatActionData(ECombatActionType InType, ECombatActionFlow InFlow, int32 InIndex
-	                  , ECrystalColor InCrystalColor = ECrystalColor::NONE, float InMECost = 0.f
-	                  , int32 InTargetsNum = 1.f, UObject* InActionEntry = nullptr)
+	FCombatActionData(ECombatActionType InType, ECombatActionFlow InFlow, int32 InIndex, ECrystalColor InCrystalColor = ECrystalColor::NONE
+		, float InMECost = 0.f, int32 InTargetsNum = 1.f, UObject* InActionEntry = nullptr)
 
-		: Type(InType), Flow(InFlow), Index(InIndex), CrystalColor(InCrystalColor)
-		  , MECost(InMECost), TargetsNum(InTargetsNum), ActionEntry(InActionEntry)
+		: Type(InType), Flow(InFlow), Index(InIndex), CrystalColor(InCrystalColor), MECost(InMECost), TargetsNum(InTargetsNum), ActionEntry(InActionEntry)
 	{}
 };
 
@@ -466,15 +456,12 @@ struct FCombatActions
 	FCombatActions()
 	{}
 
-	FCombatActions(const TArray<TSoftClassPtr<UBLAction>>& InAttackActions
-	               , TSoftClassPtr<UBLAction> InDefendAction
-	               , const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions
-	               , const TArray<TSoftClassPtr<UBLAction>>& InSpecialActions
-	               , const TArray<TSoftClassPtr<UBLCombatItem>>& InItemActions
-				   , TSoftClassPtr<UBLAction> InRunAwayAction)
+	FCombatActions(const TArray<TSoftClassPtr<UBLAction>>& InAttackActions, TSoftClassPtr<UBLAction> InDefendAction
+		, const TMap<ECrystalColor, FCrystalSkills>& InCrystalActions, const TArray<TSoftClassPtr<UBLAction>>& InSpecialActions
+		, const TArray<TSoftClassPtr<UBLCombatItem>>& InItemActions, TSoftClassPtr<UBLAction> InRunAwayAction)
 
 		: AttackActions(InAttackActions), DefendAction(InDefendAction), CrystalActions(InCrystalActions)
-		  , SpecialActions(InSpecialActions), ItemActions(InItemActions), RunAwayAction(InRunAwayAction)
+		, SpecialActions(InSpecialActions), ItemActions(InItemActions), RunAwayAction(InRunAwayAction)
 	{}
 };
 
@@ -517,7 +504,7 @@ struct FPostCombatData
 	{}
 
 	FPostCombatData(TSoftObjectPtr<UWorld> InPostCombatMap, int32 InExperience, int32 InGold, const TArray<TSoftClassPtr<UBLItem>>& InItems
-	    , ULevelSequence* InLevelSequence = nullptr, bool InUseNewPlayerPosition = false)
+		, ULevelSequence* InLevelSequence = nullptr, bool InUseNewPlayerPosition = false)
 
 		: PostCombatMap(InPostCombatMap), Experience(InExperience), Gold(InGold), Items(InItems)
 		, LevelSequence(InLevelSequence), bUseNewPlayerPosition(InUseNewPlayerPosition)
@@ -566,7 +553,7 @@ struct FCombatData
 	{}
 
 	FCombatData(TSoftObjectPtr<UWorld> InCombatMap, TObjectPtr<UBLEnemyDataAsset> InEnemyData, UMaterialInstance* InBackgroundMaterial
-	    , USoundBase* InCombatMusic, bool InCanRunAway, const TArray<FText>& InQuestDisplayTexts, bool InSneakAttack)
+		, USoundBase* InCombatMusic, bool InCanRunAway, const TArray<FText>& InQuestDisplayTexts, bool InSneakAttack)
 
 		: CombatMap(InCombatMap), EnemyData(InEnemyData), BackgroundMaterial(InBackgroundMaterial), CombatMusic(InCombatMusic)
 		, bCanRunAway(InCanRunAway), QuestDisplayTexts(InQuestDisplayTexts), bSneakAttack(InSneakAttack)
@@ -614,11 +601,11 @@ struct FEnemyLevelData
 
 	FEnemyLevelData()
 		: Strength(5.f), Agility(5.f), Wisdom(5.f), Endurance(5.f), BaseHP(10.f), BaseME(10.f), BaseAttackDMG(5.f)
-		  , BaseDefense(10.f), Cooldown(10.f), Exp(5), Money(5)
+		, BaseDefense(10.f), Cooldown(10.f), Exp(5), Money(5)
 	{}
 
 	FEnemyLevelData(float InStrength, float InAgility, float InWisdom, float InEndurance, float InBaseHP, float InBaseME
-	               , float InBaseAttackDMG, float InBaseDefens, float InCooldown, int32 InExp, int32 InMoney)
+		, float InBaseAttackDMG, float InBaseDefens, float InCooldown, int32 InExp, int32 InMoney)
 
 		: Strength(InStrength), Agility(InAgility), Wisdom(InWisdom), Endurance(InEndurance), BaseHP(InBaseHP)
 		, BaseME(InBaseME), BaseAttackDMG(InBaseAttackDMG), BaseDefense(InBaseDefens), Cooldown(InCooldown)
@@ -630,10 +617,6 @@ USTRUCT(BlueprintType)
 struct FHeroAssetInfo
 {
 	GENERATED_BODY()
-
-	// To auto calculate CurrentHP, test it more in future
-	//void UpdateCurrentHP();
-	//void UpdateCurrentME();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FHeroAttributes HeroAttributes;

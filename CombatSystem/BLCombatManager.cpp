@@ -21,7 +21,7 @@
 ABLCombatManager::ABLCombatManager()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	bAction = false;
 	CurrentActionType = ECombatActionType::NONE;
@@ -30,6 +30,7 @@ ABLCombatManager::ABLCombatManager()
 	CurrentTargetSlot = nullptr;
 	QuestTextIndex = 0;
 
+	// Max size of teams
 	PlayerTeam.Init(nullptr, 5);
 	EnemyTeam.Init(nullptr, 12);
 }
@@ -39,18 +40,12 @@ void ABLCombatManager::BeginPlay()
 {
 	Super::BeginPlay();
 
-	ABLCombatPlayerController* AC = Cast<ABLCombatPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
-	if (AC)
-	{
-		AC->OnSlotClicked.BindUObject(this, &ABLCombatManager::HandleSlotClicked);
-		AC->OnSlotRemoved.BindUObject(this, &ABLCombatManager::DeselectClickedSlot);
-	}
-
+	BindInputDelegates();
 	InitializeWidget();
 	SetPlayerTeam();
 	SetEnemyTeam();
-	BindPlayerDelegetes();
-	BindEnemyDelegetes();
+	BindSlotsDelegetes();
+
 	if (Widget)
 	{
 		Widget->AddToViewport();
@@ -61,12 +56,7 @@ void ABLCombatManager::BeginPlay()
 	ShowQuestText_Implementation();
 }
 
-// Called every frame
-void ABLCombatManager::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
+/**********       PLAYER       ***********/
 
 void ABLCombatManager::SetPlayerTeam()
 {
@@ -88,41 +78,6 @@ void ABLCombatManager::SetPlayerTeam()
 	}
 }
 
-void ABLCombatManager::SetEnemyTeam()
-{
-	UBLGameInstance* GI = Cast<UBLGameInstance>(GetGameInstance());
-	if (!GI)
-	{
-		return;
-	}
-
-	UBLEnemyDataAsset* Data = GI->CombatData.EnemyData;
-	if (!Data)
-	{
-		return;
-	}
-
-	for (int32 Index = 0; Index < Data->Enemies.Num(); ++Index)
-	{
-		if (EnemyTeam[Index] && Widget)
-		{
-			EnemyTeam[Index]->SpawnEnemy(Data->Enemies[Index].BaseData, Data->Enemies[Index].Level, Data->Enemies[Index].Actions, GI->CombatData.bSneakAttack);
-			Widget->AddEnemy(EnemyTeam[Index]->GetIndex(), Data->Enemies[Index].BaseData.Name, Data->Enemies[Index].Level, Data->Enemies[Index].BaseData.Cooldown);
-		}
-	}	
-}
-
-void ABLCombatManager::InitializeWidget()
-{
-	if (WidgetClass)
-	{
-		Widget = CreateWidget<UBLCombatWidget>(GetWorld(), WidgetClass);
-		Widget->OnActionChosen.BindUObject(this, &ABLCombatManager::ChooseAction);
-		Widget->OnHeroSelected.BindUObject(this, &ABLCombatManager::ChoosePlayerSlot);
-		Widget->OnResetCurrentActionType.BindWeakLambda(this, [this]() {CurrentActionType = ECombatActionType::NONE; });
-	}
-}
-
 void ABLCombatManager::HandleSlotClicked(AActor* Slot)
 {
 	ABLCombatSlot* CurrentSlot = Cast<ABLCombatSlot>(Slot);
@@ -131,147 +86,126 @@ void ABLCombatManager::HandleSlotClicked(AActor* Slot)
 		return;
 	}
 
+	// If the player doesn't have enough ME for an action, display the widget.
 	if (CurrentActionType != ECombatActionType::NONE && CurrentActionData.MECost > CurrentPlayerSlot->GetCharacter()->GetCurrentME())
 	{
 		Widget->ActivateNotEnoughME();
 		return;
 	}
 
-	bool bUseSlots = false;
-
-	switch (CurrentActionType)
+	switch (CurrentActionData.Flow) 
 	{
-		case ECombatActionType::ATTACK:
+		case ECombatActionFlow::DEFAULT:
 		{
-			if (CurrentSlot->IsEnemy())
+			if (CurrentSlot == CurrentPlayerSlot)
 			{
 				ChooseTargetSlot(CurrentSlot);
 				break;
 			}
 			return;
 		}
-		case ECombatActionType::CRYSTAL_SKILL:
-		case ECombatActionType::SPECIAL_SKILL:
-		case ECombatActionType::ITEM:
+		case ECombatActionFlow::COLUMN_MELEE:
 		{
-			switch (CurrentActionData.Flow) 
+			if (CurrentSlot->IsEnemy())
 			{
-				case ECombatActionFlow::DEFAULT:
+				int32 IndexStart = 0;
+				int32 IndexEnd = 0;
+				// 1. column
+				if (CurrentSlot->GetIndex() <= 3)
 				{
-					if (CurrentSlot == CurrentPlayerSlot)
-					{
-						ChooseTargetSlot(CurrentSlot);
-						break;
-					}
-					return;
+					IndexStart = 0;
+					IndexEnd = 3;
 				}
-				case ECombatActionFlow::COLUMN_MELEE:
+				// 2. column
+				else if (CurrentSlot->GetIndex() >= 4 && CurrentSlot->GetIndex() <= 7)
 				{
-					if (CurrentSlot->IsEnemy())
-					{
-						int32 IndexStart = 0;
-						int32 IndexEnd = 0;
-						if (CurrentSlot->GetIndex() <= 3)
-						{
-							IndexStart = 0;
-							IndexEnd = 3;
-						}
-						else if (CurrentSlot->GetIndex() >= 4 && CurrentSlot->GetIndex() <= 7)
-						{
-							IndexStart = 4;
-							IndexEnd = 7;
-						}
-						else
-						{
-							IndexStart = 8;
-							IndexEnd = 11;
-						}
-						for (IndexStart; IndexStart <= IndexEnd; ++IndexStart)
-						{
-							if (EnemyTeam[IndexStart] && EnemyTeam[IndexStart]->IsActive())
-							{
-								ChooseTargetSlot(EnemyTeam[IndexStart]);
-							}
-						}
-						break;
-					}
-					return;				
+					IndexStart = 4;
+					IndexEnd = 7;
 				}
-				case ECombatActionFlow::BOUNCE_RANGE:
+				// 3. column
+				else
 				{
-					if (CurrentSlot->IsEnemy())
-					{
-						ChooseTargetSlot(CurrentSlot);
-						if (CurrentActionData.TargetsNum == 1)
-						{
-							break;
-						}
-						int32 DisabledIndex = CurrentSlot->GetIndex();
-						for (int32 Index = 0; Index < CurrentActionData.TargetsNum - 1; ++Index)
-						{
-							TArray<int32> AvailableIndexes;
-							for (const auto& EnemySlot : EnemyTeam)
-							{
-								if (EnemySlot && EnemySlot->IsActive() && EnemySlot->GetIndex() != DisabledIndex)
-								{
-									AvailableIndexes.Add(EnemySlot->GetIndex());
-								}
-							}
-							if (AvailableIndexes.IsEmpty())
-							{
-								break; 
-							}
-							const int32 RandomIndex = FMath::RandRange(0, AvailableIndexes.Num() - 1);						
-							CurrentTargetsSlots.Add(EnemyTeam[AvailableIndexes[RandomIndex]]);
-							DisabledIndex = AvailableIndexes[RandomIndex];
-						}
-						break;
-					}
-					return;
+					IndexStart = 8;
+					IndexEnd = 11;
 				}
-				case ECombatActionFlow::WHOLE_TEAM_IN_PLACE:
+
+				for (IndexStart; IndexStart <= IndexEnd; ++IndexStart)
 				{
-					if (CurrentSlot->IsEnemy())
-					{	
-						for (auto& EnemySlot : EnemyTeam)
-						{
-							if (EnemySlot && EnemySlot->IsActive())
-							{
-								ChooseTargetSlot(EnemySlot);
-							}
-						}
-						bUseSlots = true;
-						break;
-					}
-					return;
-				}
-				default:
-				{
-					if (CurrentSlot->IsEnemy())
+					if (EnemyTeam[IndexStart] && EnemyTeam[IndexStart]->IsActive())
 					{
-						ChooseTargetSlot(CurrentSlot);
-						if (CurrentTargetsSlots.Num() >= CurrentActionData.TargetsNum)
+						ChooseTargetSlot(EnemyTeam[IndexStart]);
+					}
+				}
+				break;
+			}
+			return;				
+		}
+		case ECombatActionFlow::BOUNCE_RANGE:
+		{
+			if (CurrentSlot->IsEnemy())
+			{
+				ChooseTargetSlot(CurrentSlot);
+				if (CurrentActionData.TargetsNum == 1)
+				{
+					break;
+				}
+
+				// Projectiles cannot bounce 2 times in a row on the same target
+				int32 DisabledIndex = CurrentSlot->GetIndex();
+				for (int32 Index = 0; Index < CurrentActionData.TargetsNum - 1; ++Index)
+				{
+					TArray<int32> AvailableIndexes;
+					for (const auto& EnemySlot : EnemyTeam)
+					{
+						if (EnemySlot && EnemySlot->IsActive() && EnemySlot->GetIndex() != DisabledIndex)
 						{
-							break;
+							AvailableIndexes.Add(EnemySlot->GetIndex());
 						}
 					}
-					return;
+
+					if (AvailableIndexes.IsEmpty())
+					{
+						break; 
+					}
+
+					const int32 RandomIndex = FMath::RandRange(0, AvailableIndexes.Num() - 1);						
+					CurrentTargetsSlots.Add(EnemyTeam[AvailableIndexes[RandomIndex]]);
+					DisabledIndex = AvailableIndexes[RandomIndex];
+				}
+				break;
+			}
+			return;
+		}
+		case ECombatActionFlow::WHOLE_TEAM_IN_PLACE:
+		{
+			if (CurrentSlot->IsEnemy())
+			{	
+				for (const auto& EnemySlot : EnemyTeam)
+				{
+					if (EnemySlot && EnemySlot->IsActive())
+					{
+						ChooseTargetSlot(EnemySlot);
+					}
+				}
+				break;
+			}
+			return;
+		}
+		default:
+		{
+			if (CurrentSlot->IsEnemy())
+			{
+				ChooseTargetSlot(CurrentSlot);
+				if (CurrentTargetsSlots.Num() >= CurrentActionData.TargetsNum)
+				{
+					break;
 				}
 			}
-			break;
+			return;
 		}
-		default: return;
 	}
 
-	PlayerAction(bUseSlots);
-}
-
-void ABLCombatManager::DeselectClickedSlot()
-{
-	if (!CurrentTargetsSlots.IsEmpty())
-	{
-		ClearTargetSlot(CurrentTargetsSlots.Pop());
-	}
+	ProcessPlayerAction();
 }
 
 void ABLCombatManager::ChooseTargetSlot(ABLCombatSlot* Slot)
@@ -333,7 +267,7 @@ void ABLCombatManager::ClearPlayerSlot()
 	}
 }
 
-void ABLCombatManager::ChooseRandomPlayerSlot()
+void ABLCombatManager::ChooseAvailablePlayerSlot()
 {
 	for (ABLCombatSlot* Slot : PlayerTeam)
 	{
@@ -345,90 +279,161 @@ void ABLCombatManager::ChooseRandomPlayerSlot()
 	}
 }
 
-void ABLCombatManager::AddActionToQueue(ABLCombatSlot* OwnerSlot, const TArray<ABLCombatSlot*>& TargetsSlots, const FCombatActionData& ActionData, bool bEnemyAction, bool bUseSlots)
+void ABLCombatManager::DeselectClickedSlot()
 {
-	ActionQueue.Add(FActionQueue(OwnerSlot, TargetsSlots, ActionData, bEnemyAction, bUseSlots));
+	if (!CurrentTargetsSlots.IsEmpty())
+	{
+		ClearTargetSlot(CurrentTargetsSlots.Pop());
+	}
 }
 
-void ABLCombatManager::HandleActionsQueue()
+void ABLCombatManager::ProcessPlayerAction()
 {
-	if (bAction || ActionQueue.IsEmpty())
+	if (!Widget)
 	{
 		return;
 	}
 
-	if (!ActionQueue[0].OwnerSlot || !ActionQueue[0].OwnerSlot->IsActive())
+	AddActionToQueue(CurrentPlayerSlot, CurrentTargetsSlots, CurrentActionData, false);
+	CurrentPlayerSlot->bCanDoAction = false;
+	CurrentActionType = ECombatActionType::NONE;
+
+	Widget->ResetHeroCooldownBar(CurrentPlayerSlot->GetIndex());
+
+	ClearPlayerSlot();
+	ChooseAvailablePlayerSlot();
+
+	FTimerHandle ClearTargetDelay;
+	FTimerDelegate ClearTargetDel;
+	ClearTargetDel.BindUObject(this, &ABLCombatManager::ClearTargetsSlots);
+	GetWorld()->GetTimerManager().SetTimer(ClearTargetDelay, ClearTargetDel, 1.f, false);
+}
+
+void ABLCombatManager::SetPlayerActionData(const FCombatActionData& ActionData)
+{
+	CurrentActionType = ActionData.Type;
+	CurrentActionData = ActionData;
+
+	// If it is DEFEND, do it without choosing target
+	if (CurrentActionType == ECombatActionType::DEFEND && CurrentPlayerSlot)
 	{
-		ActionQueue.RemoveAt(0);
-		bAction = false;
+		ChooseTargetSlot(CurrentPlayerSlot);
+		ProcessPlayerAction();
+	}
+
+	//If it is RUN AWAY, do it without choosing target and try to escape combat (30% chance)
+	if (CurrentActionType == ECombatActionType::RUN_AWAY && CurrentPlayerSlot)
+	{
+		ChooseTargetSlot(CurrentPlayerSlot);
+		ProcessPlayerAction();
+	}
+}
+
+void ABLCombatManager::ResetPlayerAction(ABLCombatSlot* NewPlayerSlot)
+{
+	CurrentActionType = ECombatActionType::NONE;
+	ClearPlayerSlot();
+	ClearTargetsSlots();
+	ChoosePlayerSlot(NewPlayerSlot);
+}
+
+void ABLCombatManager::SetHeroesOverworldHP(float MinPercentage)
+{
+	UBLGameInstance* GI = Cast<UBLGameInstance>(GetGameInstance());
+	if (!GI)
+	{
 		return;
 	}
-		
-	if (!ActionQueue[0].bSummon)
+
+	for (int32 Index = 0; Index < GI->SaveGameData.HeroesData.Heroes.Num(); ++Index)
 	{
-		for (int32 Index = ActionQueue[0].TargetsSlots.Num() - 1; Index >= 0; --Index)
+		if (PlayerTeam.IsValidIndex(Index) && PlayerTeam[Index] && PlayerTeam[Index]->GetCharacter())
 		{
-			if (ActionQueue[0].TargetsSlots[Index] && !ActionQueue[0].TargetsSlots[Index]->IsActive())
-			{
-				ABLCombatSlot* NewTargetSlot = FindNewTargetSlot(ActionQueue[0].bEnemyAction);
-				if (NewTargetSlot)
-				{
-					ActionQueue[0].TargetsSlots[Index] = NewTargetSlot;
-				}
-				else
-				{
-					ActionQueue[0].TargetsSlots.RemoveSingle(ActionQueue[0].TargetsSlots[Index]);
-				}
-	
-			}
+			GI->SaveGameData.HeroesData.Heroes[Index].HeroAttributes.CurrentHP = PlayerTeam[Index]->GetCharacter()->GetCurrentHP() > PlayerTeam[Index]->GetCharacter()->GetMaxHP() * MinPercentage
+																				? PlayerTeam[Index]->GetCharacter()->GetCurrentHP() : PlayerTeam[Index]->GetCharacter()->GetMaxHP() * MinPercentage;
 		}
 	}
-
-	DoAction(ActionQueue[0].OwnerSlot, ActionQueue[0].TargetsSlots, ActionQueue[0].ActionData, ActionQueue[0].bEnemyAction, ActionQueue[0].bSummon);
-	ActionQueue.RemoveAt(0);
 }
 
-void ABLCombatManager::DoAction(ABLCombatSlot* OwnerSlot, const TArray<ABLCombatSlot*>& TargetsSlots, const FCombatActionData& ActionData, bool bEnemyAction, bool bUseSlots)
-{	
-	if (!OwnerSlot)
+void ABLCombatManager::HeroDied(ABLCombatSlot* PlayerSlot)
+{
+	if (Widget)
 	{
-		bAction = false;
+		PlayerSlot == CurrentPlayerSlot ? Widget->HeroDied(PlayerSlot->GetIndex(), true) : Widget->HeroDied(PlayerSlot->GetIndex(), false);
+	}
+
+	if (PlayerSlot == CurrentPlayerSlot)
+	{
+		ClearPlayerSlot();
+		ChooseAvailablePlayerSlot();
+	}
+}
+
+void ABLCombatManager::RunAway(bool bSuccessful)
+{
+	if (!bSuccessful)
+	{
+		if (Widget)
+		{
+			Widget->ShowRunAwayText(false);
+		}
 		return;
 	}
 
-	bAction = true;
-	PauseCooldowns();
+	GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
 
 	if (Widget)
 	{
-		Widget->PauseCooldownBars(true);
-		Widget->ShowActionTextDisplay(true);
+		Widget->ShowRunAwayText(true);
 	}
 
-	OwnerSlot->DoAction(TargetsSlots, ActionData, this, bUseSlots);
-}
-
-ABLCombatSlot* ABLCombatManager::FindNewTargetSlot(bool bEnemyAction)
-{
-	const TArray<ABLCombatSlot*>& Team = bEnemyAction ? PlayerTeam : EnemyTeam;;
-
-	for (auto* Slot : Team)
+	UBLGameInstance* GI = Cast<UBLGameInstance>(GetGameInstance());
+	if (GI)
 	{
-		if (Slot && Slot->IsActive())
+		if (GI->GetEnemies().Contains(GI->CombatData.EnemyTag))
 		{
-			return Slot;
+			// Remove enemy from overworld
+			GI->SetEnemyFlag(GI->CombatData.EnemyTag, true);
 		}
+
+		SetHeroesOverworldHP(0.3f);
+		FTimerDelegate DelayDel;
+		DelayDel.BindUObject(this, &ABLCombatManager::ExitCombat);
+		FTimerHandle DelayTimer;
+		GetWorld()->GetTimerManager().SetTimer(DelayTimer, DelayDel, 2.f, false);
 	}
-		
-	return nullptr;
+}
+/****************************************/
+
+/**********       ENEMY       ***********/
+
+void ABLCombatManager::SetEnemyTeam()
+{
+	UBLGameInstance* GI = Cast<UBLGameInstance>(GetGameInstance());
+	if (!GI)
+	{
+		return;
+	}
+
+	UBLEnemyDataAsset* Data = GI->CombatData.EnemyData;
+	if (!Data)
+	{
+		return;
+	}
+
+	for (int32 Index = 0; Index < Data->Enemies.Num(); ++Index)
+	{
+		if (EnemyTeam[Index] && Widget)
+		{
+			EnemyTeam[Index]->SpawnEnemy(Data->Enemies[Index].BaseData, Data->Enemies[Index].Level, Data->Enemies[Index].Actions, GI->CombatData.bSneakAttack);
+			Widget->AddEnemy(EnemyTeam[Index]->GetIndex(), Data->Enemies[Index].BaseData.Name, Data->Enemies[Index].Level, Data->Enemies[Index].BaseData.Cooldown);
+		}
+	}	
 }
 
 void ABLCombatManager::HandleEnemyAction(ABLCombatSlot* EnemySlot, FCombatActionData&& ActionData)
 {
-	bool bUseSlots = false;
-
 	TArray<int32> ActiveSlots;
-
 	for (const auto& Slot : PlayerTeam)
 	{
 		if (Slot && Slot->IsActive())
@@ -492,7 +497,7 @@ void ABLCombatManager::HandleEnemyAction(ABLCombatSlot* EnemySlot, FCombatAction
 		case ECombatActionFlow::SUMMON_ALLIES:
 		{
 			TArray<int32> AvailableSlotsIndex;
-			for (auto& Slot : EnemyTeam)
+			for (const auto& Slot : EnemyTeam)
 			{
 				// not active because we are summoning in free slots
 				if (Slot && !Slot->IsActive() && Slot != EnemySlot)
@@ -518,7 +523,6 @@ void ABLCombatManager::HandleEnemyAction(ABLCombatSlot* EnemySlot, FCombatAction
 				Targets.Add(EnemyTeam[AvailableSlotsIndex[RandomIndex]]);
 				AvailableSlotsIndex.RemoveAt(RandomIndex);
 			}
-			bUseSlots = true;
 			break;
 		}
 		case ECombatActionFlow::KILL_ALLIES:
@@ -548,27 +552,144 @@ void ABLCombatManager::HandleEnemyAction(ABLCombatSlot* EnemySlot, FCombatAction
 				}
 				const int32 RandomIndex = FMath::RandRange(0, AvailableSlotsIndex.Num() - 1);
 				Targets.Add(EnemyTeam[AvailableSlotsIndex[RandomIndex]]);
-				AvailableSlotsIndex.RemoveAt(RandomIndex);				
+				AvailableSlotsIndex.RemoveAt(RandomIndex);
 			}
-			bUseSlots = true;
 			break;
 		}
 		case ECombatActionFlow::WHOLE_TEAM_IN_PLACE:
 		{
-			for (auto& Slot : PlayerTeam)
+			for (const auto& Slot : PlayerTeam)
 			{
 				if (Slot && Slot->IsActive())
 				{
 					Targets.Add(Slot);
 				}
 			}
-			bUseSlots = true;
 			break;
 		}
 		default: break;
 	}
 
-	AddActionToQueue(EnemySlot, Targets, ActionData, true, bUseSlots);
+	AddActionToQueue(EnemySlot, Targets, ActionData, true);
+}
+
+void ABLCombatManager::EnemyDied(ABLCombatSlot* EnemySlot)
+{
+	if (CurrentTargetsSlots.Contains(EnemySlot))
+	{
+		ClearTargetSlot(EnemySlot);
+	}
+
+	if (Widget)
+	{
+		Widget->EnemyDied(EnemySlot->GetIndex());
+	}
+}
+
+/*************************************************************/
+
+void ABLCombatManager::BindInputDelegates()
+{
+	ABLCombatPlayerController* AC = Cast<ABLCombatPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+	if (AC)
+	{
+		AC->OnSlotClicked.BindUObject(this, &ABLCombatManager::HandleSlotClicked);
+		AC->OnSlotRemoved.BindUObject(this, &ABLCombatManager::DeselectClickedSlot);
+	}
+}
+
+void ABLCombatManager::BindSlotsDelegetes()
+{
+	for (const auto& Slot : PlayerTeam)
+	{
+		if (Slot && Slot->IsActive())
+		{
+			Slot->OnCharActionEnded.BindUObject(this, &ABLCombatManager::ActionEnded);
+			Slot->OnSelectedSlot.BindWeakLambda(this, [this, Slot](ABLCombatSlot* InSlot) { if (!CurrentPlayerSlot) ChoosePlayerSlot(Slot); });
+			Slot->OnCharHealthUpdate.BindWeakLambda(this, [this, Slot]() { if (Widget) Widget->UpdateHeroHealth(Slot->GetIndex(), Slot->GetCharacter()->GetMaxHP(), Slot->GetCharacter()->GetCurrentHP()); });
+			Slot->OnCharDeath.BindUObject(this, &ABLCombatManager::CharacterDied);
+			Slot->OnEscapeCombat.BindUObject(this, &ABLCombatManager::RunAway);
+		}
+	}
+
+	for (const auto& Slot : EnemyTeam)
+	{
+		if (Slot)
+		{
+			Slot->OnEnemyAction.BindUObject(this, &ABLCombatManager::HandleEnemyAction);
+			Slot->OnCharActionEnded.BindUObject(this, &ABLCombatManager::ActionEnded);
+			Slot->OnCharDeath.BindUObject(this, &ABLCombatManager::CharacterDied);
+			Slot->OnCharHealthUpdate.BindWeakLambda(this, [this, Slot]() { if (Widget) Widget->UpdateEnemyHealth(Slot->GetIndex(), Slot->GetCharacter()->GetCurrentHP(), Slot->GetCharacter()->GetMaxHP()); });
+			Slot->OnCharSpawned.BindWeakLambda(this, [this](int32 Index, const FString& Name, int32 Level, float Cooldown) { if (Widget) Widget->AddEnemy(Index, Name, Level, Cooldown); });
+			Slot->OnCharDestroyed.BindWeakLambda(this, [this](int32 Index) { if (Widget) Widget->RemoveEnemy(Index); });
+		}
+	}
+}
+
+void ABLCombatManager::AddActionToQueue(ABLCombatSlot* OwnerSlot, const TArray<ABLCombatSlot*>& TargetsSlots, const FCombatActionData& ActionData, bool bEnemyAction)
+{
+	ActionQueue.Add(FActionQueue(OwnerSlot, TargetsSlots, ActionData, bEnemyAction));
+}
+
+void ABLCombatManager::HandleActionsQueue()
+{
+	// Do nothing if other action is currently performed. 
+	if (bAction || ActionQueue.IsEmpty())
+	{
+		return;
+	}
+
+	// Delete action from queue if owner is not active (dead).
+	if (!ActionQueue[0].OwnerSlot || !ActionQueue[0].OwnerSlot->IsActive())
+	{
+		ActionQueue.RemoveAt(0);
+		bAction = false;
+		return;
+	}
+		
+	// If it's not summon allies type of action, check if all targets are active (alive). If not, find new active target.
+	if (ActionQueue[0].ActionData.Flow != ECombatActionFlow::SUMMON_ALLIES)
+	{
+		for (int32 Index = ActionQueue[0].TargetsSlots.Num() - 1; Index >= 0; --Index)
+		{
+			if (ActionQueue[0].TargetsSlots[Index] && !ActionQueue[0].TargetsSlots[Index]->IsActive())
+			{
+				ABLCombatSlot* NewTargetSlot = FindNewTargetSlot(ActionQueue[0].bEnemyAction);
+				if (NewTargetSlot)
+				{
+					ActionQueue[0].TargetsSlots[Index] = NewTargetSlot;
+				}
+				else
+				{
+					ActionQueue[0].TargetsSlots.RemoveSingle(ActionQueue[0].TargetsSlots[Index]);
+				}
+	
+			}
+		}
+	}
+
+	DoAction(ActionQueue[0].OwnerSlot, ActionQueue[0].TargetsSlots, ActionQueue[0].ActionData, ActionQueue[0].bEnemyAction);
+	ActionQueue.RemoveAt(0);
+}
+
+void ABLCombatManager::DoAction(ABLCombatSlot* OwnerSlot, const TArray<ABLCombatSlot*>& TargetsSlots, const FCombatActionData& ActionData, bool bEnemyAction)
+{	
+	if (!OwnerSlot)
+	{
+		bAction = false;
+		return;
+	}
+
+	bAction = true;
+	PauseCooldowns();
+
+	if (Widget)
+	{
+		Widget->PauseCooldownBars(true);
+		Widget->ShowActionTextDisplay(true);
+	}
+
+	OwnerSlot->DoAction(TargetsSlots, ActionData, this);
 }
 
 void ABLCombatManager::ActionEnded(ABLCombatSlot* OwnerSlot, bool bWasEnemy)
@@ -587,70 +708,46 @@ void ABLCombatManager::ActionEnded(ABLCombatSlot* OwnerSlot, bool bWasEnemy)
 	if (!bWasEnemy)
 	{
 		Widget->StartHeroCooldownBar(OwnerSlot->GetIndex(), OwnerSlot->GetCooldown());
-		UpdateHeroMEWidget(OwnerSlot);
+		Widget->UpdateHeroMagicEnergy(OwnerSlot->GetIndex(), OwnerSlot->GetCharacter()->GetMaxME(), OwnerSlot->GetCharacter()->GetCurrentME());	
 	}
 }
 
-void ABLCombatManager::ChooseAction(const FCombatActionData& ActionData)
+void ABLCombatManager::InitializeWidget()
 {
-	CurrentActionType = ActionData.Type;
-	CurrentActionData = ActionData;
-
-	// If it is DEFEND, do it without choosing target
-	if (CurrentActionType == ECombatActionType::DEFEND && CurrentPlayerSlot)
+	if (WidgetClass)
 	{
-		ChooseTargetSlot(CurrentPlayerSlot);
-		PlayerAction(false);
-	}
-
-	//If it is RUN AWAY, do it without choosing target and try to escape combat (30% chance)
-	if (CurrentActionType == ECombatActionType::RUN_AWAY && CurrentPlayerSlot)
-	{
-		ChooseTargetSlot(CurrentPlayerSlot);
-		PlayerAction(false);
+		Widget = CreateWidget<UBLCombatWidget>(GetWorld(), WidgetClass);
+		Widget->OnActionChosen.BindUObject(this, &ABLCombatManager::SetPlayerActionData);
+		Widget->OnHeroSelected.BindUObject(this, &ABLCombatManager::ChoosePlayerSlot);
+		Widget->OnResetCurrentActionType.BindWeakLambda(this, [this]() {CurrentActionType = ECombatActionType::NONE; });
 	}
 }
 
-void ABLCombatManager::ResetAction(ABLCombatSlot* NewPlayerSlot)
+ABLCombatSlot* ABLCombatManager::FindNewTargetSlot(bool bEnemyAction)
 {
-	CurrentActionType = ECombatActionType::NONE;
-	ClearPlayerSlot();
-	ClearTargetsSlots();
-	ChoosePlayerSlot(NewPlayerSlot);
-}
+	const TArray<ABLCombatSlot*>& Team = bEnemyAction ? PlayerTeam : EnemyTeam;;
 
-void ABLCombatManager::PlayerAction(bool bUseSlots)
-{
-	if (!Widget)
+	for (const auto& Slot : Team)
 	{
-		return;
+		if (Slot && Slot->IsActive())
+		{
+			return Slot;
+		}
 	}
-
-	AddActionToQueue(CurrentPlayerSlot, CurrentTargetsSlots, CurrentActionData, false, bUseSlots);
-	CurrentPlayerSlot->bCanDoAction = false;
-	CurrentActionType = ECombatActionType::NONE;
-
-	Widget->ResetHeroCooldownBar(CurrentPlayerSlot->GetIndex());
-
-	ClearPlayerSlot();
-	ChooseRandomPlayerSlot();
-
-	FTimerHandle ClearTargetDelay;
-	FTimerDelegate ClearTargetDel;
-	ClearTargetDel.BindUObject(this, &ABLCombatManager::ClearTargetsSlots);
-	GetWorld()->GetTimerManager().SetTimer(ClearTargetDelay, ClearTargetDel, 1.f, false);
+		
+	return nullptr;
 }
 
 void ABLCombatManager::PauseCooldowns()
 {
-	for (ABLCombatSlot* Slot : PlayerTeam)
+	for (const auto& Slot : PlayerTeam)
 	{
 		if (Slot && Slot->IsActive())
 		{
 			Slot->PauseCharCooldown();
 		}
 	}
-	for (ABLCombatSlot* Slot : EnemyTeam)
+	for (const auto& Slot : EnemyTeam)
 	{
 		if (Slot && Slot->IsActive())
 		{
@@ -661,49 +758,25 @@ void ABLCombatManager::PauseCooldowns()
 
 void ABLCombatManager::UnPauseCooldowns()
 {
-	for (ABLCombatSlot* Slot : PlayerTeam)
+	for (const auto& Slot : PlayerTeam)
 	{
 		if (Slot && Slot->IsActive())
 		{
 			Slot->UnPauseCharCooldown();
 		}
 	}
-	for (ABLCombatSlot* Slot : EnemyTeam)
+	for (const auto& Slot : EnemyTeam)
 	{
 		if (Slot && Slot->IsActive())
 		{
 			Slot->UnPauseCharCooldown();
 		}
-	}
-}
-
-
-void ABLCombatManager::UpdateHeroHPWidget(ABLCombatSlot* PlayerSlot)
-{
-	if (Widget)
-	{
-		Widget->UpdateHeroHealth(PlayerSlot->GetIndex(), PlayerSlot->GetCharacter()->GetMaxHP(), PlayerSlot->GetCharacter()->GetCurrentHP());
-	}
-}
-
-void ABLCombatManager::UpdateHeroMEWidget(ABLCombatSlot* PlayerSlot)
-{
-	if (Widget)
-	{
-		Widget->UpdateHeroMagicEnergy(PlayerSlot->GetIndex(), PlayerSlot->GetCharacter()->GetMaxME(), PlayerSlot->GetCharacter()->GetCurrentME());
 	}
 }
 
 void ABLCombatManager::CharacterDied(ABLCombatSlot* Slot, bool bIsEnemy)
 {
-	if (bIsEnemy)
-	{
-		EnemyDied(Slot);
-	}
-	else
-	{
-		HeroDied(Slot);
-	}
+	bIsEnemy ? EnemyDied(Slot) : HeroDied(Slot);
 
 	bool bWonGame = false;
 	if (CheckIfEndGame(bWonGame))
@@ -712,39 +785,12 @@ void ABLCombatManager::CharacterDied(ABLCombatSlot* Slot, bool bIsEnemy)
 	}
 }
 
-void ABLCombatManager::HeroDied(ABLCombatSlot* PlayerSlot)
-{
-	if (Widget)
-	{
-		PlayerSlot == CurrentPlayerSlot ? Widget->HeroDied(PlayerSlot->GetIndex(), true) : Widget->HeroDied(PlayerSlot->GetIndex(), false);
-	}
-
-	if (PlayerSlot == CurrentPlayerSlot)
-	{
-		ClearPlayerSlot();
-		ChooseRandomPlayerSlot();
-	}
-}
-
-void ABLCombatManager::EnemyDied(ABLCombatSlot* EnemySlot)
-{
-	if (CurrentTargetsSlots.Contains(EnemySlot))
-	{
-		ClearTargetSlot(EnemySlot);
-	}
-
-	if (Widget)
-	{
-		Widget->EnemyDied(EnemySlot->GetIndex());
-	}
-}
-
 bool ABLCombatManager::CheckIfEndGame(bool& OutWonGame)
 {
 	uint8 Checker = 0;
 	OutWonGame = false;
 
-	for (ABLCombatSlot* Slot : PlayerTeam)
+	for (const auto& Slot : PlayerTeam)
 	{
 		if (Slot && Slot->IsActive())
 		{
@@ -754,7 +800,7 @@ bool ABLCombatManager::CheckIfEndGame(bool& OutWonGame)
 		}
 	}
 
-	for (ABLCombatSlot* Slot : EnemyTeam)
+	for (const auto& Slot : EnemyTeam)
 	{
 		if (Slot && Slot->IsActive())
 		{
@@ -785,7 +831,7 @@ void ABLCombatManager::HandleEndGame(bool bWonGame)
 		}
 
 		{
-			SetHeroesCurrentHP();
+			SetHeroesOverworldHP(0.3f);
 			GI->AddCombatReward(GI->PostCombatData.Experience, GI->PostCombatData.Gold, GI->PostCombatData.Items);
 
 			if (WinWidgetClass)
@@ -819,37 +865,6 @@ void ABLCombatManager::HandleEndGame(bool bWonGame)
 	}
 }
 
-void ABLCombatManager::BindPlayerDelegetes()
-{
-	for (const auto& Slot : PlayerTeam)
-	{
-		if (Slot && Slot->IsActive())
-		{
-			Slot->OnCharActionEnded.BindUObject(this, &ABLCombatManager::ActionEnded);
-			Slot->OnSelectedSlot.BindWeakLambda(this, [this, Slot](ABLCombatSlot* InSlot) { if (!CurrentPlayerSlot) ChoosePlayerSlot(Slot); });
-			Slot->OnCharHealthUpdate.BindWeakLambda(this, [this, Slot]() { if (Widget) Widget->UpdateHeroHealth(Slot->GetIndex(), Slot->GetCharacter()->GetMaxHP(), Slot->GetCharacter()->GetCurrentHP()); });
-			Slot->OnCharDeath.BindUObject(this, &ABLCombatManager::CharacterDied);
-			Slot->OnEscapeCombat.BindUObject(this, &ABLCombatManager::RunAway);
-		}
-	}
-}
-
-void ABLCombatManager::BindEnemyDelegetes()
-{
-	for (const auto& Slot : EnemyTeam)
-	{
-		if (Slot)
-		{
-			Slot->OnEnemyAction.BindUObject(this, &ABLCombatManager::HandleEnemyAction);
-			Slot->OnCharActionEnded.BindUObject(this, &ABLCombatManager::ActionEnded);
-			Slot->OnCharDeath.BindUObject(this, &ABLCombatManager::CharacterDied);
-			Slot->OnCharHealthUpdate.BindWeakLambda(this, [this, Slot]() { if (Widget) Widget->UpdateEnemyHealth(Slot->GetIndex(), Slot->GetCharacter()->GetCurrentHP(), Slot->GetCharacter()->GetMaxHP()); });
-			Slot->OnCharSpawned.BindWeakLambda(this, [this](int32 Index, const FString& Name, int32 Level, float Cooldown) { if (Widget) Widget->AddEnemy(Index, Name, Level, Cooldown); });
-			Slot->OnCharDestroyed.BindWeakLambda(this, [this](int32 Index) { if (Widget) Widget->RemoveEnemy(Index); });
-		}
-	}
-}
-
 void ABLCombatManager::ExitCombat()
 {
 	UBLGameInstance* GI = Cast<UBLGameInstance>(GetGameInstance());
@@ -876,59 +891,6 @@ void ABLCombatManager::ExitCombat()
 	else
 	{
 		UGameplayStatics::OpenLevelBySoftObjectPtr(GetWorld(), GI->GetPostCombatMapName());
-	}
-}
-
-void ABLCombatManager::RunAway(bool bSuccessful)
-{
-	if (!bSuccessful)
-	{
-		if (Widget)
-		{
-			Widget->ShowRunAwayText(false);
-		}
-		return;
-	}
-
-	GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
-
-	if (Widget)
-	{
-		Widget->ShowRunAwayText(true);
-	}
-
-	UBLGameInstance* GI = Cast<UBLGameInstance>(GetGameInstance());
-	if (GI)
-	{
-		if (GI->GetEnemies().Contains(GI->CombatData.EnemyTag))
-		{
-			// Remove enemy from overworld
-			GI->SetEnemyFlag(GI->CombatData.EnemyTag, true);
-		}
-
-		SetHeroesCurrentHP();
-		FTimerDelegate DelayDel;
-		DelayDel.BindUObject(this, &ABLCombatManager::ExitCombat);
-		FTimerHandle DelayTimer;
-		GetWorld()->GetTimerManager().SetTimer(DelayTimer, DelayDel, 2.f, false);
-	}
-}
-
-void ABLCombatManager::SetHeroesCurrentHP()
-{
-	UBLGameInstance* GI = Cast<UBLGameInstance>(GetGameInstance());
-	if (!GI)
-	{
-		return;
-	}
-
-	for (int32 Index = 0; Index < GI->SaveGameData.HeroesData.Heroes.Num(); ++Index)
-	{
-		if (PlayerTeam.IsValidIndex(Index) && PlayerTeam[Index] && PlayerTeam[Index]->GetCharacter())
-		{
-			GI->SaveGameData.HeroesData.Heroes[Index].HeroAttributes.CurrentHP = PlayerTeam[Index]->GetCharacter()->GetCurrentHP() > PlayerTeam[Index]->GetCharacter()->GetMaxHP() * 0.7
-																				? PlayerTeam[Index]->GetCharacter()->GetCurrentHP() : PlayerTeam[Index]->GetCharacter()->GetMaxHP() * 0.7;
-		}
 	}
 }
 
