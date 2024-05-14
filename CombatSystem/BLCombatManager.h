@@ -172,15 +172,13 @@ public:
 	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "BL|Combat")
 	TArray<TObjectPtr<ABLCombatSlot>> EnemyTeam;
 
-	/** Data of every hero in Player team */
-	UPROPERTY(EditDefaultsOnly, Category = "BL|Combat")
-	TSoftObjectPtr<UBLHeroDataAsset> HeroesData;
-
 private:
 	UPROPERTY()
 	TObjectPtr<ABLCombatSlot> CurrentPlayerSlot;
+
 	UPROPERTY()
 	TObjectPtr<ABLCombatSlot> CurrentTargetSlot;
+
 	UPROPERTY()
 	TArray<TObjectPtr<ABLCombatSlot>> CurrentTargetsSlots;
 

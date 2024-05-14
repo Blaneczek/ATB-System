@@ -389,7 +389,7 @@ void UBLActionComponent::ReachedActionDestination()
 	CurrentAction->ExecuteAction(TargetSlots[0]);
 }
 
-
+// For MultipleRange action flow.
 void UBLActionComponent::ReachedActionDestination(int32 Index, bool bLastProjectile)
 {
 	if (!IsValid(CurrentAction) || !TargetSlots.IsValidIndex(Index) || !TargetSlots[Index])
@@ -406,6 +406,7 @@ void UBLActionComponent::ReachedActionDestination(int32 Index, bool bLastProject
 	CurrentAction->ExecuteAction(TargetSlots[Index]);
 }
 
+// For BounceRange action flow.
 void UBLActionComponent::ReachedActionDestination(ABLRangeProjectile* Projectile, int32 Index)
 {
 	if (!IsValid(CurrentAction) || !TargetSlots.IsValidIndex(Index) || !TargetSlots[Index] || !IsValid(Projectile))

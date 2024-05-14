@@ -80,7 +80,7 @@ void UBLHeroesWidget::StartHeroCooldownBar(int32 Index, float Cooldown)
 void UBLHeroesWidget::PauseAllCooldownBars(bool bNewPause)
 {
 	TArray<UUserWidget*> Heroes = HeroesTileView->GetDisplayedEntryWidgets();
-	for (auto* Hero : Heroes)
+	for (const auto& Hero : Heroes)
 	{
 		UBLHeroEntryWidget* HeroWidget = Cast<UBLHeroEntryWidget>(Hero);
 		if (HeroWidget && !HeroWidget->IsDead())

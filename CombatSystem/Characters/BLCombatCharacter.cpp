@@ -35,6 +35,8 @@ ABLCombatCharacter::ABLCombatCharacter()
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
 	bDead = false;
+	bMagicImmunity = false;
+	bDefendIdle = false;
 	Movement->MaxWalkSpeed = 900.f;
 }
 
@@ -44,11 +46,6 @@ void ABLCombatCharacter::BeginPlay()
 
 	ActionComponent->OnActionFinished.BindWeakLambda(this, [this]() { OnActionEnded.ExecuteIfBound(); });
 	ActionComponent->OnEscapeAction.BindWeakLambda(this, [this](bool bSuccessful) {OnEscape.ExecuteIfBound(bSuccessful); });
-}
-
-void ABLCombatCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
 }
 
 void ABLCombatCharacter::SetData(const FCombatCharData& InBaseData)

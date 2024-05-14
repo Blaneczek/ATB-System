@@ -38,6 +38,7 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void ActionCalculationsMultiAtOnce(const TArray<ABLCombatSlot*>& Targets, AActor* InCombatManager);
+
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "BL|Combat")
 	FText Name;
@@ -74,10 +75,8 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat")
 	TObjectPtr<AActor> CombatManager;
 
-	/** To call interface functions in CombatManager */
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat")
 	TObjectPtr<ABLCombatCharacter> OwnerChar;
-
 
 	/** Called when the action is completed */
 	FOnEndExecution OnEndExecution;

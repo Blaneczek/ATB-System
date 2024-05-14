@@ -16,5 +16,6 @@ class BLADEOFLEGEND_API UBLColumnMeleeAction : public UBLAction
 
 public:
 	void ActivateAction(UBLActionComponent* OwnerComponent) override;
+
 	void ExecuteAction(const TArray<ABLCombatSlot*>& Targets) override;
 };

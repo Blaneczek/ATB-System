@@ -33,10 +33,9 @@ public:
 	*/
 	void HighlightsHero(int32 Index, bool bNewColor);
 
-	void UnlightsHero();
-
 	void UpdateHeroHP(int32 Index, float MaxHP, float CurrentHP);
 	void UpdateHeroME(int32 Index, float MaxME, float CurrentME);
+
 	void StartHeroCooldownBar(int32 Index, float Cooldown);
 	void ResetHeroCooldownBar(int32 Index);
 
@@ -52,17 +51,19 @@ protected:
 private:
 	UFUNCTION()
 	void HeroClicked(UObject* Item);
-	
+
+	void UnlightsHero();
+
 public:
 	FOnHeroClicked OnHeroClicked;
 
 protected:
-	/** TileView with the heroes who will take part in the Combat */
+	/** TileView with the heroes who will take part in the Combat. */
 	UPROPERTY(BlueprintReadOnly, Category = "BL|Combat", meta = (BindWidget))
 	TObjectPtr<UTileView> HeroesTileView;
 
 private:
-	/** Current clicked Hero in HeroesTileView */
+	/** Current clicked Hero in HeroesTileView. */
 	UPROPERTY()
 	TObjectPtr<UBLHeroEntryWidget> ClickedHero;
 };

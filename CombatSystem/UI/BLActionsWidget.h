@@ -12,9 +12,6 @@ class UBorder;
 class UTextBlock;
 class UWidgetSwitcher;
 class UBLActionWidget;
-class UBLAttackActionWidget;
-class UBLDefendActionWidget;
-class UBLCrystalActionWidget;
 class UBLButtonEntryData;
 
 DECLARE_DELEGATE_OneParam(FOnChosenAction, const FCombatActionData& ActionData);

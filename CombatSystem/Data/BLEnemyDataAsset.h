@@ -37,8 +37,8 @@ class BLADEOFLEGEND_API UBLEnemyDataAsset : public UDataAsset
 
 	UFUNCTION(BlueprintCallable)
 	FCombatCharData CreateEnemyData(int32 EnemyLevel, const FString& Name, TSubclassOf<ABLCombatCharacter> Class, const FEnemyLevelData& LevelData
-								, ECombatElementType EnemyElement, ECombatElementType WeaponElement, const TSet<ECombatStatusType>& StatusesImmunity, const FCombatStatus& WeaponStatus, UPaperFlipbook* Sprite
-								, TSubclassOf<UPaperZDAnimInstance> AnimClass, UPaperZDAnimSequence* TakeDMGAnim);
+									, ECombatElementType EnemyElement, ECombatElementType WeaponElement, const TSet<ECombatStatusType>& StatusesImmunity, const FCombatStatus& WeaponStatus
+									, UPaperFlipbook* Sprite, TSubclassOf<UPaperZDAnimInstance> AnimClass, UPaperZDAnimSequence* TakeDMGAnim);
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

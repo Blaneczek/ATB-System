@@ -12,7 +12,6 @@ class USphereComponent;
 class UWidgetComponent;
 class UPaperZDAnimInstance;
 class UPaperFlipbook;
-class ABLRangeProjectile;
 class UBLAction;
 class UBLActionEntryData;
 class ABLCombatSlot;
@@ -38,9 +37,7 @@ public:
 
 	virtual void BeginPlay() override;
 
-	virtual void Tick(float DeltaTime);
-
-	void SetData(const FCombatCharData& InBaseData);
+	
 
 	void SetHeroData(const FCombatCharData& InBaseData, const FCombatActions& InCombatActions);
 	
@@ -149,6 +146,8 @@ public:
 	UPaperFlipbookComponent* GetPaperFlipbook() const { return PaperFlipbook; };
 
 private:
+	void SetData(const FCombatCharData& InBaseData);
+
 	/** 
 	 * Calculates the damage multiplier depending on the combination of elements. 
 	 * @param OutIsHeal - if elements are of the same type, it will heal the character (except NONE-NONE). 
@@ -173,7 +172,7 @@ public:
 	bool bDead;
 
 	UPROPERTY()
-	bool bMagicImmunity = false;
+	bool bMagicImmunity;
 
 	UPROPERTY()
 	FCombatCharData BaseData;
@@ -197,7 +196,7 @@ public:
 	float CurrentAttackDMG;
 
 	UPROPERTY()
-	bool bDefendIdle = false;
+	bool bDefendIdle;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "BL|Combat")

@@ -41,6 +41,7 @@ class BLADEOFLEGEND_API UBLSummonAction : public UBLAction
 
 public:
 	void ActivateAction(UBLActionComponent* OwnerComponent) override;
+
 	void ExecuteAction(const TArray<ABLCombatSlot*>& Targets) override;
 
 public:

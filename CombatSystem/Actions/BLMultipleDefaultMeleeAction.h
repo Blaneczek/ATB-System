@@ -16,5 +16,6 @@ class BLADEOFLEGEND_API UBLMultipleDefaultMeleeAction : public UBLAction
 
 public:
 	void ActivateAction(UBLActionComponent* OwnerComponent) override;
+
 	void ExecuteAction(ABLCombatSlot* Target) override;
 };

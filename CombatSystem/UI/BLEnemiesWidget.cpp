@@ -24,7 +24,7 @@ void UBLEnemiesWidget::AddEnemy(int32 Index, const FString& EnemyName, int32 Lev
 
 void UBLEnemiesWidget::RemoveEnemy(int32 Index)
 {		
-	for (auto Item : EnemiesTileView->GetListItems())
+	for (const auto& Item : EnemiesTileView->GetListItems())
 	{
 		UBLEnemyEntryData* Enemy = Cast<UBLEnemyEntryData>(Item);
 		if (Enemy && Enemy->Index == Index)
@@ -37,7 +37,7 @@ void UBLEnemiesWidget::RemoveEnemy(int32 Index)
 
 void UBLEnemiesWidget::UpdateEnemyHP(int32 Index, float CurrentHP, float MaxHP)
 {
-	for (const auto Enemy : EnemiesTileView->GetDisplayedEntryWidgets())
+	for (const auto& Enemy : EnemiesTileView->GetDisplayedEntryWidgets())
 	{
 		UBLEnemyEntryWidget* EnemyWidget = Cast<UBLEnemyEntryWidget>(Enemy);
 		if (EnemyWidget && EnemyWidget->Index == Index)
@@ -50,7 +50,7 @@ void UBLEnemiesWidget::UpdateEnemyHP(int32 Index, float CurrentHP, float MaxHP)
 
 void UBLEnemiesWidget::EnemyDied(int32 Index)
 {
-	for (const auto Enemy: EnemiesTileView->GetDisplayedEntryWidgets())
+	for (const auto& Enemy: EnemiesTileView->GetDisplayedEntryWidgets())
 	{
 		UBLEnemyEntryWidget* EnemyWidget = Cast<UBLEnemyEntryWidget>(Enemy);
 		if (EnemyWidget && EnemyWidget->Index == Index)

@@ -19,6 +19,7 @@ class BLADEOFLEGEND_API UBLBounceRangeAction : public UBLAction
 
 public:
 	void ActivateAction(UBLActionComponent* OwnerComponent) override;
+
 	void ExecuteAction(ABLCombatSlot* Target) override;
 
 protected:

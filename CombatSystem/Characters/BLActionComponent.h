@@ -30,8 +30,11 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-	/** Version if more information is needed (targets as ABLCombatSlot). */
 	void CreateAction(const FVector& OwnerSlotLocation, const TArray<ABLCombatSlot*>& Targets, const FCombatActionData& ActionData, AActor* CombatManagerActor);
+
+	void SetActions(const FCombatActions& InCombatActions);
+
+	void SetActions(const TArray<TSoftClassPtr<UBLAction>>& InActions);
 
 	/*********************
 	*  ACTION FLOW TYPES
@@ -62,7 +65,8 @@ public:
 	void MultipleInPlaceAction(TSubclassOf<APaperZDCharacter> EffectClass);
 
 	/***********************************************************************************************/
-		
+
+private:
 	/**
 	 * For DefaultMelee and ColumnMelee action flow.
 	 * Character executes action and returns to the slot after approaching target.
@@ -82,22 +86,24 @@ public:
 	 */
 	void ReachedActionDestination();
 
-	/** For MultipleRange action flow */
+	/** For MultipleRange action flow 
+	 *  Ends action when the last projectile reaches its target.
+	 */
 	void ReachedActionDestination(int32 Index, bool bLastProjectile);
 
-	/** For BounceRange action flow */
+	/** For BounceRange action flow
+	 *  If there is another target, sents the projectile. If not, ends action.
+	 */
 	void ReachedActionDestination(ABLRangeProjectile* Projectile, int32 Index);
 
 	/** Back to the owner slot after action */
 	void ReachedSlotLocation(FAIRequestID RequestID, const FPathFollowingResult& Result);
 
+	/** Used in multiple range action. Spawns and sends a projectile to the target. */
 	void SpawnProjectile(TSubclassOf<ABLRangeProjectile> ProjectileClass, UPaperFlipbook* ProjectileSprite);
 
 	UFUNCTION()
 	void EndAction(bool bResult);
-
-	void SetActions(const FCombatActions& InCombatActions);
-	void SetActions(const TArray<TSoftClassPtr<UBLAction>>& InActions);
 
 public:
 	FOnActionFinished OnActionFinished;
@@ -120,29 +126,25 @@ public:
 	UPROPERTY()
 	TSoftClassPtr<UBLAction> RunAwayAction;
 
+private:
+	UPROPERTY()
+	TObjectPtr<AAIController> AIC;
+
 	UPROPERTY()
 	TArray<TObjectPtr<ABLCombatSlot>> TargetSlots;
 
-	/** Pointer to created Action to prevent GC while it is still running. Nulled after end of action */
+	/** Pointer to created Action to prevent GC while it is still running. Nulled after end of action. */
 	UPROPERTY()
 	TObjectPtr<UBLAction> CurrentAction;
 
 	UPROPERTY()
 	FVector SlotLocation;
 
-	UPROPERTY()
-	FTransform SlotTransform;
+	/******* Variables needed for multiple range action. *******/
 
-	/** Counter for multiple projectiles to know when ends action*/
-	UPROPERTY()
+	/** Counter for multiple projectiles to know when ends action. */
 	int32 ProjectileTargetsNum;
 
-	UPROPERTY()
 	int32 ProjectileTargetIndex;
-
 	FTimerHandle ProjectileSpawnTimer;
-
-private:
-	UPROPERTY()
-	TObjectPtr<AAIController> AIC;
 };
