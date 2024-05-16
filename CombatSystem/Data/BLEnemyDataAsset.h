@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
-#include "BLCombatUtilities.h"
+#include "Core/BLCombatUtilities.h"
 #include "BLEnemyDataAsset.generated.h"
 
 class UBLAction;

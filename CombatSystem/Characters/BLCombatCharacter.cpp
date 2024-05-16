@@ -9,17 +9,12 @@
 #include "Components/SphereComponent.h"
 #include "AIController.h"
 #include "Kismet/GameplayStatics.h"
-#include "BLRangeProjectile.h"
-#include "Navigation/PathFollowingComponent.h"
-#include "Actions/BLAction.h"
 #include "Components/WidgetComponent.h"
 #include "UI/Entries/BLActionEntryData.h"
-#include "UI/Entries/BLItemEntryData.h"
-#include "BladeOfLegend/DAWID/Items/BLCombatItem.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "BLCombatSlot.h"
-#include "BLActionComponent.h"
-#include "BLStatusesComponent.h"
+#include "Core/BLCombatSlot.h"
+#include "CombatComponents/BLActionComponent.h"
+#include "CombatComponents/BLStatusesComponent.h"
 
 ABLCombatCharacter::ABLCombatCharacter()
 {

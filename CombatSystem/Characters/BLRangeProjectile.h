@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "BladeOfLegend/AREK/Character/BLBaseChar.h"
 #include "AIController.h"
-#include "BLCombatUtilities.h"
+#include "Core/BLCombatUtilities.h"
 #include "BLRangeProjectile.generated.h"
 
 class USphereComponent;

@@ -2,7 +2,7 @@
 
 
 #include "BLStatusesComponent.h"
-#include "BLCombatCharacter.h"
+#include "Characters/BLCombatCharacter.h"
 #include "PaperFlipbookComponent.h"
 
 UBLStatusesComponent::UBLStatusesComponent()

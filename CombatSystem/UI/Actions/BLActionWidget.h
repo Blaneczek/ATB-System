@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "BLCombatUtilities.h"
+#include "Core/BLCombatUtilities.h"
 #include "BLActionWidget.generated.h"
 
 class UTextBlock;

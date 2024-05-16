@@ -6,7 +6,7 @@
 #include "PaperZDAnimationComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Characters/BLCombatCharacter.h"
-#include "Characters/BLActionComponent.h"
+#include "CombatComponents/BLActionComponent.h"
 
 void UBLMultipleInPlaceAction::ActivateAction(UBLActionComponent* OwnerComponent)
 {

@@ -3,7 +3,7 @@
 
 #include "BLActionComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "BLRangeProjectile.h"
+#include "Characters/BLRangeProjectile.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "Actions/BLAction.h"
 #include "Components/WidgetComponent.h"
@@ -11,8 +11,8 @@
 #include "UI/Entries/BLItemEntryData.h"
 #include "BladeOfLegend/DAWID/Items/BLCombatItem.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "BLCombatSlot.h"
-#include "BLCombatCharacter.h"
+#include "Core/BLCombatSlot.h"
+#include "Characters/BLCombatCharacter.h"
 
 // Sets default values for this component's properties
 UBLActionComponent::UBLActionComponent()

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
-#include "BLCombatUtilities.h"
+#include "Core/BLCombatUtilities.h"
 #include "BLItemEntryData.generated.h"
 
 class UTexture2D;

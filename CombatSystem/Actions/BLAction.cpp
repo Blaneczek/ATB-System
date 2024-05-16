@@ -2,7 +2,7 @@
 
 
 #include "BLAction.h"
-#include "Characters/BLActionComponent.h"
+#include "CombatComponents/BLActionComponent.h"
 #include "Characters/BLCombatCharacter.h"
 
 void UBLAction::OnCreateAction(UBLActionComponent* OwnerComponent, ABLCombatCharacter* Owner, AActor* InCombatManager)

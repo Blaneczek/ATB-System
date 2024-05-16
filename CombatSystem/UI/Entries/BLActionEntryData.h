@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
-#include "BLCombatUtilities.h"
+#include "Core/BLCombatUtilities.h"
 #include "BLActionEntryData.generated.h"
 
 DECLARE_DELEGATE_OneParam(FOnNameChange, UBLActionEntryData* /*ActionEntry*/);

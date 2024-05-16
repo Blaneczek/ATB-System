@@ -2,7 +2,7 @@
 
 
 #include "BLDefaultMeleeAction.h"
-#include "Characters/BLActionComponent.h"
+#include "CombatComponents/BLActionComponent.h"
 #include "Characters/BLCombatCharacter.h"
 #include "PaperZDAnimInstance.h"
 #include "PaperZDAnimationComponent.h"

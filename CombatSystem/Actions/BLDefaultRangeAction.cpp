@@ -3,7 +3,7 @@
 
 #include "BLDefaultRangeAction.h"
 #include "Characters/BLCombatCharacter.h"
-#include "Characters/BLActionComponent.h"
+#include "CombatComponents/BLActionComponent.h"
 #include "PaperZDAnimInstance.h"
 #include "PaperZDAnimationComponent.h"
 #include "Kismet/GameplayStatics.h"

@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "BLCombatUtilities.h"
-#include "BLWindowDisplayInterface.h"
+#include "Others/BLWindowDisplayInterface.h"
 #include "BLCombatManager.generated.h"
 
 class ABLCombatSlot;

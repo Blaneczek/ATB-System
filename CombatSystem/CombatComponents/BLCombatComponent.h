@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "BLCombatUtilities.h"
+#include "Core/BLCombatUtilities.h"
 #include "BLCombatComponent.generated.h"
 
 /** Component given to enemy in Overworld, storing all the necessary data about the combat. */

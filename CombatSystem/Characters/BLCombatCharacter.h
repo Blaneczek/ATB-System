@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "BladeOfLegend/AREK/Character/BLBaseChar.h"
-#include "BLCombatUtilities.h"
+#include "Core/BLCombatUtilities.h"
 #include "AIController.h"
 #include "BLCombatCharacter.generated.h"
 

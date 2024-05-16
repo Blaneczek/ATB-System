@@ -3,8 +3,8 @@
 
 #include "BLMultipleDefaultMeleeAction.h"
 #include "Characters/BLCombatCharacter.h"
-#include "BLCombatSlot.h"
-#include "Characters/BLActionComponent.h"
+#include "Core/BLCombatSlot.h"
+#include "CombatComponents/BLActionComponent.h"
 #include "PaperZDAnimInstance.h"
 #include "PaperZDAnimationComponent.h"
 #include "Kismet/GameplayStatics.h"
